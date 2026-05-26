@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>東美游泳隊 · 後台管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:  #0a1628;
+  --deep:  #0d2244;
+  --panel: #111d35;
+  --card:  #162040;
+  --border:#1e3158;
+  --aqua:  #00b4d8;
+  --aqua2: #0077b6;
+  --gold:  #f4c430;
+  --green: #22c55e;
+  --red:   #ef4444;
+  --text:  #e2e8f0;
+  --muted: #64748b;
+  --font:  'Noto Sans TC', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--navy);color:var(--text);min-height:100vh;}
+
+/* ── LOGIN ── */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;
+  background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(0,119,182,0.25) 0%,transparent 70%),var(--navy);
+}
+.login-box{
+  width:100%;max-width:380px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:2.5rem 2rem;
+}
+.login-logo{
+  font-size:1.4rem;font-weight:700;
+  color:var(--aqua);text-align:center;margin-bottom:.4rem;
+}
+.login-logo span{color:var(--gold);}
+.login-sub{font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:2rem;}
+.form-group{margin-bottom:1.2rem;}
+.form-group label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:.4rem;letter-spacing:.06em;}
+.form-group input{
+  width:100%;padding:.7rem 1rem;
+  background:var(--deep);border:1px solid var(--border);
+  border-radius:4px;color:var(--text);font-family:var(--font);font-size:.9rem;
+  transition:border-color .2s;outline:none;
+}
+.form-group input:focus{border-color:var(--aqua);}
+.btn-login{
+  width:100%;padding:.8rem;
+  background:var(--aqua);color:var(--navy);
+  border:none;border-radius:4px;
+  font-family:var(--font);font-weight:700;font-size:.9rem;letter-spacing:.1em;
+  cursor:pointer;transition:.2s;
+}
+.btn-login:hover{background:#00c8f0;}
+.login-err{font-size:.78rem;color:var(--red);margin-top:.8rem;text-align:center;min-height:1.2em;}
+
+/* ── ADMIN SHELL ── */
+#adminShell{display:none;min-height:100vh;}
+
+/* sidebar */
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:220px;
+  background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;
+}
+.sidebar-logo{
+  padding:1.4rem 1.5rem;
+  font-weight:700;font-size:1rem;color:var(--aqua);
+  border-bottom:1px solid var(--border);
+}
+.sidebar-logo span{color:var(--gold);}
+.sidebar-logo small{display:block;font-size:.65rem;color:var(--muted);font-weight:400;margin-top:.2rem;}
+nav.side-nav{flex:1;padding:1rem 0;}
+.nav-item{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.7rem 1.5rem;
+  font-size:.85rem;color:var(--muted);
+  cursor:pointer;transition:.15s;border-left:3px solid transparent;
+}
+.nav-item:hover{color:var(--text);background:rgba(0,180,216,0.06);}
+.nav-item.active{color:var(--aqua);border-left-color:var(--aqua);background:rgba(0,180,216,0.08);}
+.nav-icon{font-size:1rem;width:20px;text-align:center;}
+.sidebar-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);}
+.btn-logout{
+  width:100%;padding:.6rem;
+  background:transparent;border:1px solid var(--border);
+  color:var(--muted);border-radius:4px;font-family:var(--font);font-size:.78rem;
+  cursor:pointer;transition:.2s;
+}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+/* main */
+.main{margin-left:220px;padding:2rem;}
+.page-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:2rem;flex-wrap:wrap;gap:1rem;
+}
+.page-title{font-size:1.3rem;font-weight:700;}
+.page-title small{display:block;font-size:.75rem;color:var(--muted);font-weight:400;margin-top:.2rem;}
+
+/* tabs */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* stats row */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:1.2rem 1.5rem;
+}
+.stat-card .num{font-size:2rem;font-weight:700;color:var(--aqua);line-height:1;}
+.stat-card .lbl{font-size:.72rem;color:var(--muted);margin-top:.3rem;letter-spacing:.08em;}
+
+/* table */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.table-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.8rem;
+}
+.table-toolbar h3{font-size:.9rem;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th{
+  padding:.7rem 1rem;text-align:left;
+  font-size:.72rem;letter-spacing:.1em;color:var(--muted);
+  background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);
+}
+td{
+  padding:.8rem 1rem;font-size:.83rem;
+  border-bottom:1px solid rgba(30,49,88,0.5);
+  vertical-align:middle;
+}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(0,180,216,0.04);}
+.td-truncate{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{
+  display:inline-block;padding:.2rem .6rem;border-radius:3px;
+  font-size:.68rem;letter-spacing:.06em;
+}
+.badge-gold{background:rgba(244,196,48,0.15);color:var(--gold);}
+.badge-aqua{background:rgba(0,180,216,0.15);color:var(--aqua);}
+.badge-green{background:rgba(34,197,94,0.15);color:var(--green);}
+
+/* action btns */
+.btn-icon{
+  background:none;border:none;cursor:pointer;padding:.3rem .5rem;
+  border-radius:3px;font-size:.85rem;transition:.15s;
+}
+.btn-icon:hover{background:rgba(255,255,255,0.08);}
+.btn-del:hover{color:var(--red);}
+
+/* primary btn */
+.btn-primary{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.55rem 1.2rem;
+  background:var(--aqua);color:var(--navy);
+  border:none;border-radius:4px;
+  font-family:var(--font);font-weight:700;font-size:.8rem;letter-spacing:.08em;
+  cursor:pointer;transition:.2s;
+}
+.btn-primary:hover{background:#00c8f0;}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.55rem 1.2rem;
+  background:transparent;color:var(--text);
+  border:1px solid var(--border);border-radius:4px;
+  font-family:var(--font);font-size:.8rem;
+  cursor:pointer;transition:.2s;
+}
+.btn-secondary:hover{border-color:var(--aqua);color:var(--aqua);}
+
+/* modal */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  z-index:500;align-items:center;justify-content:center;padding:1rem;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;width:100%;max-width:520px;
+  max-height:90vh;overflow-y:auto;
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);
+}
+.modal-header h3{font-size:.95rem;font-weight:600;}
+.btn-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:.2rem;}
+.btn-close:hover{color:var(--text);}
+.modal-body{padding:1.5rem;}
+.modal-footer{
+  display:flex;justify-content:flex-end;gap:.8rem;
+  padding:1rem 1.5rem;border-top:1px solid var(--border);
+}
+.mf-group{margin-bottom:1.2rem;}
+.mf-group label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:.4rem;}
+.mf-group input,.mf-group textarea,.mf-group select{
+  width:100%;padding:.65rem .9rem;
+  background:var(--deep);border:1px solid var(--border);
+  border-radius:4px;color:var(--text);font-family:var(--font);font-size:.85rem;
+  outline:none;transition:border-color .2s;
+}
+.mf-group input:focus,.mf-group textarea:focus,.mf-group select:focus{border-color:var(--aqua);}
+.mf-group textarea{resize:vertical;min-height:80px;}
+.mf-group select option{background:var(--deep);}
+
+/* toast */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;
+  background:var(--green);color:#fff;
+  padding:.8rem 1.5rem;border-radius:4px;
+  font-size:.85rem;font-weight:500;
+  opacity:0;transform:translateY(10px);
+  transition:.3s;pointer-events:none;z-index:9999;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{background:var(--red);}
+
+/* loading */
+.loading{color:var(--muted);font-size:.85rem;padding:2rem;text-align:center;}
+
+/* empty */
+.empty-state{padding:3rem;text-align:center;color:var(--muted);font-size:.85rem;}
+
+/* mobile */
+@media(max-width:700px){
+  .sidebar{width:100%;position:static;flex-direction:row;flex-wrap:wrap;height:auto;}
+  .main{margin-left:0;}
+  nav.side-nav{display:flex;flex-direction:row;padding:.5rem;}
+  .nav-item{padding:.5rem .8rem;border-left:none;border-bottom:3px solid transparent;}
+  .nav-item.active{border-bottom-color:var(--aqua);border-left:none;}
+  .sidebar-footer,.sidebar-logo small{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">東<span>美</span>游泳隊</div>
+    <div class="login-sub">後台管理系統</div>
+    <div class="form-group">
+      <label>管理員 Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@example.com">
+    </div>
+    <div class="form-group">
+      <label>密碼</label>
+      <input type="password" id="loginPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">登入</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN SHELL ══════════════ -->
+<div id="adminShell">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">東<span>美</span>游泳隊<small id="adminEmail"></small></div>
+    <nav class="side-nav">
+      <div class="nav-item active" data-tab="dashboard" onclick="switchTab(this)">
+        <span class="nav-icon">📊</span>總覽
+      </div>
+      <div class="nav-item" data-tab="news" onclick="switchTab(this)">
+        <span class="nav-icon">📰</span>最新動態
+      </div>
+      <div class="nav-item" data-tab="honours" onclick="switchTab(this)">
+        <span class="nav-icon">🏅</span>榮譽殿堂
+      </div>
+      <div class="nav-item" data-tab="coaches" onclick="switchTab(this)">
+        <span class="nav-icon">👨‍🏫</span>教練團隊
+      </div>
+      <div class="nav-item" data-tab="recruit" onclick="switchTab(this)">
+        <span class="nav-icon">📋</span>招生資訊
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="doLogout()">⏏ 登出</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="page-header">
+        <div class="page-title">總覽<small>Welcome back 👋</small></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="num" id="cnt-news">—</div><div class="lbl">最新動態</div></div>
+        <div class="stat-card"><div class="num" id="cnt-honours">—</div><div class="lbl">榮譽記錄</div></div>
+        <div class="stat-card"><div class="num" id="cnt-coaches">—</div><div class="lbl">教練人數</div></div>
+        <div class="stat-card"><div class="num" id="cnt-recruit">—</div><div class="lbl">招生班別</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar"><h3>🕐 最近新增的動態</h3></div>
+        <div id="recentNews"><div class="loading">載入中…</div></div>
+      </div>
+    </div>
+
+    <!-- NEWS -->
+    <div class="tab-content" id="tab-news">
+      <div class="page-header">
+        <div class="page-title">最新動態<small>管理網站公告與賽事消息</small></div>
+        <button class="btn-primary" onclick="openModal('news')">＋ 新增動態</button>
+      </div>
+      <div class="table-wrap">
+        <div id="newsList"><div class="loading">載入中…</div></div>
+      </div>
+    </div>
+
+    <!-- HONOURS -->
+    <div class="tab-content" id="tab-honours">
+      <div class="page-header">
+        <div class="page-title">榮譽殿堂<small>管理競賽獎項記錄</small></div>
+        <button class="btn-primary" onclick="openModal('honours')">＋ 新增獎項</button>
+      </div>
+      <div class="table-wrap">
+        <div id="honoursList"><div class="loading">載入中…</div></div>
+      </div>
+    </div>
+
+    <!-- COACHES -->
+    <div class="tab-content" id="tab-coaches">
+      <div class="page-header">
+        <div class="page-title">教練團隊<small>管理教練資料</small></div>
+        <button class="btn-primary" onclick="openModal('coaches')">＋ 新增教練</button>
+      </div>
+      <div class="table-wrap">
+        <div id="coachesList"><div class="loading">載入中…</div></div>
+      </div>
+    </div>
+
+    <!-- RECRUIT -->
+    <div class="tab-content" id="tab-recruit">
+      <div class="page-header">
+        <div class="page-title">招生資訊<small>管理班別與費用</small></div>
+        <button class="btn-primary" onclick="openModal('recruit')">＋ 新增班別</button>
+      </div>
+      <div class="table-wrap">
+        <div id="recruitList"><div class="loading">載入中…</div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- News Modal -->
+<div class="modal-overlay" id="modal-news">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-news-title">新增動態</h3>
+      <button class="btn-close" onclick="closeModal('news')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="news-id">
+      <div class="mf-group"><label>日期</label><input type="date" id="news-date"></div>
+      <div class="mf-group"><label>標題</label><input type="text" id="news-title" placeholder="例：全國錦標賽三金載譽歸來"></div>
+      <div class="mf-group"><label>內容描述</label><textarea id="news-desc" placeholder="簡短說明…"></textarea></div>
+      <div class="mf-group"><label>圖片網址（選填）</label><input type="url" id="news-img" placeholder="https://…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('news')">取消</button>
+      <button class="btn-primary" onclick="saveNews()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Honours Modal -->
+<div class="modal-overlay" id="modal-honours">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-honours-title">新增獎項</h3>
+      <button class="btn-close" onclick="closeModal('honours')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="honours-id">
+      <div class="mf-group">
+        <label>類別</label>
+        <select id="honours-cat">
+          <option>全國</option><option>縣市</option><option>分齡</option><option>其他</option>
+        </select>
+      </div>
+      <div class="mf-group"><label>賽事名稱</label><input type="text" id="honours-event" placeholder="例：全國分齡游泳錦標賽"></div>
+      <div class="mf-group"><label>選手姓名</label><input type="text" id="honours-name" placeholder="例：王小明"></div>
+      <div class="mf-group">
+        <label>獎項</label>
+        <select id="honours-award">
+          <option>🥇 第一名</option><option>🥈 第二名</option><option>🥉 第三名</option>
+          <option>🏅 前八名</option><option>🏆 團體獎</option>
+        </select>
+      </div>
+      <div class="mf-group"><label>年份</label><input type="number" id="honours-year" placeholder="2025" min="2000" max="2099"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('honours')">取消</button>
+      <button class="btn-primary" onclick="saveHonours()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Coaches Modal -->
+<div class="modal-overlay" id="modal-coaches">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-coaches-title">新增教練</h3>
+      <button class="btn-close" onclick="closeModal('coaches')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="coaches-id">
+      <div class="mf-group"><label>姓名</label><input type="text" id="coaches-name" placeholder="例：陳建宏"></div>
+      <div class="mf-group"><label>職稱</label><input type="text" id="coaches-role" placeholder="例：總教練"></div>
+      <div class="mf-group"><label>簡介</label><textarea id="coaches-bio" placeholder="教練背景…"></textarea></div>
+      <div class="mf-group"><label>證照（逗號分隔）</label><input type="text" id="coaches-certs" placeholder="例：中華民國A級教練, ASCA Level 3"></div>
+      <div class="mf-group"><label>圖片網址（選填）</label><input type="url" id="coaches-img" placeholder="https://…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('coaches')">取消</button>
+      <button class="btn-primary" onclick="saveCoaches()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recruit Modal -->
+<div class="modal-overlay" id="modal-recruit">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-recruit-title">新增班別</h3>
+      <button class="btn-close" onclick="closeModal('recruit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="recruit-id">
+      <div class="mf-group"><label>班別名稱</label><input type="text" id="recruit-name" placeholder="例：🐠 海豚班（幼兒啟蒙）"></div>
+      <div class="mf-group"><label>適合年齡</label><input type="text" id="recruit-age" placeholder="例：4 – 6 歲"></div>
+      <div class="mf-group"><label>說明</label><textarea id="recruit-desc" placeholder="班別介紹…"></textarea></div>
+      <div class="mf-group"><label>費用（選填）</label><input type="text" id="recruit-fee" placeholder="例：每月 $2,500"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('recruit')">取消</button>
+      <button class="btn-primary" onclick="saveRecruit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════ FIREBASE + JS ══════════════ -->
+<script type="module">
+import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, query, limit }
+                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* ── CONFIG ── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyAllss1eAGWAxzUshcOOXfqGtLP1ikSqfI",
+  authDomain:        "dongmei-swim.firebaseapp.com",
+  projectId:         "dongmei-swim",
+  storageBucket:     "dongmei-swim.firebasestorage.app",
+  messagingSenderId: "766030230820",
+  appId:             "1:766030230820:web:422a37a4ef2a1be627efb1"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* ── AUTH ── */
+window.doLogin = async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd   = document.getElementById('loginPwd').value;
+  const err   = document.getElementById('loginErr');
+  err.textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, email, pwd);
+  } catch(e) {
+    err.textContent = '帳號或密碼錯誤，請再試一次。';
+  }
+};
+
+window.doLogout = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminShell').style.display  = 'block';
+    document.getElementById('adminEmail').textContent    = user.email;
+    loadAll();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminShell').style.display  = 'none';
+  }
+});
+
+/* ── TAB SWITCH ── */
+window.switchTab = el => {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + el.dataset.tab).classList.add('active');
+};
+
+/* ── TOAST ── */
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err ? ' err' : '');
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+/* ── MODAL ── */
+window.openModal  = (type, data=null) => {
+  if (type === 'news') {
+    document.getElementById('modal-news-title').textContent = data ? '編輯動態' : '新增動態';
+    document.getElementById('news-id').value    = data?.id    || '';
+    document.getElementById('news-date').value  = data?.date  || new Date().toISOString().slice(0,10);
+    document.getElementById('news-title').value = data?.title || '';
+    document.getElementById('news-desc').value  = data?.desc  || '';
+    document.getElementById('news-img').value   = data?.img   || '';
+  } else if (type === 'honours') {
+    document.getElementById('modal-honours-title').textContent = data ? '編輯獎項' : '新增獎項';
+    document.getElementById('honours-id').value    = data?.id    || '';
+    document.getElementById('honours-cat').value   = data?.cat   || '全國';
+    document.getElementById('honours-event').value = data?.event || '';
+    document.getElementById('honours-name').value  = data?.name  || '';
+    document.getElementById('honours-award').value = data?.award || '🥇 第一名';
+    document.getElementById('honours-year').value  = data?.year  || new Date().getFullYear();
+  } else if (type === 'coaches') {
+    document.getElementById('modal-coaches-title').textContent = data ? '編輯教練' : '新增教練';
+    document.getElementById('coaches-id').value    = data?.id    || '';
+    document.getElementById('coaches-name').value  = data?.name  || '';
+    document.getElementById('coaches-role').value  = data?.role  || '';
+    document.getElementById('coaches-bio').value   = data?.bio   || '';
+    document.getElementById('coaches-certs').value = data?.certs || '';
+    document.getElementById('coaches-img').value   = data?.img   || '';
+  } else if (type === 'recruit') {
+    document.getElementById('modal-recruit-title').textContent = data ? '編輯班別' : '新增班別';
+    document.getElementById('recruit-id').value   = data?.id   || '';
+    document.getElementById('recruit-name').value = data?.name || '';
+    document.getElementById('recruit-age').value  = data?.age  || '';
+    document.getElementById('recruit-desc').value = data?.desc || '';
+    document.getElementById('recruit-fee').value  = data?.fee  || '';
+  }
+  document.getElementById('modal-' + type).classList.add('open');
+};
+window.closeModal = type => document.getElementById('modal-' + type).classList.remove('open');
+
+/* ── GENERIC CRUD ── */
+async function loadCollection(col) {
+  const snap = await getDocs(collection(db, col));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+async function saveDoc(col, id, data) {
+  if (id) {
+    await updateDoc(doc(db, col, id), data);
+  } else {
+    await addDoc(collection(db, col), data);
+  }
+}
+async function delDoc(col, id) {
+  await deleteDoc(doc(db, col, id));
+}
+
+/* ── LOAD ALL ── */
+async function loadAll() {
+  await Promise.all([loadNews(), loadHonours(), loadCoaches(), loadRecruit()]);
+  loadDashboard();
+}
+
+/* ════ NEWS ════ */
+let newsData = [];
+async function loadNews() {
+  newsData = await loadCollection('news');
+  newsData.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  document.getElementById('cnt-news').textContent = newsData.length;
+  renderNewsList();
+}
+function renderNewsList() {
+  const el = document.getElementById('newsList');
+  if (!newsData.length) { el.innerHTML = '<div class="empty-state">尚無資料，點擊右上角新增</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>日期</th><th>標題</th><th>描述</th><th>圖片</th><th></th></tr></thead>
+    <tbody>${newsData.map(r=>`
+      <tr>
+        <td>${r.date||'—'}</td>
+        <td><b>${r.title||''}</b></td>
+        <td class="td-truncate">${r.desc||''}</td>
+        <td>${r.img ? `<a href="${r.img}" target="_blank" style="color:var(--aqua);font-size:.75rem;">查看</a>` : '—'}</td>
+        <td>
+          <button class="btn-icon" onclick='editNews(${JSON.stringify(r)})'>✏️</button>
+          <button class="btn-icon btn-del" onclick="removeNews('${r.id}')">🗑️</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+window.editNews = data => openModal('news', data);
+window.removeNews = async id => {
+  if (!confirm('確定刪除？')) return;
+  await delDoc('news', id);
+  toast('已刪除');
+  loadNews().then(loadDashboard);
+};
+window.saveNews = async () => {
+  const id    = document.getElementById('news-id').value;
+  const data  = {
+    date:  document.getElementById('news-date').value,
+    title: document.getElementById('news-title').value.trim(),
+    desc:  document.getElementById('news-desc').value.trim(),
+    img:   document.getElementById('news-img').value.trim(),
+  };
+  if (!data.title) { toast('請填寫標題', true); return; }
+  await saveDoc('news', id, data);
+  closeModal('news');
+  toast(id ? '已更新' : '已新增 ✓');
+  loadNews().then(loadDashboard);
+};
+
+/* ════ HONOURS ════ */
+let honoursData = [];
+async function loadHonours() {
+  honoursData = await loadCollection('honours');
+  honoursData.sort((a,b) => (b.year||0)-(a.year||0));
+  document.getElementById('cnt-honours').textContent = honoursData.length;
+  renderHonoursList();
+}
+function renderHonoursList() {
+  const el = document.getElementById('honoursList');
+  if (!honoursData.length) { el.innerHTML = '<div class="empty-state">尚無資料</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>類別</th><th>賽事</th><th>選手</th><th>獎項</th><th>年份</th><th></th></tr></thead>
+    <tbody>${honoursData.map(r=>`
+      <tr>
+        <td><span class="badge badge-aqua">${r.cat||''}</span></td>
+        <td class="td-truncate">${r.event||''}</td>
+        <td>${r.name||''}</td>
+        <td>${r.award||''}</td>
+        <td>${r.year||''}</td>
+        <td>
+          <button class="btn-icon" onclick='editHonours(${JSON.stringify(r)})'>✏️</button>
+          <button class="btn-icon btn-del" onclick="removeHonours('${r.id}')">🗑️</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+window.editHonours = data => openModal('honours', data);
+window.removeHonours = async id => {
+  if (!confirm('確定刪除？')) return;
+  await delDoc('honours', id);
+  toast('已刪除');
+  loadHonours();
+};
+window.saveHonours = async () => {
+  const id   = document.getElementById('honours-id').value;
+  const data = {
+    cat:   document.getElementById('honours-cat').value,
+    event: document.getElementById('honours-event').value.trim(),
+    name:  document.getElementById('honours-name').value.trim(),
+    award: document.getElementById('honours-award').value,
+    year:  document.getElementById('honours-year').value,
+  };
+  if (!data.name || !data.event) { toast('請填寫選手與賽事', true); return; }
+  await saveDoc('honours', id, data);
+  closeModal('honours');
+  toast(id ? '已更新' : '已新增 ✓');
+  loadHonours();
+};
+
+/* ════ COACHES ════ */
+let coachesData = [];
+async function loadCoaches() {
+  coachesData = await loadCollection('coaches');
+  document.getElementById('cnt-coaches').textContent = coachesData.length;
+  renderCoachesList();
+}
+function renderCoachesList() {
+  const el = document.getElementById('coachesList');
+  if (!coachesData.length) { el.innerHTML = '<div class="empty-state">尚無資料</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>姓名</th><th>職稱</th><th>簡介</th><th>證照</th><th></th></tr></thead>
+    <tbody>${coachesData.map(r=>`
+      <tr>
+        <td><b>${r.name||''}</b></td>
+        <td>${r.role||''}</td>
+        <td class="td-truncate">${r.bio||''}</td>
+        <td class="td-truncate">${r.certs||''}</td>
+        <td>
+          <button class="btn-icon" onclick='editCoaches(${JSON.stringify(r)})'>✏️</button>
+          <button class="btn-icon btn-del" onclick="removeCoaches('${r.id}')">🗑️</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+window.editCoaches = data => openModal('coaches', data);
+window.removeCoaches = async id => {
+  if (!confirm('確定刪除？')) return;
+  await delDoc('coaches', id);
+  toast('已刪除');
+  loadCoaches();
+};
+window.saveCoaches = async () => {
+  const id   = document.getElementById('coaches-id').value;
+  const data = {
+    name:  document.getElementById('coaches-name').value.trim(),
+    role:  document.getElementById('coaches-role').value.trim(),
+    bio:   document.getElementById('coaches-bio').value.trim(),
+    certs: document.getElementById('coaches-certs').value.trim(),
+    img:   document.getElementById('coaches-img').value.trim(),
+  };
+  if (!data.name) { toast('請填寫姓名', true); return; }
+  await saveDoc('coaches', id, data);
+  closeModal('coaches');
+  toast(id ? '已更新' : '已新增 ✓');
+  loadCoaches();
+};
+
+/* ════ RECRUIT ════ */
+let recruitData = [];
+async function loadRecruit() {
+  recruitData = await loadCollection('recruit');
+  document.getElementById('cnt-recruit').textContent = recruitData.length;
+  renderRecruitList();
+}
+function renderRecruitList() {
+  const el = document.getElementById('recruitList');
+  if (!recruitData.length) { el.innerHTML = '<div class="empty-state">尚無資料</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>班別</th><th>年齡</th><th>費用</th><th>說明</th><th></th></tr></thead>
+    <tbody>${recruitData.map(r=>`
+      <tr>
+        <td><b>${r.name||''}</b></td>
+        <td>${r.age||''}</td>
+        <td>${r.fee||'—'}</td>
+        <td class="td-truncate">${r.desc||''}</td>
+        <td>
+          <button class="btn-icon" onclick='editRecruit(${JSON.stringify(r)})'>✏️</button>
+          <button class="btn-icon btn-del" onclick="removeRecruit('${r.id}')">🗑️</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+window.editRecruit = data => openModal('recruit', data);
+window.removeRecruit = async id => {
+  if (!confirm('確定刪除？')) return;
+  await delDoc('recruit', id);
+  toast('已刪除');
+  loadRecruit();
+};
+window.saveRecruit = async () => {
+  const id   = document.getElementById('recruit-id').value;
+  const data = {
+    name: document.getElementById('recruit-name').value.trim(),
+    age:  document.getElementById('recruit-age').value.trim(),
+    desc: document.getElementById('recruit-desc').value.trim(),
+    fee:  document.getElementById('recruit-fee').value.trim(),
+  };
+  if (!data.name) { toast('請填寫班別名稱', true); return; }
+  await saveDoc('recruit', id, data);
+  closeModal('recruit');
+  toast(id ? '已更新' : '已新增 ✓');
+  loadRecruit();
+};
+
+/* ════ DASHBOARD recent ════ */
+function loadDashboard() {
+  const recent = newsData.slice(0, 5);
+  const el = document.getElementById('recentNews');
+  if (!recent.length) { el.innerHTML = '<div class="empty-state">尚無動態</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>日期</th><th>標題</th><th>描述</th></tr></thead>
+    <tbody>${recent.map(r=>`
+      <tr>
+        <td>${r.date||'—'}</td>
+        <td><b>${r.title||''}</b></td>
+        <td class="td-truncate">${r.desc||''}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+</script>
+</body>
+</html>
