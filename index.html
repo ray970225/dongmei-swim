@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>東美游泳隊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Bebas+Neue&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ───────────────────────────────────────────
+     DESIGN TOKENS
+  ─────────────────────────────────────────── */
+  :root {
+    --navy:    #0a1628;
+    --deep:    #0d2244;
+    --water:   #0077b6;
+    --aqua:    #00b4d8;
+    --foam:    #90e0ef;
+    --gold:    #f4c430;
+    --cream:   #f8f4ec;
+    --white:   #ffffff;
+    --gray:    #6b7a8d;
+    --light:   #e8eef5;
+
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-serif:   'Noto Serif TC', serif;
+    --font-sans:    'Noto Sans TC', sans-serif;
+  }
+
+  /* ───────────────────────────────────────────
+     RESET & BASE
+  ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--navy);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; display: block; }
+  a  { text-decoration: none; color: inherit; }
+
+  /* ───────────────────────────────────────────
+     NAV
+  ─────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%;
+    height: 64px;
+    background: rgba(10,22,40,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,180,216,0.15);
+    transition: background 0.3s;
+  }
+  .nav-logo {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: .05em;
+    color: var(--aqua);
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: .85rem; font-weight: 500; letter-spacing: .08em;
+    color: var(--foam); opacity: .8;
+    transition: opacity .2s, color .2s;
+  }
+  .nav-links a:hover { opacity: 1; color: var(--gold); }
+  .nav-cta {
+    background: var(--aqua); color: var(--navy) !important;
+    padding: .4rem 1.2rem; border-radius: 2px;
+    font-weight: 700 !important; opacity: 1 !important;
+    letter-spacing: .1em;
+    transition: background .2s !important;
+  }
+  .nav-cta:hover { background: var(--gold) !important; }
+
+  /* hamburger */
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+  .hamburger span { display:block; width:24px; height:2px; background:var(--foam); border-radius:2px; transition:.3s; }
+
+  /* ───────────────────────────────────────────
+     HERO
+  ─────────────────────────────────────────── */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex; align-items: center;
+    overflow: hidden;
+    padding: 0 5%;
+  }
+
+  /* animated water background */
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 30%, rgba(0,119,182,0.4) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 20% 70%, rgba(0,180,216,0.2) 0%, transparent 60%),
+      linear-gradient(160deg, #0a1628 0%, #0d2244 50%, #0a2a4a 100%);
+  }
+
+  /* wave layers */
+  .wave-wrap { position:absolute; bottom:0; left:0; right:0; overflow:hidden; line-height:0; }
+  .wave-wrap svg { display:block; width:100%; }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0,180,216,0.3);
+    animation: ripple-out 4s linear infinite;
+    pointer-events: none;
+  }
+  .ripple:nth-child(1) { width:200px;height:200px; top:30%;left:60%; animation-delay:0s; }
+  .ripple:nth-child(2) { width:400px;height:400px; top:25%;left:57%; animation-delay:1s; }
+  .ripple:nth-child(3) { width:600px;height:600px; top:20%;left:55%; animation-delay:2s; }
+
+  @keyframes ripple-out {
+    0%   { transform:scale(0.5); opacity:.6; }
+    100% { transform:scale(1.5); opacity:0; }
+  }
+
+  /* lane lines */
+  .lane-lines {
+    position:absolute; top:0; left:0; right:0; bottom:0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent calc(100%/8 - 1px),
+      rgba(0,180,216,0.06) calc(100%/8 - 1px),
+      rgba(0,180,216,0.06) calc(100%/8)
+    );
+    pointer-events:none;
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    max-width: 680px;
+    padding-top: 80px;
+  }
+  .hero-eyebrow {
+    font-size: .8rem; letter-spacing: .3em;
+    color: var(--aqua); text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0; animation: fade-up .6s .2s forwards;
+  }
+  .hero-title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: fade-up .7s .4s forwards;
+  }
+  .hero-title .accent { color: var(--aqua); }
+  .hero-title .gold   { color: var(--gold); }
+  .hero-sub {
+    font-size: 1rem; line-height: 1.8;
+    color: rgba(255,255,255,0.7);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+    opacity: 0; animation: fade-up .7s .6s forwards;
+  }
+  .hero-btns {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    opacity: 0; animation: fade-up .7s .8s forwards;
+  }
+  .btn-primary {
+    display: inline-block;
+    background: var(--aqua); color: var(--navy);
+    padding: .85rem 2.2rem;
+    font-weight: 700; font-size: .9rem; letter-spacing: .12em;
+    border-radius: 2px;
+    transition: transform .2s, background .2s, box-shadow .2s;
+    box-shadow: 0 0 30px rgba(0,180,216,0.4);
+  }
+  .btn-primary:hover { background: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 30px rgba(244,196,48,0.5); }
+  .btn-outline {
+    display: inline-block;
+    border: 1.5px solid rgba(0,180,216,0.5); color: var(--foam);
+    padding: .85rem 2.2rem;
+    font-weight: 500; font-size: .9rem; letter-spacing: .1em;
+    border-radius: 2px;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .btn-outline:hover { border-color: var(--aqua); color: var(--aqua); background: rgba(0,180,216,0.08); }
+
+  .hero-stats {
+    position: absolute; bottom: 10%; right: 5%;
+    display: flex; gap: 2.5rem;
+    z-index: 2;
+    opacity: 0; animation: fade-up .7s 1s forwards;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 2.8rem; line-height: 1;
+    color: var(--aqua);
+  }
+  .stat-num span { font-size: 1.2rem; }
+  .stat-label { font-size: .7rem; letter-spacing: .15em; color: rgba(255,255,255,0.5); margin-top: .3rem; }
+
+  @keyframes fade-up {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ───────────────────────────────────────────
+     SECTION UTILITIES
+  ─────────────────────────────────────────── */
+  section { padding: 100px 5%; }
+  .section-eyebrow {
+    font-size: .75rem; letter-spacing: .3em; text-transform: uppercase;
+    color: var(--aqua); margin-bottom: .6rem;
+  }
+  .section-title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+  .section-title .gold { color: var(--gold); }
+  .section-title .aqua { color: var(--aqua); }
+  .section-lead {
+    font-size: .95rem; line-height: 1.9;
+    color: rgba(255,255,255,0.6);
+    max-width: 560px;
+    margin-bottom: 3rem;
+  }
+
+  /* divider */
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,180,216,0.3), transparent);
+    margin: 0;
+  }
+
+  /* ───────────────────────────────────────────
+     ABOUT
+  ─────────────────────────────────────────── */
+  #about {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--deep) 100%);
+  }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+  .about-visual {
+    position: relative;
+  }
+  .about-pool-graphic {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #0077b6 0%, #023e8a 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .about-pool-graphic::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 28px,
+      rgba(255,255,255,0.05) 28px,
+      rgba(255,255,255,0.05) 30px
+    );
+  }
+  .about-badge {
+    position: absolute; bottom: -20px; right: -20px;
+    width: 110px; height: 110px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--navy);
+    font-family: var(--font-serif);
+    font-weight: 900;
+    box-shadow: 0 8px 30px rgba(244,196,48,0.4);
+  }
+  .about-badge .big { font-size: 2rem; line-height: 1; }
+  .about-badge .small { font-size: .6rem; letter-spacing: .1em; }
+  .about-features { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; margin-top: 2rem; }
+  .about-features li {
+    display: flex; align-items: flex-start; gap: 1rem;
+    font-size: .9rem; line-height: 1.6; color: rgba(255,255,255,0.75);
+  }
+  .feat-icon {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    background: rgba(0,180,216,0.15);
+    border: 1px solid rgba(0,180,216,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+
+  /* ───────────────────────────────────────────
+     NEWS — dynamic from Google Sheets
+  ─────────────────────────────────────────── */
+  #news { background: var(--navy); }
+  .news-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .news-header a { font-size: .85rem; color: var(--aqua); letter-spacing: .1em; }
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  .news-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0,180,216,0.12);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .news-card:hover { transform: translateY(-4px); border-color: rgba(0,180,216,0.4); box-shadow: 0 8px 30px rgba(0,119,182,0.2); }
+  .news-card-img {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #0d2244, #023e8a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    overflow: hidden;
+  }
+  .news-card-img img { width:100%; height:100%; object-fit:cover; }
+  .news-card-body { padding: 1.2rem 1.4rem; }
+  .news-date { font-size: .72rem; color: var(--aqua); letter-spacing: .1em; margin-bottom: .5rem; }
+  .news-title-text { font-family: var(--font-serif); font-weight: 700; font-size: 1rem; line-height: 1.5; margin-bottom: .6rem; }
+  .news-desc { font-size: .82rem; line-height: 1.7; color: rgba(255,255,255,0.55); }
+  .news-loading { color: rgba(255,255,255,0.4); font-size: .9rem; padding: 2rem 0; }
+  .news-error  { color: #ff6b6b; font-size: .85rem; padding: 1rem 0; }
+
+  /* ───────────────────────────────────────────
+     COACHES
+  ─────────────────────────────────────────── */
+  #coaches { background: linear-gradient(180deg, var(--deep) 0%, var(--navy) 100%); }
+  .coaches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+  .coach-card {
+    text-align: center;
+  }
+  .coach-avatar {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 1.2rem;
+    background: linear-gradient(135deg, var(--water), var(--aqua));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    border: 3px solid rgba(0,180,216,0.3);
+    box-shadow: 0 0 30px rgba(0,119,182,0.3);
+    overflow: hidden;
+  }
+  .coach-avatar img { width:100%; height:100%; object-fit:cover; }
+  .coach-name { font-family: var(--font-serif); font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; }
+  .coach-role { font-size: .78rem; color: var(--aqua); letter-spacing: .12em; margin-bottom: .7rem; }
+  .coach-bio  { font-size: .82rem; line-height: 1.7; color: rgba(255,255,255,0.55); }
+  .coach-certs { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: .8rem; }
+  .cert-tag {
+    background: rgba(0,180,216,0.12); border: 1px solid rgba(0,180,216,0.25);
+    padding: .2rem .6rem; border-radius: 2px;
+    font-size: .68rem; letter-spacing: .08em; color: var(--foam);
+  }
+
+  /* ───────────────────────────────────────────
+     HONOURS — dynamic from Google Sheets
+  ─────────────────────────────────────────── */
+  #honours { background: var(--navy); }
+  .honours-filter {
+    display: flex; gap: .6rem; flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .filter-btn {
+    padding: .4rem 1.1rem;
+    background: transparent; border: 1px solid rgba(0,180,216,0.25);
+    color: rgba(255,255,255,0.6); border-radius: 2px;
+    font-size: .78rem; letter-spacing: .1em; cursor: pointer;
+    transition: .2s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--aqua); border-color: var(--aqua); color: var(--navy);
+  }
+  .honours-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.2rem;
+  }
+  .honour-card {
+    display: flex; align-items: center; gap: 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(0,180,216,0.1);
+    border-radius: 4px;
+    padding: 1.2rem;
+    transition: .2s;
+  }
+  .honour-card:hover { background: rgba(0,180,216,0.07); border-color: rgba(0,180,216,0.3); }
+  .honour-medal { font-size: 2rem; flex-shrink: 0; }
+  .honour-info {}
+  .honour-event { font-size: .72rem; color: var(--aqua); letter-spacing: .1em; margin-bottom: .3rem; }
+  .honour-name  { font-family: var(--font-serif); font-weight: 700; font-size: .95rem; margin-bottom: .2rem; }
+  .honour-detail{ font-size: .78rem; color: rgba(255,255,255,0.5); }
+
+  /* ───────────────────────────────────────────
+     RECRUIT
+  ─────────────────────────────────────────── */
+  #recruit {
+    background: linear-gradient(135deg, var(--deep) 0%, #012a4a 100%);
+    position: relative; overflow: hidden;
+  }
+  #recruit::before {
+    content: '';
+    position: absolute; top: -50%; right: -10%;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,180,216,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .recruit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: start;
+    position: relative; z-index: 1;
+  }
+  .recruit-groups { display: flex; flex-direction: column; gap: 1rem; margin: 2rem 0; }
+  .group-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0,180,216,0.15);
+    border-radius: 4px;
+    padding: 1.2rem 1.5rem;
+  }
+  .group-title { font-family: var(--font-serif); font-weight: 700; font-size: 1rem; color: var(--aqua); margin-bottom: .4rem; }
+  .group-age   { font-size: .78rem; color: var(--gold); margin-bottom: .5rem; }
+  .group-desc  { font-size: .82rem; line-height: 1.6; color: rgba(255,255,255,0.6); }
+
+  /* form placeholder */
+  .form-placeholder {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px dashed rgba(0,180,216,0.25);
+    border-radius: 4px;
+    padding: 3rem 2rem;
+    text-align: center;
+    color: rgba(255,255,255,0.3);
+    font-size: .85rem;
+    line-height: 1.8;
+  }
+  .form-placeholder .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  /* When iframe is embedded, just drop it in here */
+  .form-area iframe {
+    width: 100%; min-height: 600px; border: none;
+    border-radius: 4px; overflow: hidden;
+  }
+
+  /* ───────────────────────────────────────────
+     FOOTER
+  ─────────────────────────────────────────── */
+  footer {
+    background: #060e1c;
+    padding: 3rem 5%;
+    border-top: 1px solid rgba(0,180,216,0.1);
+  }
+  .footer-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1.5rem;
+  }
+  .footer-logo {
+    font-family: var(--font-serif); font-weight: 900; font-size: 1.1rem;
+    color: var(--aqua);
+  }
+  .footer-logo span { color: var(--gold); }
+  .footer-links { display: flex; gap: 1.5rem; list-style: none; flex-wrap: wrap; }
+  .footer-links a { font-size: .8rem; color: rgba(255,255,255,0.4); transition: color .2s; }
+  .footer-links a:hover { color: var(--aqua); }
+  .footer-copy { font-size: .75rem; color: rgba(255,255,255,0.25); }
+
+  /* ───────────────────────────────────────────
+     SCROLL REVEAL
+  ─────────────────────────────────────────── */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ───────────────────────────────────────────
+     RESPONSIVE
+  ─────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .about-grid, .recruit-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .hero-stats { position: static; margin-top: 3rem; justify-content: flex-start; }
+    #hero { flex-direction: column; justify-content: center; }
+    .hero-content { padding-top: 120px; }
+  }
+  @media (max-width: 640px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .nav-links.open {
+      display: flex; flex-direction: column; gap: 0;
+      position: absolute; top: 64px; left: 0; right: 0;
+      background: rgba(10,22,40,0.98);
+      padding: 1rem 5%;
+      border-bottom: 1px solid rgba(0,180,216,0.15);
+    }
+    .nav-links.open li { padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .coaches-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-stats { gap: 1.5rem; }
+    section { padding: 70px 5%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════ -->
+<nav id="navbar">
+  <div class="nav-logo">東<span>美</span>游泳隊</div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">關於我們</a></li>
+    <li><a href="#news">最新動態</a></li>
+    <li><a href="#coaches">教練團隊</a></li>
+    <li><a href="#honours">榮譽殿堂</a></li>
+    <li><a href="#recruit" class="nav-cta">立即報名</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="lane-lines"></div>
+  <div class="ripple"></div>
+  <div class="ripple"></div>
+  <div class="ripple"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">東美游泳隊 · 高雄 · 成立於 2005</p>
+    <h1 class="hero-title">
+      每一滴<span class="accent">汗水</span><br>
+      都是<span class="gold">金牌</span>的<br>
+      序幕
+    </h1>
+    <p class="hero-sub">
+      我們相信每個孩子都是天生的游泳者。<br>
+      專業訓練、溫暖陪伴，讓熱愛化為實力。
+    </p>
+    <div class="hero-btns">
+      <a href="#recruit" class="btn-primary">加入我們</a>
+      <a href="#about"   class="btn-outline">了解更多</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">20<span>+</span></div>
+        <div class="stat-label">創隊年</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">300<span>+</span></div>
+        <div class="stat-label">培育選手</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">150<span>+</span></div>
+        <div class="stat-label">競賽獎項</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wave-wrap">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#0a1628"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     ABOUT
+═══════════════════════════════════════════ -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-visual reveal">
+      <div class="about-pool-graphic">🏊</div>
+      <div class="about-badge">
+        <div class="big">20</div>
+        <div class="small">年歷史</div>
+      </div>
+    </div>
+    <div class="reveal">
+      <p class="section-eyebrow">關於我們</p>
+      <h2 class="section-title">游泳，<br>從熱情<span class="gold">到卓越</span></h2>
+      <p class="section-lead">
+        東美游泳隊成立於 2005 年，紮根高雄在地，以「競技精進、快樂游泳」為核心理念。
+        無論是初學幼兒、學齡培訓，還是衝擊全國賽事的競技選手，
+        我們都以量身定制的課程與全心投入的教練，陪伴每位隊員寫下屬於自己的故事。
+      </p>
+      <ul class="about-features">
+        <li>
+          <div class="feat-icon">🏅</div>
+          <div>多次全國分齡游泳競賽前三名，培養出無數代表高雄出征全國的優秀選手。</div>
+        </li>
+        <li>
+          <div class="feat-icon">👨‍🏫</div>
+          <div>教練團全數持有中華民國游泳教練證，平均執教資歷超過 10 年。</div>
+        </li>
+        <li>
+          <div class="feat-icon">👨‍👩‍👧</div>
+          <div>重視親師溝通，每月定期舉辦成果展示，讓家長看見孩子的成長軌跡。</div>
+        </li>
+        <li>
+          <div class="feat-icon">🌊</div>
+          <div>採用科學化訓練計畫，結合影像分析、體能監控，打造安全且高效的訓練環境。</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     NEWS  (動態資料 — Google Sheets)
+═══════════════════════════════════════════ -->
+<section id="news">
+  <div class="news-header reveal">
+    <div>
+      <p class="section-eyebrow">最新動態</p>
+      <h2 class="section-title">隊上<span class="aqua">最新消息</span></h2>
+    </div>
+    <a href="#news">查看全部 →</a>
+  </div>
+
+  <!-- 載入狀態 -->
+  <p class="news-loading" id="newsLoading">⏳ 資料載入中…</p>
+  <p class="news-error"   id="newsError"   style="display:none"></p>
+
+  <div class="news-grid" id="newsGrid"></div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     COACHES
+═══════════════════════════════════════════ -->
+<section id="coaches">
+  <div class="reveal">
+    <p class="section-eyebrow">教練團隊</p>
+    <h2 class="section-title">帶你突破<span class="gold">自我極限</span></h2>
+    <p class="section-lead">每位教練都曾是選手，深知賽池裡的艱辛與榮耀，更懂得如何因材施教。</p>
+  </div>
+  <div class="coaches-grid">
+
+    <div class="coach-card reveal">
+      <div class="coach-avatar">🏊</div>
+      <div class="coach-name">陳建宏 教練</div>
+      <div class="coach-role">總教練 · Head Coach</div>
+      <div class="coach-bio">前全國大學游泳錦標賽 100m 自由式冠軍，執教逾 18 年，培育 30+ 全國前八名選手。</div>
+      <div class="coach-certs">
+        <span class="cert-tag">中華民國 A 級教練</span>
+        <span class="cert-tag">ASCA Level 3</span>
+      </div>
+    </div>
+
+    <div class="coach-card reveal">
+      <div class="coach-avatar">🏊‍♀️</div>
+      <div class="coach-name">林雅婷 教練</div>
+      <div class="coach-role">幼兒組 · Youth Coach</div>
+      <div class="coach-bio">專精兒童水感開發與心理建設，帶領無數零基礎幼兒克服恐水、愛上游泳。</div>
+      <div class="coach-certs">
+        <span class="cert-tag">中華民國 B 級教練</span>
+        <span class="cert-tag">水上救生員</span>
+      </div>
+    </div>
+
+    <div class="coach-card reveal">
+      <div class="coach-avatar">🏅</div>
+      <div class="coach-name">王俊傑 教練</div>
+      <div class="coach-role">競技組 · Competition Coach</div>
+      <div class="coach-bio">前國家代表隊成員，蝶式＆背式專項，主攻技術分析與速度提升，協助多名選手破縣紀錄。</div>
+      <div class="coach-certs">
+        <span class="cert-tag">中華民國 A 級教練</span>
+        <span class="cert-tag">運動科學認證</span>
+      </div>
+    </div>
+
+    <div class="coach-card reveal">
+      <div class="coach-avatar">🎽</div>
+      <div class="coach-name">許佳玲 教練</div>
+      <div class="coach-role">體能訓練 · S&C Coach</div>
+      <div class="coach-bio">國立體育大學運動科學碩士，負責全隊陸上體能與防傷訓練，讓選手在水中更有力量。</div>
+      <div class="coach-certs">
+        <span class="cert-tag">NSCA-CSCS</span>
+        <span class="cert-tag">物理治療輔助</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     HONOURS  (動態資料 — Google Sheets)
+═══════════════════════════════════════════ -->
+<section id="honours">
+  <div class="reveal">
+    <p class="section-eyebrow">榮譽殿堂</p>
+    <h2 class="section-title">我們的<span class="gold">驕傲</span></h2>
+    <p class="section-lead">每一面獎牌背後，都是教練與選手共同流下的汗水與淚水。</p>
+  </div>
+
+  <div class="honours-filter reveal" id="honoursFilter">
+    <button class="filter-btn active" data-cat="all">全部</button>
+    <button class="filter-btn" data-cat="全國">全國賽</button>
+    <button class="filter-btn" data-cat="縣市">縣市賽</button>
+    <button class="filter-btn" data-cat="分齡">分齡賽</button>
+  </div>
+
+  <p class="news-loading" id="honoursLoading">⏳ 資料載入中…</p>
+  <p class="news-error"   id="honoursError"  style="display:none"></p>
+  <div class="honours-grid" id="honoursGrid"></div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     RECRUIT
+═══════════════════════════════════════════ -->
+<section id="recruit">
+  <div class="recruit-grid">
+    <div class="reveal">
+      <p class="section-eyebrow">加入我們</p>
+      <h2 class="section-title">招生<span class="aqua">報名</span></h2>
+      <p class="section-lead">現正開放下一期招生，名額有限，歡迎親子一同來試游！</p>
+
+      <div class="recruit-groups">
+        <div class="group-card">
+          <div class="group-title">🐠 海豚班（幼兒啟蒙）</div>
+          <div class="group-age">4 – 6 歲</div>
+          <div class="group-desc">從水感建立到基礎四式，在遊戲中培養自信，教練師生比 1:6，全程安全陪伴。</div>
+        </div>
+        <div class="group-card">
+          <div class="group-title">🐬 海豚班（兒童進階）</div>
+          <div class="group-age">7 – 12 歲</div>
+          <div class="group-desc">四式技術精進，啟蒙競賽思維，每學期安排隊內友誼賽，接軌正式競賽規格。</div>
+        </div>
+        <div class="group-card">
+          <div class="group-title">🦈 競技培訓班</div>
+          <div class="group-age">10 歲以上（需通過甄選）</div>
+          <div class="group-desc">以全國大賽為目標，系統化訓練計畫，週六加練，影像分析回饋，衝擊個人最佳成績。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <div class="form-area" id="formArea">
+        <!-- 換成你的 Google 表單 iframe，例如：
+        <iframe src="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true"></iframe>
+        -->
+        <div class="form-placeholder">
+          <div class="icon">📋</div>
+          <strong>招生表單</strong><br><br>
+          將此區塊替換為您的<br>
+          <strong>Google 表單 &lt;iframe&gt;</strong><br><br>
+          <small>設定 → 回應 → 取得預先填入連結<br>複製 embed 程式碼貼於此處</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">東<span>美</span>游泳隊</div>
+    <ul class="footer-links">
+      <li><a href="#about">關於我們</a></li>
+      <li><a href="#news">最新動態</a></li>
+      <li><a href="#coaches">教練介紹</a></li>
+      <li><a href="#honours">榮譽殿堂</a></li>
+      <li><a href="#recruit">招生報名</a></li>
+    </ul>
+    <p class="footer-copy">© 2025 東美游泳隊 · 高雄</p>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════ -->
+<script>
+/* ─── NAV ─── */
+function toggleMenu() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+
+/* ─── SCROLL REVEAL ─── */
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold: 0.12 }
+);
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ─── FILTER BUTTONS ─── */
+document.getElementById('honoursFilter').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHonours(btn.dataset.cat);
+});
+</script>
+
+<!-- Firebase 前台讀取 -->
+<script type="module">
+import { initializeApp }     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs }
+                              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyAllss1eAGWAxzUshcOOXfqGtLP1ikSqfI",
+  authDomain:        "dongmei-swim.firebaseapp.com",
+  projectId:         "dongmei-swim",
+  storageBucket:     "dongmei-swim.firebasestorage.app",
+  messagingSenderId: "766030230820",
+  appId:             "1:766030230820:web:422a37a4ef2a1be627efb1"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+function medalIcon(award='') {
+  if (award.includes('🥇')||award.includes('第一')) return '🥇';
+  if (award.includes('🥈')||award.includes('第二')) return '🥈';
+  if (award.includes('🥉')||award.includes('第三')) return '🥉';
+  return '🏅';
+}
+
+/* scroll reveal observer (已在上方 script 宣告，這裡重新取得) */
+const revealObs = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold: 0.12 }
+);
+
+/* ─── LOAD NEWS ─── */
+async function loadNews() {
+  const loadingEl = document.getElementById('newsLoading');
+  const errorEl   = document.getElementById('newsError');
+  try {
+    const snap = await getDocs(collection(db, 'news'));
+    let rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    rows.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    loadingEl.style.display = 'none';
+    const grid = document.getElementById('newsGrid');
+    if (!rows.length) { grid.innerHTML = '<p style="color:var(--gray);font-size:.85rem;">目前暫無消息，敬請期待。</p>'; return; }
+    grid.innerHTML = rows.map(r => `
+      <div class="news-card reveal">
+        <div class="news-card-img">
+          ${r.img ? `<img src="${r.img}" alt="${r.title||''}" loading="lazy">` : '🏊‍♂️'}
+        </div>
+        <div class="news-card-body">
+          <div class="news-date">${r.date||''}</div>
+          <div class="news-title-text">${r.title||'（無標題）'}</div>
+          <div class="news-desc">${r.desc||''}</div>
+        </div>
+      </div>`).join('');
+    grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  } catch(e) {
+    loadingEl.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.textContent = '⚠️ 動態載入失敗，請稍後再試。';
+  }
+}
+
+/* ─── LOAD HONOURS ─── */
+let allHonours = [];
+async function loadHonours() {
+  const loadingEl = document.getElementById('honoursLoading');
+  const errorEl   = document.getElementById('honoursError');
+  try {
+    const snap = await getDocs(collection(db, 'honours'));
+    allHonours = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allHonours.sort((a,b) => (b.year||0)-(a.year||0));
+    loadingEl.style.display = 'none';
+    renderHonours('all');
+  } catch(e) {
+    loadingEl.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.textContent = '⚠️ 榮譽資料載入失敗。';
+  }
+}
+
+function renderHonours(cat) {
+  const data = cat === 'all' ? allHonours : allHonours.filter(r => (r.cat||'').includes(cat));
+  const grid = document.getElementById('honoursGrid');
+  if (!data.length) { grid.innerHTML = '<p style="color:var(--gray);font-size:.85rem;padding:1rem 0;">尚無記錄。</p>'; return; }
+  grid.innerHTML = data.map(r => `
+    <div class="honour-card reveal">
+      <div class="honour-medal">${medalIcon(r.award||'')}</div>
+      <div class="honour-info">
+        <div class="honour-event">${r.event||''} · ${r.year||''}</div>
+        <div class="honour-name">${r.name||''}</div>
+        <div class="honour-detail">${r.award||''}</div>
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+}
+
+/* 讓 filter 按鈕能用 renderHonours */
+window._renderHonours = renderHonours;
+document.getElementById('honoursFilter').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHonours(btn.dataset.cat);
+});
+
+loadNews();
+loadHonours();
+</script>
+</body>
+</html>
