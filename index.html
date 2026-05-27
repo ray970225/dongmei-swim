@@ -236,7 +236,7 @@
       padding-left: clamp(5rem, 7vw, 8rem);
       padding-right: clamp(5rem, 7vw, 8rem);
     }
-    .hero-content { max-width: 720px; }
+    .hero-content { max-width: 600px; }
     .jelly-mark {
       width: min(39vw, 620px);
       right: clamp(4rem, 8vw, 10rem);
@@ -262,7 +262,7 @@
 
   .hero-content {
     position: relative; z-index: 2;
-    max-width: 680px;
+    max-width: 560px;
     padding-top: 80px;
     color: var(--white);
   }
@@ -312,7 +312,7 @@
   .hero-title {
     font-family: var(--font-serif);
     font-weight: 900;
-    font-size: 6.5rem;
+    font-size: clamp(3.9rem, 6.2vw, 5.55rem);
     line-height: 1.05;
     margin-bottom: 1.5rem;
     opacity: 0; animation: fade-up .7s .4s forwards;
@@ -872,15 +872,15 @@
       max-width: 17rem;
     }
     .hero-title {
-      font-size: 3.55rem;
+      font-size: 3.05rem;
       line-height: 1.12;
       margin-bottom: 1.25rem;
-      max-width: 20rem;
+      max-width: 18rem;
     }
     .hero-sub {
-      font-size: .95rem;
+      font-size: .9rem;
       line-height: 1.9;
-      max-width: 20rem;
+      max-width: 18rem;
       margin-bottom: 1.6rem;
       color: rgba(255,255,255,0.88);
     }
@@ -889,7 +889,7 @@
       grid-template-columns: 1fr 1fr;
       gap: .85rem;
       width: 100%;
-      max-width: 20rem;
+      max-width: 18rem;
     }
     .btn-primary,
     .btn-outline {
@@ -905,7 +905,7 @@
     }
     .hero-stats {
       width: 100%;
-      max-width: 20rem;
+      max-width: 18rem;
       gap: 1.2rem;
       justify-content: space-between;
       margin-top: 1.6rem;
@@ -943,13 +943,13 @@
   @media (max-width: 380px) {
     .hero-content { padding-top: 104px; }
     .hero-title {
-      font-size: 2.55rem;
-      max-width: 18rem;
+      font-size: 2.35rem;
+      max-width: 16.5rem;
     }
     .hero-sub,
     .hero-btns,
     .hero-stats {
-      max-width: 18rem;
+      max-width: 16.5rem;
     }
     .hero-btns { grid-template-columns: 1fr; }
     .jelly-mark {
