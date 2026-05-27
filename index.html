@@ -11,23 +11,23 @@
      DESIGN TOKENS
   ─────────────────────────────────────────── */
   :root {
-    --navy:    #08345f;
-    --deep:    #0b5f91;
-    --water:   #179bd7;
-    --aqua:    #16c2e8;
-    --foam:    #d9f7ff;
-    --gold:    #f4c430;
+    --navy:    #071d33;
+    --deep:    #0b3f68;
+    --water:   #127fb3;
+    --aqua:    #24c3df;
+    --foam:    #d7f5fb;
+    --gold:    #f2c84b;
     --cream:   #f8f4ec;
     --white:   #ffffff;
     --gray:    #60758a;
-    --light:   #f4fbff;
-    --ink:     #0a2742;
-    --muted:   #5f7488;
+    --light:   #eefaff;
+    --ink:     #09263d;
+    --muted:   #5d7487;
     --surface: #ffffff;
-    --line:    rgba(23,155,215,0.18);
-    --mist:    #e8f8fe;
-    --tide:    #c9edf8;
-    --mid:     #155f8f;
+    --line:    rgba(18,127,179,0.18);
+    --mist:    #e7f7fc;
+    --tide:    #c7eaf5;
+    --mid:     #155b87;
 
     --font-display: 'Bebas Neue', sans-serif;
     --font-serif:   'Noto Serif TC', serif;
@@ -56,9 +56,9 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 5%;
     height: 64px;
-    background: rgba(10,22,40,0.92);
+    background: rgba(7,29,51,0.92);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0,180,216,0.15);
+    border-bottom: 1px solid rgba(36,195,223,0.16);
     transition: background 0.3s;
   }
   .nav-logo {
@@ -105,8 +105,8 @@
   .hero-bg {
     position: absolute; inset: 0;
     background:
-      linear-gradient(90deg, rgba(6,24,48,0.94) 0%, rgba(8,35,66,0.88) 30%, rgba(8,86,132,0.2) 58%, rgba(233,249,255,0.08) 100%),
-      radial-gradient(ellipse 46% 48% at 78% 35%, rgba(112,206,232,0.5) 0%, rgba(112,206,232,0.18) 42%, transparent 72%),
+      linear-gradient(90deg, rgba(7,29,51,0.96) 0%, rgba(9,38,61,0.9) 30%, rgba(21,91,135,0.28) 58%, rgba(238,250,255,0.1) 100%),
+      radial-gradient(ellipse 46% 48% at 78% 35%, rgba(36,195,223,0.34) 0%, rgba(36,195,223,0.14) 42%, transparent 72%),
       linear-gradient(145deg, #f9fdff 0%, #d6f4fd 48%, #bfe9f7 100%);
   }
   .hero-bg::before {
@@ -115,8 +115,8 @@
     background:
       repeating-linear-gradient(
         90deg,
-        rgba(0,84,128,0.08) 0,
-        rgba(0,84,128,0.08) 1px,
+        rgba(18,127,179,0.08) 0,
+        rgba(18,127,179,0.08) 1px,
         transparent 1px,
         transparent 12.5%
       );
@@ -145,13 +145,13 @@
   }
   .jelly-mark {
     position: absolute;
-    width: min(44vw, 620px);
+    width: min(42vw, 600px);
     aspect-ratio: 1.1;
-    right: clamp(2rem, 8vw, 9rem);
-    top: clamp(7rem, 16vh, 11rem);
+    right: clamp(2rem, 7vw, 8rem);
+    top: clamp(7.5rem, 15vh, 10rem);
     animation: logo-float 7s ease-in-out infinite;
     transform-origin: 55% 54%;
-    filter: drop-shadow(0 26px 42px rgba(0,93,143,0.2));
+    filter: drop-shadow(0 28px 46px rgba(7,29,51,0.2));
   }
   .jelly-logo {
     position: absolute;
@@ -193,7 +193,7 @@
     transform: rotate(var(--wave-rotate, -4deg));
   }
   .water-ribbons span:nth-child(1) { top: 4%; --wave-rotate: -5deg; }
-  .water-ribbons span:nth-child(2) { top: 30%; --wave-rotate: 2deg; border-color: rgba(0,119,182,0.2); }
+  .water-ribbons span:nth-child(2) { top: 30%; --wave-rotate: 2deg; border-color: rgba(18,127,179,0.2); }
   .water-ribbons span:nth-child(3) { top: 55%; --wave-rotate: -2deg; border-color: rgba(255,255,255,0.46); }
 
   @keyframes bg-drift {
@@ -231,6 +231,22 @@
     }
   }
 
+  @media (min-width: 1200px) {
+    #hero {
+      padding-left: clamp(5rem, 7vw, 8rem);
+      padding-right: clamp(5rem, 7vw, 8rem);
+    }
+    .hero-content { max-width: 720px; }
+    .jelly-mark {
+      width: min(39vw, 620px);
+      right: clamp(4rem, 8vw, 10rem);
+    }
+    .hero-stats {
+      right: clamp(5rem, 8vw, 10rem);
+      bottom: 11%;
+    }
+  }
+
   /* lane lines */
   .lane-lines {
     position:absolute; top:0; left:0; right:0; bottom:0;
@@ -238,8 +254,8 @@
       90deg,
       transparent 0%,
       transparent calc(100%/8 - 1px),
-      rgba(0,119,182,0.08) calc(100%/8 - 1px),
-      rgba(0,119,182,0.08) calc(100%/8)
+      rgba(18,127,179,0.08) calc(100%/8 - 1px),
+      rgba(18,127,179,0.08) calc(100%/8)
     );
     pointer-events:none;
   }
@@ -284,18 +300,18 @@
     font-weight: 700; font-size: .9rem; letter-spacing: .12em;
     border-radius: 2px;
     transition: transform .2s, background .2s, box-shadow .2s;
-    box-shadow: 0 0 30px rgba(0,180,216,0.4);
+    box-shadow: 0 0 30px rgba(36,195,223,0.34);
   }
   .btn-primary:hover { background: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 30px rgba(244,196,48,0.5); }
   .btn-outline {
     display: inline-block;
-    border: 1.5px solid rgba(0,180,216,0.5); color: var(--foam);
+    border: 1.5px solid rgba(36,195,223,0.54); color: var(--foam);
     padding: .85rem 2.2rem;
     font-weight: 500; font-size: .9rem; letter-spacing: .1em;
     border-radius: 2px;
     transition: border-color .2s, color .2s, background .2s;
   }
-  .btn-outline:hover { border-color: var(--aqua); color: var(--aqua); background: rgba(0,180,216,0.08); }
+  .btn-outline:hover { border-color: var(--aqua); color: var(--aqua); background: rgba(36,195,223,0.1); }
 
   .hero-stats {
     position: absolute; bottom: 10%; right: 5%;
@@ -307,7 +323,8 @@
   .stat-num {
     font-family: var(--font-display);
     font-size: 2.8rem; line-height: 1;
-    color: var(--aqua);
+    color: #28c7e4;
+    text-shadow: 0 3px 18px rgba(7,29,51,0.24);
   }
   .stat-num span { font-size: 1.2rem; }
   .stat-label { font-size: .7rem; letter-spacing: .15em; color: rgba(255,255,255,0.5); margin-top: .3rem; }
@@ -320,7 +337,24 @@
   /* ───────────────────────────────────────────
      SECTION UTILITIES
   ─────────────────────────────────────────── */
-  section { padding: 100px 5%; }
+  section {
+    position: relative;
+    padding: 100px 5%;
+    overflow: hidden;
+  }
+  section:not(#hero)::before {
+    content: '';
+    position: absolute;
+    left: -6%;
+    right: -6%;
+    top: -1px;
+    height: 42px;
+    background:
+      radial-gradient(120% 70% at 18% 0%, rgba(255,255,255,0.28) 0 46%, transparent 47%),
+      radial-gradient(120% 70% at 70% 0%, rgba(255,255,255,0.18) 0 48%, transparent 49%);
+    opacity: .7;
+    pointer-events: none;
+  }
   .section-eyebrow {
     font-size: .75rem; letter-spacing: .3em; text-transform: uppercase;
     color: var(--water); margin-bottom: .6rem;
@@ -352,7 +386,7 @@
      ABOUT
   ─────────────────────────────────────────── */
   #about {
-    background: linear-gradient(180deg, #0b4775 0%, #247fab 48%, var(--tide) 100%);
+    background: linear-gradient(180deg, #09263d 0%, #0b3f68 36%, #155b87 72%, var(--tide) 100%);
     color: var(--white);
   }
   #about .section-lead,
@@ -371,7 +405,7 @@
     width: 100%;
     aspect-ratio: 1/1;
     border-radius: 4px;
-    background: linear-gradient(135deg, #6bdaf2 0%, #179bd7 52%, #0b5f91 100%);
+    background: linear-gradient(135deg, #55d1eb 0%, var(--water) 52%, var(--deep) 100%);
     display: flex; align-items: center; justify-content: center;
     font-size: 5rem;
     position: relative;
@@ -420,9 +454,7 @@
   /* ───────────────────────────────────────────
      NEWS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
-  #news {
-    background: linear-gradient(180deg, var(--tide) 0%, #f2fbff 42%, #ffffff 100%);
-  }
+  #news { background: linear-gradient(180deg, var(--tide) 0%, var(--mist) 44%, #f8fdff 100%); }
   #news .section-eyebrow,
   #coaches .section-eyebrow,
   #honours .section-eyebrow {
@@ -454,10 +486,10 @@
     border: 1px solid var(--line);
     border-radius: 4px;
     overflow: hidden;
-    transition: transform .2s, border-color .2s, box-shadow .2s;
-    box-shadow: 0 10px 30px rgba(8,52,95,0.06);
+    transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
+    box-shadow: 0 10px 30px rgba(7,29,51,0.06);
   }
-  .news-card:hover { transform: translateY(-4px); border-color: rgba(23,155,215,0.38); box-shadow: 0 14px 38px rgba(8,52,95,0.12); }
+  .news-card:hover { transform: translateY(-6px); border-color: rgba(18,127,179,0.38); box-shadow: 0 18px 42px rgba(7,29,51,0.13); }
   .news-card-img {
     width: 100%; aspect-ratio: 16/9;
     background: linear-gradient(135deg, #d9f7ff, #8ee4f4);
@@ -476,7 +508,7 @@
   /* ───────────────────────────────────────────
      COACHES
   ─────────────────────────────────────────── */
-  #coaches { background: linear-gradient(180deg, #ffffff 0%, var(--mist) 55%, #d9f3fb 100%); }
+  #coaches { background: linear-gradient(180deg, #f8fdff 0%, var(--mist) 52%, #d1edf6 100%); }
   .coaches-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -485,7 +517,9 @@
   }
   .coach-card {
     text-align: center;
+    transition: transform .24s ease;
   }
+  .coach-card:hover { transform: translateY(-4px); }
   .coach-avatar {
     width: 120px; height: 120px;
     border-radius: 50%;
@@ -493,11 +527,17 @@
     background: linear-gradient(135deg, var(--water), var(--aqua));
     display: flex; align-items: center; justify-content: center;
     font-size: 2.5rem;
-    border: 3px solid rgba(0,180,216,0.3);
-    box-shadow: 0 0 30px rgba(0,119,182,0.3);
+    border: 3px solid rgba(36,195,223,0.34);
+    box-shadow: 0 0 30px rgba(18,127,179,0.22);
     overflow: hidden;
+    transition: border-color .24s ease, box-shadow .24s ease, transform .24s ease;
   }
-  .coach-avatar img { width:100%; height:100%; object-fit:cover; }
+  .coach-avatar img { width:100%; height:100%; object-fit:cover; transition: transform .35s ease; }
+  .coach-card:hover .coach-avatar {
+    border-color: var(--gold);
+    box-shadow: 0 14px 34px rgba(18,127,179,0.24), 0 0 0 8px rgba(36,195,223,0.12);
+  }
+  .coach-card:hover .coach-avatar img { transform: scale(1.06); }
   .coach-name { font-family: var(--font-serif); font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; }
   .coach-role { font-size: .78rem; color: var(--aqua); letter-spacing: .12em; margin-bottom: .7rem; }
   .coach-bio  { font-size: .82rem; line-height: 1.7; color: var(--muted); }
@@ -511,24 +551,36 @@
   /* ───────────────────────────────────────────
      HONOURS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
-  #honours { background: linear-gradient(180deg, #d9f3fb 0%, #bfe6f4 48%, #0f5f8f 100%); }
-  #honours .filter-btn {
-    background: rgba(255,255,255,0.82);
-  }
+  #honours { background: linear-gradient(180deg, #d1edf6 0%, #91cfe4 42%, #155b87 78%, #0b3f68 100%); }
+  #honours .filter-btn { background: rgba(255,255,255,0.86); }
   .honours-filter {
     display: flex; gap: .6rem; flex-wrap: wrap;
     margin-bottom: 2rem;
   }
   .filter-btn {
     padding: .4rem 1.1rem;
-    background: rgba(255,255,255,0.7); border: 1px solid rgba(23,155,215,0.24);
+    background: rgba(255,255,255,0.7); border: 1px solid rgba(18,127,179,0.24);
     color: var(--deep); border-radius: 2px;
     font-size: .78rem; letter-spacing: .1em; cursor: pointer;
+    position: relative;
     transition: .2s;
+  }
+  .filter-btn::after {
+    content: '';
+    position: absolute;
+    left: .75rem;
+    right: .75rem;
+    bottom: -4px;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform .2s ease;
   }
   .filter-btn.active, .filter-btn:hover {
     background: var(--aqua); border-color: var(--aqua); color: var(--navy);
   }
+  .filter-btn.active::after { transform: scaleX(1); }
   .honours-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -536,14 +588,14 @@
   }
   .honour-card {
     display: flex; align-items: center; gap: 1rem;
-    background: rgba(255,255,255,0.92);
+    background: rgba(255,255,255,0.94);
     border: 1px solid var(--line);
     border-radius: 4px;
     padding: 1.2rem;
-    transition: .2s;
+    transition: transform .24s ease, background .24s ease, border-color .24s ease, box-shadow .24s ease;
     box-shadow: 0 10px 30px rgba(8,52,95,0.05);
   }
-  .honour-card:hover { background: #fafeff; border-color: rgba(23,155,215,0.34); box-shadow: 0 14px 34px rgba(8,52,95,0.1); }
+  .honour-card:hover { transform: translateY(-5px); background: #fafeff; border-color: rgba(18,127,179,0.34); box-shadow: 0 18px 38px rgba(7,29,51,0.13); }
   .honour-medal { font-size: 2rem; flex-shrink: 0; }
   .honour-info {}
   .honour-event { font-size: .72rem; color: var(--aqua); letter-spacing: .1em; margin-bottom: .3rem; }
@@ -566,8 +618,8 @@
     min-width: 2rem;
     height: 2rem;
     padding: 0 .65rem;
-    background: rgba(255,255,255,0.72);
-    border: 1px solid rgba(23,155,215,0.24);
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(18,127,179,0.24);
     color: var(--deep);
     border-radius: 2px;
     font-size: .75rem;
@@ -591,7 +643,7 @@
      RECRUIT
   ─────────────────────────────────────────── */
   #recruit {
-    background: linear-gradient(180deg, #0f5f8f 0%, var(--deep) 34%, #012a4a 100%);
+    background: linear-gradient(180deg, #0b3f68 0%, #092f50 38%, #06182b 100%);
     position: relative; overflow: hidden;
     color: var(--white);
   }
@@ -997,7 +1049,7 @@
 
     <div class="coach-card reveal">
       <div class="coach-avatar">
-        <img src="肉粽.jpg" alt="許峰銘教練">
+        <img src="肉粽.jpg" alt="許峰銘教練" onerror="this.onerror=null;this.src='cocah/肉粽.jpg';">
       </div>
       <div class="coach-name">許峰銘(肉粽教練)</div>
       <div class="coach-role">總教練 · Head Coach</div>
@@ -1009,7 +1061,7 @@
 
     <div class="coach-card reveal">
        <div class="coach-avatar">
-        <img src="菜粽.png" alt="許衞銘教練">
+        <img src="菜粽.png" alt="許衞銘教練" onerror="this.onerror=null;this.src='cocah/菜粽.png';">
       </div>
       <div class="coach-name">許衞銘(菜粽教練) </div>
       <div class="coach-role">助理總教練 · Associate Head Coach</div>
@@ -1021,7 +1073,7 @@
 
     <div class="coach-card reveal">
        <div class="coach-avatar">
-        <img src="梅子.png" alt="許素卿教練">
+        <img src="梅子.png" alt="許素卿教練" onerror="this.onerror=null;this.src='cocah/梅子.png';">
       </div>
       <div class="coach-name">許素卿(梅子教練)</div>
       <div class="coach-role">助理教練 · Assistant Coach</div>
@@ -1033,7 +1085,7 @@
 
     <div class="coach-card reveal">
       <div class="coach-avatar">
-        <img src="林世傑.png" alt="林世傑教練">
+        <img src="林世傑.png" alt="林世傑教練" onerror="this.onerror=null;this.src='cocah/林世傑.png';">
       </div>
       <div class="coach-name">林世傑</div>
       <div class="coach-role">助理教練 · Assistant Coach</div>
@@ -1045,7 +1097,7 @@
 
     <div class="coach-card reveal">
       <div class="coach-avatar">
-        <img src="趙苡霖.png" alt="趙苡霖教練">
+        <img src="趙苡霖.png" alt="趙苡霖教練" onerror="this.onerror=null;this.src='cocah/趙苡霖.png';">
       </div>
       <div class="coach-name">趙苡霖</div>
       <div class="coach-role">助理教練 · Assistant Coach</div>
@@ -1057,7 +1109,7 @@
 
     <div class="coach-card reveal">
       <div class="coach-avatar">
-        <img src="曾翊瑞.png" alt="曾翊瑞教練">
+        <img src="曾翊瑞.png" alt="曾翊瑞教練" onerror="this.onerror=null;this.src='cocah/曾翊瑞.png';">
       </div>
       <div class="coach-name">曾翊瑞</div>
       <div class="coach-role">志工助理教練 · Volunteer Coach</div>
@@ -1069,7 +1121,7 @@
 
      <div class="coach-card reveal">
       <div class="coach-avatar">
-        <img src="曾宥翔.jpg" alt="曾宥翔教練">
+        <img src="曾宥翔.jpg" alt="曾宥翔教練" onerror="this.onerror=null;this.src='cocah/曾宥翔.jpg';">
       </div>
       <div class="coach-name">曾宥翔 </div>
       <div class="coach-role">志工助理教練 · Volunteer Coach</div>
