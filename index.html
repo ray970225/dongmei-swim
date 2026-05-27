@@ -241,10 +241,6 @@
       width: min(39vw, 620px);
       right: clamp(4rem, 8vw, 10rem);
     }
-    .hero-stats {
-      right: clamp(5rem, 8vw, 10rem);
-      bottom: 11%;
-    }
   }
 
   /* lane lines */
@@ -272,8 +268,8 @@
     gap: .9rem;
     margin-bottom: 1.05rem;
     opacity: 0;
-    animation: fade-up .6s .2s forwards;
   }
+  body.intro-done .hero-brand { animation: fade-up .6s 0.05s forwards; }
   .hero-brand-name {
     font-family: var(--font-serif);
     font-weight: 900;
@@ -307,16 +303,18 @@
     font-size: .8rem; letter-spacing: .3em;
     color: var(--aqua); text-transform: uppercase;
     margin-bottom: 1rem;
-    opacity: 0; animation: fade-up .6s .2s forwards;
+    opacity: 0;
   }
+  body.intro-done .hero-eyebrow { animation: fade-up .6s 0.05s forwards; }
   .hero-title {
     font-family: var(--font-serif);
     font-weight: 900;
     font-size: clamp(3.9rem, 6.2vw, 5.55rem);
     line-height: 1.05;
     margin-bottom: 1.5rem;
-    opacity: 0; animation: fade-up .7s .4s forwards;
+    opacity: 0;
   }
+  body.intro-done .hero-title { animation: fade-up .7s 0.2s forwards; }
   .hero-title .accent { color: var(--aqua); }
   .hero-title .gold   { color: var(--gold); }
   .hero-sub {
@@ -324,12 +322,14 @@
     color: rgba(255,255,255,0.7);
     max-width: 480px;
     margin-bottom: 2.5rem;
-    opacity: 0; animation: fade-up .7s .6s forwards;
+    opacity: 0;
   }
+  body.intro-done .hero-sub { animation: fade-up .7s 0.35s forwards; }
   .hero-btns {
-    display: flex; gap: 1rem; flex-wrap: wrap;
-    opacity: 0; animation: fade-up .7s .8s forwards;
+    display: none; gap: 1rem; flex-wrap: wrap;
+    opacity: 0;
   }
+  body.intro-done .hero-btns { animation: fade-up .7s 0.5s forwards; }
   .btn-primary {
     display: inline-block;
     background: var(--aqua); color: var(--navy);
@@ -351,11 +351,13 @@
   .btn-outline:hover { border-color: var(--aqua); color: var(--aqua); background: rgba(36,195,223,0.1); }
 
   .hero-stats {
-    position: absolute; bottom: 10%; right: 5%;
+    position: static;
     display: flex; gap: 2.5rem;
     z-index: 2;
-    opacity: 0; animation: fade-up .7s 1s forwards;
+    margin-top: 1.8rem;
+    opacity: 0;
   }
+  body.intro-done .hero-stats { animation: fade-up .7s 0.65s forwards; }
   .stat { text-align: center; }
   .stat-num {
     font-family: var(--font-display);
@@ -841,9 +843,11 @@
       padding: 0 6%;
     }
     .hero-content {
+      display: flex;
+      flex-direction: column;
       width: 100%;
       max-width: 100%;
-      padding-top: 112px;
+      padding-top: 88px;
     }
     .hero-brand {
       display: flex;
@@ -874,14 +878,14 @@
     .hero-title {
       font-size: 3.05rem;
       line-height: 1.12;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.55rem;
       max-width: 18rem;
     }
     .hero-sub {
       font-size: .9rem;
       line-height: 1.9;
       max-width: 18rem;
-      margin-bottom: 1.6rem;
+      margin-bottom: 2.2rem;
       color: rgba(255,255,255,0.88);
     }
     .hero-btns {
@@ -909,6 +913,7 @@
       gap: 1.2rem;
       justify-content: space-between;
       margin-top: 1.6rem;
+      margin-bottom: 0;
     }
     .stat-num {
       font-size: 2.45rem;
@@ -941,7 +946,7 @@
     section { padding: 70px 5%; }
   }
   @media (max-width: 380px) {
-    .hero-content { padding-top: 104px; }
+    .hero-content { padding-top: 82px; }
     .hero-title {
       font-size: 2.35rem;
       max-width: 16.5rem;
@@ -959,9 +964,165 @@
       opacity: .24;
     }
   }
+
+  /* ───────────────────────────────────────────
+     INTRO OVERLAY
+     流程：大亂碼 → 逐字解碼 → 縮小至 Hero 尺寸 → overlay 淡出
+  ─────────────────────────────────────────── */
+
+  #intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: var(--navy, #071d33);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 5%;
+    overflow: hidden;
+    pointer-events: all;
+    transition: opacity 0.6s ease;
+  }
+  #intro-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #intro-brand {
+    font-family: var(--font-serif, 'Noto Serif TC', serif);
+    font-weight: 900;
+    /* 初始大尺寸 */
+    font-size: clamp(3.5rem, 8vw, 6rem);
+    line-height: 1;
+    letter-spacing: .08em;
+    color: var(--white, #fff);
+    text-shadow: 0 10px 40px rgba(7,29,51,0.5);
+    white-space: nowrap;
+    /* 縮小動畫用 */
+    transition: font-size 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                letter-spacing 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                text-shadow 0.55s ease;
+  }
+  /* 解碼完觸發此 class，字縮回 hero brand 大小 */
+  #intro-brand.shrink {
+    font-size: clamp(1.45rem, 2.4vw, 2.25rem);
+    letter-spacing: .08em;
+    text-shadow: 0 10px 28px rgba(7,29,51,0.36);
+  }
+
+  /* 頁面其他內容在 intro 期間隱藏 */
+  body.intro-running > *:not(#intro-overlay) {
+    opacity: 0;
+    pointer-events: none;
+  }
+  body.intro-done > *:not(#intro-overlay) {
+    opacity: 1;
+    pointer-events: auto;
+  }
 </style>
 </head>
-<body>
+<body class="intro-running">
+
+<!-- ═══ INTRO OVERLAY ═══ -->
+<div id="intro-overlay" aria-hidden="true">
+  <div id="intro-brand"></div>
+</div>
+
+<script>
+(function () {
+  var TARGET   = 'TMSC東美游泳隊';
+  var GOLD_IDX = 5; /* 「美」字 */
+  var CHARS_EN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*!';
+  var CHARS_ZH = '游泳水波速力訓練健競選手技術隊員強衝';
+
+  function randChar(ch) {
+    var pool = /[\u4e00-\u9fff]/.test(ch) ? CHARS_ZH : CHARS_EN;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function renderChars(chars) {
+    return chars.map(function(c, i) {
+      var style = (i === GOLD_IDX) ? 'color:var(--gold,#f2c84b);' : '';
+      return '<span style="' + style + '">' + c + '</span>';
+    }).join('');
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    var overlay  = document.getElementById('intro-overlay');
+    var brandEl  = document.getElementById('intro-brand');
+    var len      = TARGET.length;
+    var current  = TARGET.split('').map(randChar);
+    brandEl.innerHTML = renderChars(current);
+
+    /* ① 純亂碼閃爍（600ms） */
+    var timer = setInterval(function () {
+      current = TARGET.split('').map(randChar);
+      brandEl.innerHTML = renderChars(current);
+    }, 55);
+
+    setTimeout(function () {
+      clearInterval(timer);
+
+      /* ② 逐字解碼（1200ms） */
+      var duration = 1200;
+      var start    = null;
+      var locked   = new Array(len).fill(false);
+
+      function frame(ts) {
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+
+        for (var i = 0; i < len; i++) {
+          if (locked[i]) continue;
+          var revealAt = (i / len) * 0.75;
+          if (progress >= revealAt) {
+            var p = (progress - revealAt) / 0.22;
+            if (Math.random() < p || p >= 1) {
+              current[i] = TARGET[i];
+              locked[i]  = true;
+            } else {
+              current[i] = randChar(TARGET[i]);
+            }
+          } else {
+            current[i] = randChar(TARGET[i]);
+          }
+        }
+
+        brandEl.innerHTML = renderChars(current);
+
+        if (locked.some(function(v){ return !v; }) || progress < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          /* 全部定格 */
+          current = TARGET.split('');
+          brandEl.innerHTML = renderChars(current);
+
+          /* ③ 短暫定格（300ms）後縮小 */
+          setTimeout(function () {
+            brandEl.classList.add('shrink');
+
+            /* ④ 縮小動畫結束（550ms）後 overlay 淡出 */
+            brandEl.addEventListener('transitionend', function handler(e) {
+              if (e.propertyName !== 'font-size') return;
+              brandEl.removeEventListener('transitionend', handler);
+
+              overlay.classList.add('fade-out');
+              document.body.classList.remove('intro-running');
+              document.body.classList.add('intro-done');
+
+              overlay.addEventListener('transitionend', function () {
+                overlay.style.display = 'none';
+              }, { once: true });
+            });
+          }, 300);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }, 600);
+  });
+})();
+</script>
 
 <!-- ═══════════════════════════════════════════
      NAV
@@ -1031,7 +1192,7 @@
 
   <div class="hero-content">
     <div class="hero-brand" aria-label="東美游泳隊，高雄，成立於 1998">
-      <span class="hero-brand-name">東<span>美</span>游泳隊</span>
+      <span class="hero-brand-name">TMSC東<span>美</span>游泳隊</span>
       <span class="hero-brand-meta">高雄 · 成立於 1998</span>
     </div>
     <h1 class="hero-title">
