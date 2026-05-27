@@ -971,11 +971,11 @@ function renderHonours(cat) {
             const time  = parts[1]||'';
             const award = parts.slice(2).join(' ')||'';
             const medal = award.includes('第一') ? '🥇' : award.includes('第二') ? '🥈' : award.includes('第三') ? '🥉' : '🏅';
-            return \`<div class="honour-item">
-              <span class="hi-event">\${event}</span>
-              \${time ? \`<span class="hi-time">\${time}</span>\` : ''}
-              \${award ? \`<span class="hi-award">\${medal} \${award}</span>\` : ''}
-            </div>\`;
+            return `<div class="honour-item">
+              <span class="hi-event">${event}</span>
+              ${time ? `<span class="hi-time">${time}</span>` : ''}
+              ${award ? `<span class="hi-award">${medal} ${award}</span>` : ''}
+            </div>`;
           }).join('')
         }</div>
       </div>
