@@ -413,6 +413,11 @@
   .honour-event { font-size: .72rem; color: var(--aqua); letter-spacing: .1em; margin-bottom: .3rem; }
   .honour-name  { font-family: var(--font-serif); font-weight: 700; font-size: .95rem; margin-bottom: .2rem; }
   .honour-detail{ font-size: .78rem; color: rgba(255,255,255,0.5); }
+  .honour-items { display:flex; flex-direction:column; gap:.2rem; margin-top:.3rem; }
+  .honour-item  { font-size:.75rem; color:rgba(255,255,255,0.55); display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+  .honour-item .hi-event { color:rgba(255,255,255,0.8); }
+  .honour-item .hi-time  { color:var(--aqua); }
+  .honour-item .hi-award { color:rgba(255,255,255,0.45); }
 
   /* ───────────────────────────────────────────
      RECRUIT
@@ -431,8 +436,8 @@
   }
   .recruit-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5rem;
+    grid-template-columns: 3fr 2fr;
+    gap: 3rem;
     align-items: start;
     position: relative; z-index: 1;
   }
@@ -552,7 +557,7 @@
   <div class="ripple"></div>
 
   <div class="hero-content">
-    <p class="hero-eyebrow">東美游泳隊 · 高雄 · 成立於 2005</p>
+    <p class="hero-eyebrow">東美游泳隊 · 高雄 · 成立於 1998</p>
     <h1 class="hero-title">
       每一滴<span class="accent">汗水</span><br>
       都是<span class="gold">金牌</span>的<br>
@@ -595,9 +600,11 @@
 <section id="about">
   <div class="about-grid">
     <div class="about-visual reveal">
-      <div class="about-pool-graphic">🏊</div>
+      <div class="about-pool-graphic">
+        <img src="https://scontent.fkhh3-2.fna.fbcdn.net/v/t51.82787-15/631458564_18311896912269241_6825807366635126480_n.jpg?stp=dst-jpegr_tt6&_nc_cat=100&ccb=1-7&_nc_sid=127cfc&_nc_ohc=wAXnE5McO8sQ7kNvwFcmrO9&_nc_oc=AdpwIhxLk8mqHy_BSRdhNFQMohVO7s5zr1IW87Cmkg48XJvR98NvTyDGSAh4TaMsUdw&_nc_zt=23&se=-1&_nc_ht=scontent.fkhh3-2.fna&_nc_gid=7OEHnA2OxXixr5rZDZ2f1A&_nc_ss=7a2a8&oh=00_Af6P17ZTBwFKyA-FrqIJxzIs5JjCmeZXn2zZjqAY-CqYPA&oe=6A1C2AAC" alt="東美游泳隊" style="width:100%;height:100%;object-fit:cover;">
+      </div>
       <div class="about-badge">
-        <div class="big">20</div>
+        <div class="big">28</div>
         <div class="small">年歷史</div>
       </div>
     </div>
@@ -612,7 +619,7 @@
       <ul class="about-features">
         <li>
           <div class="feat-icon">🏅</div>
-          <div>多次全國分齡游泳競賽前三名，培養出無數代表高雄出征全國的優秀選手。</div>
+          <div>多次全國分齡游泳與全中運競賽前三名，培養出無數代表高雄出征全國的優秀選手。</div>
         </li>
         <li>
           <div class="feat-icon">👨‍🏫</div>
@@ -624,7 +631,7 @@
         </li>
         <li>
           <div class="feat-icon">🌊</div>
-          <div>採用科學化訓練計畫，結合影像分析、體能監控，打造安全且高效的訓練環境。</div>
+          <div>採用科學化訓練計畫，打造安全且高效的訓練環境。</div>
         </li>
       </ul>
     </div>
@@ -664,47 +671,87 @@
   <div class="coaches-grid">
 
     <div class="coach-card reveal">
-      <div class="coach-avatar">🏊</div>
-      <div class="coach-name">a 教練</div>
+      <div class="coach-avatar">
+        <img src="肉粽.jpg" alt="許峰銘教練">
+      </div>
+      <div class="coach-name">許峰銘(肉粽教練)</div>
       <div class="coach-role">總教練 · Head Coach</div>
-      <div class="coach-bio">前全國大學游泳錦標賽 100m 自由式冠軍，執教逾 18 年，培育 30+ 全國前八名選手。</div>
+      <div class="coach-bio">國內200公尺自由式游進2分鐘內的第1人。執教逾 18 年，培育 30+ 全國前八名選手。</div>
       <div class="coach-certs">
         <span class="cert-tag">中華民國 A 級教練</span>
-        <span class="cert-tag">ASCA Level 3</span>
       </div>
     </div>
 
     <div class="coach-card reveal">
-      <div class="coach-avatar">🏊‍♀️</div>
-      <div class="coach-name">b 教練</div>
-      <div class="coach-role">幼兒組 · Youth Coach</div>
-      <div class="coach-bio">專精兒童水感開發與心理建設，帶領無數零基礎幼兒克服恐水、愛上游泳。</div>
+       <div class="coach-avatar">
+        <img src="菜粽.png" alt="許衞銘教練">
+      </div>
+      <div class="coach-name">許衞銘(菜粽教練) </div>
+      <div class="coach-role">助理總教練 · Associate Head Coach</div>
+      <div class="coach-bio">暫定</div>
       <div class="coach-certs">
-        <span class="cert-tag">中華民國 B 級教練</span>
-        <span class="cert-tag">水上救生員</span>
+        <span class="cert-tag">中華民國 C 級教練</span>
       </div>
     </div>
 
     <div class="coach-card reveal">
-      <div class="coach-avatar">🏅</div>
-      <div class="coach-name">c 教練</div>
-      <div class="coach-role">競技組 · Competition Coach</div>
-      <div class="coach-bio">前國家代表隊成員，蝶式＆背式專項，主攻技術分析與速度提升，協助多名選手破縣紀錄。</div>
+       <div class="coach-avatar">
+        <img src="梅子.png" alt="許素卿教練">
+      </div>
+      <div class="coach-name">許素卿(梅子教練)</div>
+      <div class="coach-role">助理教練 · Assistant Coach</div>
+      <div class="coach-bio"> 暫定</div>
       <div class="coach-certs">
         <span class="cert-tag">中華民國 A 級教練</span>
-        <span class="cert-tag">運動科學認證</span>
       </div>
     </div>
 
     <div class="coach-card reveal">
-      <div class="coach-avatar">🎽</div>
-      <div class="coach-name">D 教練</div>
-      <div class="coach-role">體能訓練 · S&C Coach</div>
-      <div class="coach-bio">國立體育大學運動科學碩士，負責全隊陸上體能與防傷訓練，讓選手在水中更有力量。</div>
-      <div class="coach-certs">
-        <span class="cert-tag">NSCA-CSCS</span>
-        <span class="cert-tag">物理治療輔助</span>
+      <div class="coach-avatar">
+        <img src="林世傑.png" alt="林世傑教練">
       </div>
+      <div class="coach-name">林世傑</div>
+      <div class="coach-role">助理教練 · Assistant Coach</div>
+      <div class="coach-bio">前台灣男子 100 公尺、200 公尺仰式全國紀錄保持人，曾獲選為國家代表隊國手</div>
+      <div class="coach-certs">
+        <span class="cert-tag">中華民國C級教練</span>
+      </div>
+    </div>
+
+    <div class="coach-card reveal">
+      <div class="coach-avatar">
+        <img src="趙苡霖.png" alt="趙苡霖教練">
+      </div>
+      <div class="coach-name">趙苡霖</div>
+      <div class="coach-role">助理教練 · Assistant Coach</div>
+      <div class="coach-bio">暫定</div>
+      <div class="coach-certs">
+        <span class="cert-tag">中華民國C級教練</spa>
+      </div>
+    </div>
+
+    <div class="coach-card reveal">
+      <div class="coach-avatar">
+        <img src="曾翊瑞.png" alt="曾翊瑞教練">
+      </div>
+      <div class="coach-name">曾翊瑞</div>
+      <div class="coach-role">志工助理教練 · Volunteer Coach</div>
+      <div class="coach-bio">暫定</div>
+      <div class="coach-certs">
+        <spa class="cert-tag">暫定</spa>
+      </div>
+    </div>
+
+     <div class="coach-card reveal">
+      <div class="coach-avatar">
+        <img src="曾宥翔.jpg" alt="曾宥翔教練">
+      </div>
+      <div class="coach-name">曾宥翔 </div>
+      <div class="coach-role">志工助理教練 · Volunteer Coach</div>
+      <div class="coach-bio">全國青少年盃多項前三，全中運800自接銀牌</div>
+      <div class="coach-certs">
+        <spa class="cert-tag">暫定</spa>
+     </div>
     </div>
 
   </div>
@@ -746,19 +793,24 @@
 
       <div class="recruit-groups">
         <div class="group-card">
-          <div class="group-title">🐠 海豚班（幼兒啟蒙）</div>
-          <div class="group-age">4 – 6 歲</div>
-          <div class="group-desc">從水感建立到基礎四式，在遊戲中培養自信，教練師生比 1:6，全程安全陪伴。</div>
+          <div class="group-title">🐟 幼熊組（兒童初階）</div>
+          <div class="group-age">5 - 10歲</div>
+          <div class="group-desc">先決條件-必須能夠以自由式和仰式游25公尺。並讓他們知道游泳是一種樂趣，重點是教導競技游泳運動的基礎知識，包括四種泳姿及發展競技游泳所需的技能。適合剛完成初學課程的初學者，並將努力能夠參加游泳比賽，目標進入下一個級別。</div>
         </div>
         <div class="group-card">
-          <div class="group-title">🐬 海豚班（兒童進階）</div>
-          <div class="group-age">7 – 12 歲</div>
-          <div class="group-desc">四式技術精進，啟蒙競賽思維，每學期安排隊內友誼賽，接軌正式競賽規格。</div>
+          <div class="group-title">🐠 藍熊組（兒童進階）</div>
+          <div class="group-age">10 歲及以下</div>
+          <div class="group-desc">有參加過比賽的經驗，能夠完成比賽中四種姿勢的每一項項目，並且能以比賽合法的規則完成各項技能，在這個階段還將強調出發、轉身和心理技能，並且培養挑戰自我及團隊合作的精神。 </div>
         </div>
         <div class="group-card">
-          <div class="group-title">🦈 競技培訓班</div>
-          <div class="group-age">10 歲以上（需通過甄選）</div>
-          <div class="group-desc">以全國大賽為目標，系統化訓練計畫，週六加練，影像分析回饋，衝擊個人最佳成績。</div>
+          <div class="group-title">🐬 紅熊組</div>
+          <div class="group-age">10 – 12 歲</div>
+          <div class="group-desc">更加重視培訓，並加入目標設定，選手必須對他們在游泳方面的進步與努力負責，持續訓練的出勤對於持續獲得改進是必要的，並且不斷改進強調各項游泳技巧和打腿來激發使得更有競爭性。還將強調出發，轉和心理技能訓練，以提高下一級的培訓。 </div>
+        </div>
+        <div class="group-card">
+          <div class="group-title">🦈 黃熊組</div>
+          <div class="group-age">13歲及以上,11~12歲選手由教練評估同意</div>
+          <div class="group-desc">訓練目的在提供最新游泳技術指導和訓練四種競賽泳(持續加強技巧及姿出發轉身技術)。以全國大賽為目標，系統化訓練計畫，週六加練，影像分析回饋，衝擊個人最佳成績。</div>
         </div>
       </div>
     </div>
@@ -794,6 +846,7 @@
       <li><a href="#recruit">招生報名</a></li>
     </ul>
     <p class="footer-copy">© 2025 東美游泳隊 · 高雄</p>
+    <p class="footer-copy">© 開發者 胡栩睿(海豹)</p>
   </div>
 </footer>
 
@@ -911,7 +964,20 @@ function renderHonours(cat) {
       <div class="honour-info">
         <div class="honour-event">${r.event||''} · ${r.year||''}</div>
         <div class="honour-name">${r.name||''}</div>
-        <div class="honour-detail">${r.award||''}</div>
+        <div class="honour-items">${
+          (r.items||[]).map(line => {
+            const parts = line.trim().split(/\s+/);
+            const event = parts[0]||'';
+            const time  = parts[1]||'';
+            const award = parts.slice(2).join(' ')||'';
+            const medal = award.includes('第一') ? '🥇' : award.includes('第二') ? '🥈' : award.includes('第三') ? '🥉' : '🏅';
+            return \`<div class="honour-item">
+              <span class="hi-event">\${event}</span>
+              \${time ? \`<span class="hi-time">\${time}</span>\` : ''}
+              \${award ? \`<span class="hi-award">\${medal} \${award}</span>\` : ''}
+            </div>\`;
+          }).join('')
+        }</div>
       </div>
     </div>`).join('');
   grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));

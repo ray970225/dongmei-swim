@@ -396,14 +396,12 @@ tr:hover td{background:rgba(0,180,216,0.04);}
       </div>
       <div class="mf-group"><label>賽事名稱</label><input type="text" id="honours-event" placeholder="例：全國分齡游泳錦標賽"></div>
       <div class="mf-group"><label>選手姓名</label><input type="text" id="honours-name" placeholder="例：王小明"></div>
-      <div class="mf-group">
-        <label>獎項</label>
-        <select id="honours-award">
-          <option>🥇 第一名</option><option>🥈 第二名</option><option>🥉 第三名</option>
-          <option>🏅 前八名</option><option>🏆 團體獎</option>
-        </select>
-      </div>
       <div class="mf-group"><label>年份</label><input type="number" id="honours-year" placeholder="2025" min="2000" max="2099"></div>
+      <div class="mf-group">
+        <label>成績明細（每行一筆，格式：項目 成績 獎項）</label>
+        <textarea id="honours-items" rows="4" placeholder="50自 50.12 第一名&#10;100自 1:03.77 第三名&#10;200蝶 2:20.45 第二名"></textarea>
+        <small style="color:#64748b;font-size:.7rem;margin-top:.3rem;display:block;">每行一筆，空格分隔，獎項填：第一名／第二名／第三名／前八名</small>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('honours')">取消</button>
@@ -538,8 +536,8 @@ window.openModal  = (type, data=null) => {
     document.getElementById('honours-cat').value   = data?.cat   || '全國';
     document.getElementById('honours-event').value = data?.event || '';
     document.getElementById('honours-name').value  = data?.name  || '';
-    document.getElementById('honours-award').value = data?.award || '🥇 第一名';
     document.getElementById('honours-year').value  = data?.year  || new Date().getFullYear();
+    document.getElementById('honours-items').value = (data?.items || []).join('\n');
   } else if (type === 'coaches') {
     document.getElementById('modal-coaches-title').textContent = data ? '編輯教練' : '新增教練';
     document.getElementById('coaches-id').value    = data?.id    || '';
@@ -642,13 +640,13 @@ function renderHonoursList() {
   const el = document.getElementById('honoursList');
   if (!honoursData.length) { el.innerHTML = '<div class="empty-state">尚無資料</div>'; return; }
   el.innerHTML = `<table>
-    <thead><tr><th>類別</th><th>賽事</th><th>選手</th><th>獎項</th><th>年份</th><th></th></tr></thead>
+    <thead><tr><th>類別</th><th>賽事</th><th>選手</th><th>成績明細</th><th>年份</th><th></th></tr></thead>
     <tbody>${honoursData.map(r=>`
       <tr>
         <td><span class="badge badge-aqua">${r.cat||''}</span></td>
         <td class="td-truncate">${r.event||''}</td>
         <td>${r.name||''}</td>
-        <td>${r.award||''}</td>
+        <td class="td-truncate">${(r.items||[]).join(' / ')}</td>
         <td>${r.year||''}</td>
         <td>
           <button class="btn-icon" onclick='editHonours(${JSON.stringify(r)})'>✏️</button>
@@ -670,8 +668,8 @@ window.saveHonours = async () => {
     cat:   document.getElementById('honours-cat').value,
     event: document.getElementById('honours-event').value.trim(),
     name:  document.getElementById('honours-name').value.trim(),
-    award: document.getElementById('honours-award').value,
     year:  document.getElementById('honours-year').value,
+    items: document.getElementById('honours-items').value.split('\n').map(s=>s.trim()).filter(Boolean),
   };
   if (!data.name || !data.event) { toast('請填寫選手與賽事', true); return; }
   await saveDoc('honours', id, data);
