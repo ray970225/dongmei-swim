@@ -987,6 +987,8 @@
     color: var(--white, #fff);
     text-shadow: 0 10px 40px rgba(7,29,51,0.5);
     white-space: nowrap;
+    will-change: top, left, transform, font-size, opacity;
+    contain: layout paint;
     /* 初始：置中對齊（用 transform 置中） */
     top: 50%;
     left: 50%;
@@ -1104,21 +1106,37 @@
   window.addEventListener('DOMContentLoaded', function () {
     var overlay = document.getElementById('intro-overlay');
     var brandEl = document.getElementById('intro-brand');
+    var isMobile = window.matchMedia('(max-width: 640px)').matches;
+    var scrambleInterval = isMobile ? 90 : 55;
+    var scrambleDelay = isMobile ? 420 : 600;
+    var decodeDuration = isMobile ? 900 : 1200;
+    var settleDelay = isMobile ? 170 : 300;
+    var revealDelay = isMobile ? 120 : 200;
     var len     = TARGET.length;
     var current = TARGET.split('').map(randChar);
-    brandEl.innerHTML = renderChars(current);
+    var lastHtml = '';
+
+    function paint(chars) {
+      var html = renderChars(chars);
+      if (html !== lastHtml) {
+        brandEl.innerHTML = html;
+        lastHtml = html;
+      }
+    }
+
+    paint(current);
 
     /* ① 亂碼閃爍 600ms */
     var timer = setInterval(function () {
       current = TARGET.split('').map(randChar);
-      brandEl.innerHTML = renderChars(current);
-    }, 55);
+      paint(current);
+    }, scrambleInterval);
 
     setTimeout(function () {
       clearInterval(timer);
 
       /* ② 逐字解碼 1200ms */
-      var duration = 1200;
+      var duration = decodeDuration;
       var start    = null;
       var locked   = new Array(len).fill(false);
 
@@ -1140,14 +1158,14 @@
             current[i] = randChar(TARGET[i]);
           }
         }
-        brandEl.innerHTML = renderChars(current);
+        paint(current);
 
         if (locked.some(function(v){ return !v; }) || progress < 1) {
           requestAnimationFrame(frame);
         } else {
           /* ③ 全部定格，300ms 後開始飛 */
           current = TARGET.split('');
-          brandEl.innerHTML = renderChars(current);
+          paint(current);
 
           setTimeout(function () {
             var targetEl = document.querySelector('.hero-brand-name');
@@ -1181,15 +1199,15 @@
                   overlay.removeEventListener('transitionend', handler2);
                   overlay.style.display = 'none';
                 });
-              }, 200);
+              }, revealDelay);
             });
 
-          }, 300);
+          }, settleDelay);
         }
       }
 
       requestAnimationFrame(frame);
-    }, 600);
+    }, scrambleDelay);
 
     function endIntro() {
       overlay.classList.add('fly-out');
