@@ -15,18 +15,18 @@
     --deep:    #0b3f68;
     --water:   #127fb3;
     --aqua:    #24c3df;
-    --foam:    #d7f5fb;
+    --foam:    #bfeaf4;
     --gold:    #f2c84b;
     --cream:   #f8f4ec;
     --white:   #ffffff;
-    --gray:    #60758a;
-    --light:   #eefaff;
+    --gray:    #4c6478;
+    --light:   #d8f0f7;
     --ink:     #09263d;
-    --muted:   #5d7487;
+    --muted:   #425b70;
     --surface: #ffffff;
     --line:    rgba(18,127,179,0.18);
-    --mist:    #e7f7fc;
-    --tide:    #c7eaf5;
+    --mist:    #c7e7f1;
+    --tide:    #9fd5e7;
     --mid:     #155b87;
 
     --font-display: 'Bebas Neue', sans-serif;
@@ -266,6 +266,43 @@
     padding-top: 80px;
     color: var(--white);
   }
+  .hero-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .9rem;
+    margin-bottom: 1.05rem;
+    opacity: 0;
+    animation: fade-up .6s .2s forwards;
+  }
+  .hero-brand-name {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(1.45rem, 2.4vw, 2.25rem);
+    line-height: 1;
+    letter-spacing: .08em;
+    color: var(--white);
+    text-shadow: 0 10px 28px rgba(7,29,51,0.36);
+  }
+  .hero-brand-name span { color: var(--gold); }
+  .hero-brand-meta {
+    position: relative;
+    padding-left: 1.05rem;
+    font-size: .78rem;
+    letter-spacing: .28em;
+    color: var(--aqua);
+    white-space: nowrap;
+  }
+  .hero-brand-meta::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--aqua);
+    transform: translateY(-50%);
+  }
   .hero-eyebrow {
     font-size: .8rem; letter-spacing: .3em;
     color: var(--aqua); text-transform: uppercase;
@@ -275,7 +312,7 @@
   .hero-title {
     font-family: var(--font-serif);
     font-weight: 900;
-    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-size: 6.5rem;
     line-height: 1.05;
     margin-bottom: 1.5rem;
     opacity: 0; animation: fade-up .7s .4s forwards;
@@ -362,7 +399,7 @@
   .section-title {
     font-family: var(--font-serif);
     font-weight: 900;
-    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-size: 3rem;
     line-height: 1.2;
     margin-bottom: 1rem;
   }
@@ -454,7 +491,7 @@
   /* ───────────────────────────────────────────
      NEWS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
-  #news { background: linear-gradient(180deg, var(--tide) 0%, var(--mist) 44%, #f8fdff 100%); }
+  #news { background: linear-gradient(180deg, #9fd5e7 0%, #b8e1ed 46%, #d8f0f7 100%); }
   #news .section-eyebrow,
   #coaches .section-eyebrow,
   #honours .section-eyebrow {
@@ -508,7 +545,16 @@
   /* ───────────────────────────────────────────
      COACHES
   ─────────────────────────────────────────── */
-  #coaches { background: linear-gradient(180deg, #f8fdff 0%, var(--mist) 52%, #d1edf6 100%); }
+  #coaches {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(36,195,223,0.18), transparent 28rem),
+      radial-gradient(circle at 86% 32%, rgba(242,200,75,0.12), transparent 24rem),
+      linear-gradient(180deg, #071d33 0%, #0b3f68 58%, #06182b 100%);
+    color: var(--white);
+  }
+  #coaches .section-eyebrow { color: var(--aqua); }
+  #coaches .section-title { color: var(--white); }
+  #coaches .section-lead { color: rgba(255,255,255,0.72); }
   .coaches-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -518,8 +564,19 @@
   .coach-card {
     text-align: center;
     transition: transform .24s ease;
+    padding: 1.6rem 1.2rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035));
+    box-shadow: 0 18px 44px rgba(0,0,0,0.18);
+    backdrop-filter: blur(10px);
   }
-  .coach-card:hover { transform: translateY(-4px); }
+  .coach-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(36,195,223,0.38);
+    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+    box-shadow: 0 24px 58px rgba(0,0,0,0.24);
+  }
   .coach-avatar {
     width: 120px; height: 120px;
     border-radius: 50%;
@@ -528,7 +585,7 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 2.5rem;
     border: 3px solid rgba(36,195,223,0.34);
-    box-shadow: 0 0 30px rgba(18,127,179,0.22);
+    box-shadow: 0 0 0 8px rgba(36,195,223,0.12), 0 18px 34px rgba(0,0,0,0.22);
     overflow: hidden;
     transition: border-color .24s ease, box-shadow .24s ease, transform .24s ease;
   }
@@ -538,20 +595,20 @@
     box-shadow: 0 14px 34px rgba(18,127,179,0.24), 0 0 0 8px rgba(36,195,223,0.12);
   }
   .coach-card:hover .coach-avatar img { transform: scale(1.06); }
-  .coach-name { font-family: var(--font-serif); font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; }
+  .coach-name { font-family: var(--font-serif); font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; color: var(--white); }
   .coach-role { font-size: .78rem; color: var(--aqua); letter-spacing: .12em; margin-bottom: .7rem; }
-  .coach-bio  { font-size: .82rem; line-height: 1.7; color: var(--muted); }
+  .coach-bio  { font-size: .82rem; line-height: 1.7; color: rgba(255,255,255,0.68); }
   .coach-certs { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: .8rem; }
   .cert-tag {
-    background: rgba(22,194,232,0.13); border: 1px solid rgba(23,155,215,0.24);
-    padding: .2rem .6rem; border-radius: 2px;
-    font-size: .68rem; letter-spacing: .08em; color: var(--deep);
+    background: rgba(36,195,223,0.12); border: 1px solid rgba(36,195,223,0.28);
+    padding: .2rem .6rem; border-radius: 999px;
+    font-size: .68rem; letter-spacing: .08em; color: var(--foam);
   }
 
   /* ───────────────────────────────────────────
      HONOURS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
-  #honours { background: linear-gradient(180deg, #d1edf6 0%, #91cfe4 42%, #155b87 78%, #0b3f68 100%); }
+  #honours { background: linear-gradient(180deg, #a9d8e6 0%, #73bfd8 42%, #155b87 78%, #0b3f68 100%); }
   #honours .filter-btn { background: rgba(255,255,255,0.86); }
   .honours-filter {
     display: flex; gap: .6rem; flex-wrap: wrap;
@@ -560,10 +617,11 @@
   .filter-btn {
     padding: .4rem 1.1rem;
     background: rgba(255,255,255,0.7); border: 1px solid rgba(18,127,179,0.24);
-    color: var(--deep); border-radius: 2px;
+    color: var(--deep); border-radius: 999px;
     font-size: .78rem; letter-spacing: .1em; cursor: pointer;
     position: relative;
-    transition: .2s;
+    transition: .22s ease;
+    box-shadow: 0 8px 20px rgba(6,24,45,0.06);
   }
   .filter-btn::after {
     content: '';
@@ -579,24 +637,41 @@
   }
   .filter-btn.active, .filter-btn:hover {
     background: var(--aqua); border-color: var(--aqua); color: var(--navy);
+    box-shadow: 0 12px 28px rgba(36,195,223,0.2);
   }
   .filter-btn.active::after { transform: scaleX(1); }
   .honours-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.2rem;
+    gap: 1.35rem;
   }
   .honour-card {
     display: flex; align-items: center; gap: 1rem;
-    background: rgba(255,255,255,0.94);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 1.2rem;
+    background: linear-gradient(145deg, rgba(255,255,255,0.82), rgba(238,250,255,0.68));
+    border: 1px solid rgba(255,255,255,0.56);
+    border-radius: 22px;
+    padding: 1.35rem;
     transition: transform .24s ease, background .24s ease, border-color .24s ease, box-shadow .24s ease;
-    box-shadow: 0 10px 30px rgba(8,52,95,0.05);
+    box-shadow: 0 18px 45px rgba(6,24,45,0.12), inset 0 1px 0 rgba(255,255,255,0.65);
+    backdrop-filter: blur(10px);
   }
-  .honour-card:hover { transform: translateY(-5px); background: #fafeff; border-color: rgba(18,127,179,0.34); box-shadow: 0 18px 38px rgba(7,29,51,0.13); }
-  .honour-medal { font-size: 2rem; flex-shrink: 0; }
+  .honour-card:hover {
+    transform: translateY(-5px);
+    background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(238,250,255,0.76));
+    border-color: rgba(255,255,255,0.76);
+    box-shadow: 0 24px 56px rgba(7,29,51,0.18), inset 0 1px 0 rgba(255,255,255,0.74);
+  }
+  .honour-medal {
+    flex-shrink: 0;
+    width: 3.4rem;
+    height: 3.4rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.66), 0 10px 22px rgba(7,29,51,0.08);
+    font-size: 1.85rem;
+  }
   .honour-info {}
   .honour-event { font-size: .72rem; color: var(--aqua); letter-spacing: .1em; margin-bottom: .3rem; }
   .honour-name  { font-family: var(--font-serif); font-weight: 700; font-size: .95rem; margin-bottom: .2rem; }
@@ -618,13 +693,14 @@
     min-width: 2rem;
     height: 2rem;
     padding: 0 .65rem;
-    background: rgba(255,255,255,0.78);
-    border: 1px solid rgba(18,127,179,0.24);
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(255,255,255,0.48);
     color: var(--deep);
-    border-radius: 2px;
+    border-radius: 999px;
     font-size: .75rem;
     cursor: pointer;
-    transition: .2s;
+    transition: .22s ease;
+    box-shadow: 0 8px 18px rgba(6,24,45,0.08);
   }
   .page-btn:hover,
   .page-btn.active {
@@ -769,6 +845,26 @@
       max-width: 100%;
       padding-top: 112px;
     }
+    .hero-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .45rem;
+      margin-bottom: .9rem;
+    }
+    .hero-brand-name {
+      font-size: 1.7rem;
+      letter-spacing: .06em;
+    }
+    .hero-brand-meta {
+      padding-left: 0;
+      font-size: .68rem;
+      letter-spacing: .22em;
+      white-space: normal;
+    }
+    .hero-brand-meta::before {
+      display: none;
+    }
     .hero-eyebrow {
       font-size: .7rem;
       letter-spacing: .2em;
@@ -776,7 +872,7 @@
       max-width: 17rem;
     }
     .hero-title {
-      font-size: clamp(2.75rem, 13vw, 3.55rem);
+      font-size: 3.55rem;
       line-height: 1.12;
       margin-bottom: 1.25rem;
       max-width: 20rem;
@@ -871,7 +967,7 @@
      NAV
 ═══════════════════════════════════════════ -->
 <nav id="navbar">
-  <div class="nav-logo">東<span>美</span>游泳隊</div>
+  <div class="nav-logo">TMSC東<span>美</span>游泳隊</div>
   <ul class="nav-links" id="navLinks">
     <li><a href="#about">關於我們</a></li>
     <li><a href="#news">最新動態</a></li>
@@ -934,7 +1030,10 @@
   </div>
 
   <div class="hero-content">
-    <p class="hero-eyebrow">東美游泳隊 · 高雄 · 成立於 1998</p>
+    <div class="hero-brand" aria-label="東美游泳隊，高雄，成立於 1998">
+      <span class="hero-brand-name">東<span>美</span>游泳隊</span>
+      <span class="hero-brand-meta">高雄 · 成立於 1998</span>
+    </div>
     <h1 class="hero-title">
       每一滴<span class="accent">汗水</span><br>
       都是<span class="gold">金牌</span>的<br>
