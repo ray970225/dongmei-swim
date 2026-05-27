@@ -1005,6 +1005,24 @@
     text-shadow: none;
   }
 
+  @media (max-width: 640px) {
+    #intro-brand {
+      font-size: clamp(2.1rem, 11vw, 3.2rem);
+      max-width: calc(100vw - 2rem);
+      white-space: normal;
+      text-align: center;
+      line-height: 1.08;
+      letter-spacing: .04em;
+    }
+  }
+
+  @media (max-width: 380px) {
+    #intro-brand {
+      font-size: clamp(1.8rem, 10vw, 2.55rem);
+      max-width: calc(100vw - 1.4rem);
+    }
+  }
+
   #hero .hero-bg,
   #hero .lane-lines,
   #hero .jelly-scene,
