@@ -880,18 +880,98 @@
   .group-age   { font-size: .78rem; color: var(--gold); margin-bottom: .5rem; }
   .group-desc  { font-size: .82rem; line-height: 1.6; color: rgba(255,255,255,0.6); }
 
-  /* form placeholder */
-  .form-placeholder {
-    background: rgba(255,255,255,0.03);
-    border: 1.5px dashed rgba(0,180,216,0.25);
-    border-radius: 4px;
-    padding: 3rem 2rem;
-    text-align: center;
-    color: rgba(255,255,255,0.3);
-    font-size: .85rem;
-    line-height: 1.8;
+  .form-area {
+    position: sticky;
+    top: 88px;
   }
-  .form-placeholder .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .form-placeholder {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.055));
+    border: 1px solid rgba(36,195,223,0.28);
+    border-radius: 24px;
+    padding: 1.6rem;
+    color: rgba(255,255,255,0.78);
+    font-size: .86rem;
+    line-height: 1.8;
+    box-shadow: 0 22px 56px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.16);
+    backdrop-filter: blur(10px);
+  }
+  .form-kicker {
+    color: var(--aqua);
+    font-size: .72rem;
+    letter-spacing: .18em;
+    margin-bottom: .55rem;
+  }
+  .form-title {
+    font-family: var(--font-serif);
+    font-size: 1.45rem;
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.25;
+    margin-bottom: .7rem;
+  }
+  .form-title span { color: var(--gold); }
+  .form-desc {
+    margin-bottom: 1.25rem;
+    color: rgba(255,255,255,0.68);
+  }
+  .form-checklist {
+    display: grid;
+    gap: .7rem;
+    margin: 1.2rem 0;
+  }
+  .form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    padding: .75rem .85rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.055);
+  }
+  .form-check::before {
+    content: '';
+    flex: 0 0 .55rem;
+    width: .55rem;
+    height: .55rem;
+    margin-top: .48rem;
+    border-radius: 50%;
+    background: var(--aqua);
+    box-shadow: 0 0 0 4px rgba(36,195,223,0.12);
+  }
+  .form-action {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: .45rem;
+    margin-top: .8rem;
+    padding: .9rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(242,200,75,0.64);
+    background: linear-gradient(135deg, rgba(242,200,75,0.95), rgba(36,195,223,0.88));
+    color: var(--navy);
+    font-weight: 900;
+    letter-spacing: .08em;
+    box-shadow: 0 16px 34px rgba(36,195,223,0.18);
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  .form-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 44px rgba(242,200,75,0.24);
+    filter: saturate(1.08);
+  }
+  .form-action.is-disabled {
+    pointer-events: none;
+    opacity: .78;
+    filter: grayscale(.18);
+  }
+  .form-note {
+    margin-top: .85rem;
+    color: rgba(255,255,255,0.48);
+    font-size: .75rem;
+    text-align: center;
+  }
   /* When iframe is embedded, just drop it in here */
   .form-area iframe {
     width: 100%; min-height: 600px; border: none;
@@ -935,6 +1015,7 @@
   ─────────────────────────────────────────── */
   @media (max-width: 900px) {
     .about-grid, .recruit-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .form-area { position: static; }
     .hero-stats { position: static; margin-top: 3rem; justify-content: flex-start; }
     #hero { flex-direction: column; justify-content: center; }
     .hero-content { padding-top: 120px; }
@@ -970,6 +1051,16 @@
       width: 100%;
       margin-top: 1.2rem;
       padding: .86rem 1rem;
+    }
+    .form-placeholder {
+      border-radius: 20px;
+      padding: 1.25rem;
+    }
+    .form-title {
+      font-size: 1.25rem;
+    }
+    .form-check {
+      padding: .7rem .75rem;
     }
     #hero {
       min-height: 100svh;
@@ -1704,7 +1795,7 @@
     <div class="reveal">
       <p class="section-eyebrow">加入我們</p>
       <h2 class="section-title">招生<span class="aqua">報名</span></h2>
-      <p class="section-lead">現正開放下一期招生，名額有限，歡迎親子一同來試游！</p>
+      <p class="section-lead">歡迎填寫表單與教練聯絡詢問詳細內容!</p>
 
       <div class="recruit-groups">
         <div class="group-card">
@@ -1732,15 +1823,17 @@
 
     <div class="reveal">
       <div class="form-area" id="formArea">
-        <!-- 換成你的 Google 表單 iframe，例如：
-        <iframe src="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true"></iframe>
-        -->
         <div class="form-placeholder">
-          <div class="icon">📋</div>
-          <strong>招生表單</strong><br><br>
-          將此區塊替換為您的<br>
-          <strong>Google 表單 &lt;iframe&gt;</strong><br><br>
-          <small>設定 → 回應 → 取得預先填入連結<br>複製 embed 程式碼貼於此處</small>
+          <div class="form-kicker">JOIN THE TEAM</div>
+          <div class="form-title">招生<span>報名表單</span></div>
+          <p class="form-desc">留下基本資料後，教練團會依照年齡、程度與訓練目標安排試游與分組建議。</p>
+          <div class="form-checklist" aria-label="報名前準備資料">
+            <div class="form-check">選手姓名、年齡與聯絡方式</div>
+            <div class="form-check">目前游泳程度與是否有比賽經驗</div>
+            <div class="form-check">可配合訓練時段與想加入的組別</div>
+          </div>
+          <a class="form-action" href="https://docs.google.com/forms/d/e/1FAIpQLSfiB20WLXozl7jjpkmbwwb0g9NNWTLuxJR141aFuoBtX2FgMQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer">前往填寫表單</a>
+          <p class="form-note">表單會在新分頁開啟，送出後教練團會再與您聯繫。</p>
         </div>
       </div>
     </div>
