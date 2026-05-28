@@ -69,21 +69,43 @@
     color: var(--aqua);
   }
   .nav-logo span { color: var(--gold); }
-  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links { display: flex; gap: 1.45rem; list-style: none; align-items: center; }
   .nav-links a {
     font-size: .85rem; font-weight: 500; letter-spacing: .08em;
-    color: var(--foam); opacity: .8;
+    color: rgba(255,255,255,0.78); opacity: 1;
     transition: opacity .2s, color .2s;
   }
   .nav-links a:hover { opacity: 1; color: var(--gold); }
+  .nav-score {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .42rem 1rem;
+    border: 1px solid rgba(242,200,75,0.5);
+    border-radius: 999px;
+    background: rgba(242,200,75,0.14);
+    color: var(--gold) !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+  }
+  .nav-score::before {
+    content: '↗';
+    font-size: .75rem;
+  }
+  .nav-score:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--navy) !important;
+  }
   .nav-cta {
     background: var(--aqua); color: var(--navy) !important;
-    padding: .4rem 1.2rem; border-radius: 2px;
+    padding: .55rem 1.25rem; border-radius: 8px;
     font-weight: 700 !important; opacity: 1 !important;
     letter-spacing: .1em;
-    transition: background .2s !important;
+    box-shadow: 0 12px 26px rgba(36,195,223,0.22);
+    transition: background .2s, transform .2s, box-shadow .2s !important;
   }
-  .nav-cta:hover { background: var(--gold) !important; }
+  .nav-cta:hover { background: var(--gold) !important; transform: translateY(-1px); box-shadow: 0 14px 30px rgba(242,200,75,0.25); }
 
   /* hamburger */
   .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
@@ -482,18 +504,31 @@
   /* ───────────────────────────────────────────
      NEWS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
-  #news { background: linear-gradient(180deg, #9fd5e7 0%, #b8e1ed 46%, #d8f0f7 100%); }
-  #news .section-eyebrow,
+  #news {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(36,195,223,0.18), transparent 28rem),
+      radial-gradient(circle at 86% 32%, rgba(242,200,75,0.12), transparent 24rem),
+      linear-gradient(180deg, #071d33 0%, #0b3f68 58%, #06182b 100%);
+    color: var(--white);
+  }
+  #news .section-eyebrow {
+    color: var(--white);
+    background: transparent;
+  }
+  #news .section-title {
+    color: var(--white);
+    text-shadow: 0 12px 30px rgba(0,0,0,0.28);
+  }
+  #news .section-title .aqua { color: var(--aqua); }
+  #news .section-lead { color: rgba(255,255,255,0.72); }
   #coaches .section-eyebrow,
   #honours .section-eyebrow {
     color: var(--deep);
   }
-  #news .section-title,
   #coaches .section-title,
   #honours .section-title {
     color: var(--ink);
   }
-  #news .section-lead,
   #coaches .section-lead,
   #honours .section-lead {
     color: var(--muted);
@@ -503,21 +538,26 @@
     flex-wrap: wrap; gap: 1rem;
     margin-bottom: 2.5rem;
   }
-  .news-header a { font-size: .85rem; color: var(--aqua); letter-spacing: .1em; }
+  .news-header a {
+    font-size: .85rem;
+    color: var(--gold);
+    letter-spacing: .1em;
+    font-weight: 700;
+  }
   .news-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
   }
   .news-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 4px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid rgba(255,255,255,0.58);
+    border-radius: 18px;
     overflow: hidden;
     transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
-    box-shadow: 0 10px 30px rgba(7,29,51,0.06);
+    box-shadow: 0 18px 44px rgba(0,0,0,0.18);
   }
-  .news-card:hover { transform: translateY(-6px); border-color: rgba(18,127,179,0.38); box-shadow: 0 18px 42px rgba(7,29,51,0.13); }
+  .news-card:hover { transform: translateY(-6px); border-color: rgba(242,200,75,0.55); box-shadow: 0 24px 56px rgba(0,0,0,0.24); }
   .news-card-img {
     width: 100%; aspect-ratio: 16/9;
     background: linear-gradient(135deg, #d9f7ff, #8ee4f4);
@@ -527,10 +567,10 @@
   }
   .news-card-img img { width:100%; height:100%; object-fit:cover; }
   .news-card-body { padding: 1.2rem 1.4rem; }
-  .news-date { font-size: .72rem; color: var(--aqua); letter-spacing: .1em; margin-bottom: .5rem; }
-  .news-title-text { font-family: var(--font-serif); font-weight: 700; font-size: 1rem; line-height: 1.5; margin-bottom: .6rem; }
+  .news-date { font-size: .72rem; color: var(--water); letter-spacing: .1em; margin-bottom: .5rem; font-weight: 700; }
+  .news-title-text { font-family: var(--font-serif); font-weight: 700; font-size: 1rem; line-height: 1.5; margin-bottom: .6rem; color: var(--ink); }
   .news-desc { font-size: .82rem; line-height: 1.7; color: var(--muted); }
-  .news-loading { color: var(--muted); font-size: .9rem; padding: 2rem 0; }
+  .news-loading { color: rgba(255,255,255,0.72); font-size: .9rem; padding: 2rem 0; }
   .news-error  { color: #ff6b6b; font-size: .85rem; padding: 1rem 0; }
 
   /* ───────────────────────────────────────────
@@ -589,30 +629,127 @@
   .coach-name { font-family: var(--font-serif); font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; color: var(--white); }
   .coach-role { font-size: .78rem; color: var(--aqua); letter-spacing: .12em; margin-bottom: .7rem; }
   .coach-bio  { font-size: .82rem; line-height: 1.7; color: rgba(255,255,255,0.68); }
+  .coach-line { display: block; }
+  .coach-line + .coach-line { margin-top: .2rem; }
+  .coach-card .coach-line:nth-child(n+3) { font-size: .78rem; }
   .coach-certs { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: .8rem; }
   .cert-tag {
     background: rgba(36,195,223,0.12); border: 1px solid rgba(36,195,223,0.28);
     padding: .2rem .6rem; border-radius: 999px;
     font-size: .68rem; letter-spacing: .08em; color: var(--foam);
   }
+  .coach-links {
+    display: flex;
+    justify-content: center;
+    gap: .45rem;
+    margin-top: 1rem;
+  }
+  .coach-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    padding: .46rem .9rem;
+    border: 1px solid rgba(24,119,242,0.76);
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1877f2 0%, #0f5fc7 100%);
+    color: var(--white);
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    box-shadow: 0 10px 24px rgba(24,119,242,0.24);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  .coach-link::before {
+    content: 'f';
+    display: inline-grid;
+    place-items: center;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: var(--white);
+    color: #1877f2;
+    font-family: Arial, sans-serif;
+    font-size: .78rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .coach-link:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.78);
+    box-shadow: 0 14px 32px rgba(24,119,242,0.34);
+    filter: saturate(1.08);
+  }
 
   /* ───────────────────────────────────────────
      HONOURS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
-  #honours { background: linear-gradient(180deg, #a9d8e6 0%, #73bfd8 42%, #155b87 78%, #0b3f68 100%); }
-  #honours .filter-btn { background: rgba(255,255,255,0.86); }
+  #honours {
+    background:
+      radial-gradient(circle at 16% 18%, rgba(36,195,223,0.18), transparent 28rem),
+      radial-gradient(circle at 88% 8%, rgba(242,200,75,0.1), transparent 22rem),
+      linear-gradient(180deg, #06182b 0%, #0b3f68 32%, #155b87 62%, #083a5d 100%);
+    color: var(--white);
+  }
+  #honours .section-eyebrow { color: var(--aqua); }
+  #honours .section-title { color: var(--white); }
+  #honours .section-lead { color: rgba(255,255,255,0.72); }
+  #honours .filter-btn { background: rgba(255,255,255,0.08); }
+  .honours-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .honours-heading .section-lead { margin-bottom: 0; }
+  .score-query-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    flex: 0 0 auto;
+    padding: .78rem 1.2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(242,200,75,0.62);
+    background: linear-gradient(135deg, rgba(242,200,75,0.24), rgba(36,195,223,0.14));
+    color: var(--white);
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    box-shadow: 0 16px 34px rgba(0,0,0,0.18);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .score-query-link::before {
+    content: '↗';
+    display: inline-grid;
+    place-items: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--navy);
+    font-size: .72rem;
+    line-height: 1;
+  }
+  .score-query-link:hover {
+    transform: translateY(-2px);
+    border-color: var(--gold);
+    background: linear-gradient(135deg, rgba(242,200,75,0.34), rgba(36,195,223,0.2));
+    box-shadow: 0 22px 44px rgba(0,0,0,0.24);
+  }
   .honours-filter {
     display: flex; gap: .6rem; flex-wrap: wrap;
     margin-bottom: 2rem;
   }
   .filter-btn {
     padding: .4rem 1.1rem;
-    background: rgba(255,255,255,0.7); border: 1px solid rgba(18,127,179,0.24);
-    color: var(--deep); border-radius: 999px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
+    color: rgba(255,255,255,0.82); border-radius: 999px;
     font-size: .78rem; letter-spacing: .1em; cursor: pointer;
     position: relative;
     transition: .22s ease;
-    box-shadow: 0 8px 20px rgba(6,24,45,0.06);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
   }
   .filter-btn::after {
     content: '';
@@ -627,8 +764,8 @@
     transition: transform .2s ease;
   }
   .filter-btn.active, .filter-btn:hover {
-    background: var(--aqua); border-color: var(--aqua); color: var(--navy);
-    box-shadow: 0 12px 28px rgba(36,195,223,0.2);
+    background: rgba(36,195,223,0.2); border-color: var(--gold); color: var(--white);
+    box-shadow: 0 12px 28px rgba(36,195,223,0.28);
   }
   .filter-btn.active::after { transform: scaleX(1); }
   .honours-grid {
@@ -638,19 +775,19 @@
   }
   .honour-card {
     display: flex; align-items: center; gap: 1rem;
-    background: linear-gradient(145deg, rgba(255,255,255,0.82), rgba(238,250,255,0.68));
-    border: 1px solid rgba(255,255,255,0.56);
+    background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.07));
+    border: 1px solid rgba(255,255,255,0.18);
     border-radius: 22px;
     padding: 1.35rem;
     transition: transform .24s ease, background .24s ease, border-color .24s ease, box-shadow .24s ease;
-    box-shadow: 0 18px 45px rgba(6,24,45,0.12), inset 0 1px 0 rgba(255,255,255,0.65);
+    box-shadow: 0 18px 45px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.14);
     backdrop-filter: blur(10px);
   }
   .honour-card:hover {
     transform: translateY(-5px);
-    background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(238,250,255,0.76));
-    border-color: rgba(255,255,255,0.76);
-    box-shadow: 0 24px 56px rgba(7,29,51,0.18), inset 0 1px 0 rgba(255,255,255,0.74);
+    background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+    border-color: rgba(36,195,223,0.36);
+    box-shadow: 0 24px 56px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.18);
   }
   .honour-medal {
     flex-shrink: 0;
@@ -659,19 +796,19 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: rgba(255,255,255,0.5);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.66), 0 10px 22px rgba(7,29,51,0.08);
+    background: rgba(255,255,255,0.12);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 10px 22px rgba(0,0,0,0.16);
     font-size: 1.85rem;
   }
   .honour-info {}
   .honour-event { font-size: .72rem; color: var(--aqua); letter-spacing: .1em; margin-bottom: .3rem; }
-  .honour-name  { font-family: var(--font-serif); font-weight: 700; font-size: .95rem; margin-bottom: .2rem; }
-  .honour-detail{ font-size: .78rem; color: var(--muted); }
+  .honour-name  { font-family: var(--font-serif); font-weight: 700; font-size: .95rem; margin-bottom: .2rem; color: var(--white); }
+  .honour-detail{ font-size: .78rem; color: rgba(255,255,255,0.66); }
   .honour-items { display:flex; flex-direction:column; gap:.2rem; margin-top:.3rem; }
-  .honour-item  { font-size:.75rem; color:var(--muted); display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
-  .honour-item .hi-event { color:var(--ink); }
+  .honour-item  { font-size:.75rem; color:rgba(255,255,255,0.66); display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+  .honour-item .hi-event { color:rgba(255,255,255,0.9); }
   .honour-item .hi-time  { color:var(--aqua); }
-  .honour-item .hi-award { color:var(--muted); }
+  .honour-item .hi-award { color:rgba(255,255,255,0.66); }
   .honours-pagination {
     display: flex;
     justify-content: center;
@@ -684,9 +821,9 @@
     min-width: 2rem;
     height: 2rem;
     padding: 0 .65rem;
-    background: rgba(255,255,255,0.72);
-    border: 1px solid rgba(255,255,255,0.48);
-    color: var(--deep);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.82);
     border-radius: 999px;
     font-size: .75rem;
     cursor: pointer;
@@ -703,7 +840,7 @@
     opacity: .35;
     cursor: not-allowed;
     background: transparent;
-    color: rgba(8,52,95,0.42);
+    color: rgba(255,255,255,0.32);
   }
 
   /* ───────────────────────────────────────────
@@ -825,6 +962,15 @@
     }
     .nav-links.open li { padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .coaches-grid { grid-template-columns: repeat(2, 1fr); }
+    .honours-heading {
+      display: block;
+      margin-bottom: 1.6rem;
+    }
+    .score-query-link {
+      width: 100%;
+      margin-top: 1.2rem;
+      padding: .86rem 1rem;
+    }
     #hero {
       min-height: 100svh;
       align-items: flex-start;
@@ -1231,6 +1377,7 @@
     <li><a href="#news">最新動態</a></li>
     <li><a href="#coaches">教練團隊</a></li>
     <li><a href="#honours">榮譽殿堂</a></li>
+    <li><a href="https://script.google.com/macros/s/AKfycbx2awDZevAMttx6sdG1EY0Fpy7-AgEa80oAaCYgxTvjZmg_gT918wIfXiGRwhHVqytZ0A/exec" class="nav-score" target="_blank" rel="noopener noreferrer">成績查詢</a></li>
     <li><a href="#recruit" class="nav-cta">立即報名</a></li>
   </ul>
   <div class="hamburger" id="hamburger" onclick="toggleMenu()">
@@ -1410,9 +1557,17 @@
       </div>
       <div class="coach-name">許峰銘(肉粽教練)</div>
       <div class="coach-role">總教練 · Head Coach</div>
-      <div class="coach-bio">國內200公尺自由式游進2分鐘內的第1人。執教逾 18 年，培育 30+ 全國前八名選手。</div>
+      <div class="coach-bio">
+        <span class="coach-line">學歷｜國立臺灣體育運動大學碩士</span>
+        <span class="coach-line">經歷｜1990 亞運代表隊選手、1998 亞運代表隊教練</span>
+      </div>
       <div class="coach-certs">
         <span class="cert-tag">中華民國 A 級教練</span>
+        <span class="cert-tag">游泳委員會總幹事</span>
+        <span class="cert-tag">高雄市體育總會常務理事</span>
+      </div>
+      <div class="coach-links">
+        <a class="coach-link" href="https://www.facebook.com/xu.feng.ming.499687" target="_blank" rel="noopener noreferrer" aria-label="許峰銘教練 Facebook">Facebook</a>
       </div>
     </div>
 
@@ -1420,11 +1575,26 @@
        <div class="coach-avatar">
         <img src="菜粽.png" alt="許衞銘教練" onerror="this.onerror=null;this.src='cocah/菜粽.png';">
       </div>
-      <div class="coach-name">許衞銘(菜粽教練) </div>
+      <div class="coach-name">許衞銘(菜粽教練)</div>
       <div class="coach-role">助理總教練 · Associate Head Coach</div>
-      <div class="coach-bio">暫定</div>
+      <div class="coach-bio">
+        <span class="coach-line">學歷｜正修科技大學休閒與運動管理學系研究所碩士</span>
+        <span class="coach-line">經歷｜2012 倫敦奧運游泳培訓隊教練</span>
+        <span class="coach-line">經歷｜2013 天津東亞運游泳代表隊教練</span>
+        <span class="coach-line">經歷｜2014 仁川亞運中華台北游泳代表隊教練</span>
+        <span class="coach-line">經歷｜2025 世界青少年中華臺北游泳代表隊教練</span>
+        <span class="coach-line">經歷｜全國運動會高雄市代表隊教練</span>
+      </div>
       <div class="coach-certs">
-        <span class="cert-tag">中華民國 C 級教練</span>
+        <span class="cert-tag">行政院體委會初級專任運動教練</span>
+        <span class="cert-tag">中華民國A級教練</span>
+        <span class="cert-tag">行政院體委會中級專任運動教練</span>
+        <span class="cert-tag">中華民國體育總會游泳國家級教練</span>
+        <span class="cert-tag">ASCA Level 2 國際分齡教練</span>
+        <span class="cert-tag">國際奧會 ICECP 教練證照</span>
+      </div>
+      <div class="coach-links">
+        <a class="coach-link" href="https://www.facebook.com/tommylovenini" target="_blank" rel="noopener noreferrer" aria-label="許衞銘教練 Facebook">Facebook</a>
       </div>
     </div>
 
@@ -1434,9 +1604,17 @@
       </div>
       <div class="coach-name">許素卿(梅子教練)</div>
       <div class="coach-role">助理教練 · Assistant Coach</div>
-      <div class="coach-bio"> 暫定</div>
+      <div class="coach-bio">
+        <span class="coach-line">學歷｜臺灣師範大學體育系 85 級畢業</span>
+        <span class="coach-line">學歷｜高雄師範大學體育碩士</span>
+        <span class="coach-line">經歷｜高雄市全運會及全民運帶隊教練</span>
+        <span class="coach-line">現任｜高雄市新莊高中體育組長</span>
+      </div>
       <div class="coach-certs">
         <span class="cert-tag">中華民國 A 級教練</span>
+      </div>
+      <div class="coach-links">
+        <a class="coach-link" href="https://www.facebook.com/search/top?q=%E8%A8%B1%E6%A2%85%E5%AD%90" target="_blank" rel="noopener noreferrer" aria-label="許素卿教練 Facebook">Facebook</a>
       </div>
     </div>
 
@@ -1444,7 +1622,7 @@
       <div class="coach-avatar">
         <img src="林世傑.png" alt="林世傑教練" onerror="this.onerror=null;this.src='cocah/林世傑.png';">
       </div>
-      <div class="coach-name">林世傑</div>
+      <div class="coach-name">林士傑</div>
       <div class="coach-role">助理教練 · Assistant Coach</div>
       <div class="coach-bio">前台灣男子 100 公尺、200 公尺仰式全國紀錄保持人，曾獲選為國家代表隊國手</div>
       <div class="coach-certs">
@@ -1496,10 +1674,12 @@
      HONOURS  (動態資料 — Google Sheets)
 ═══════════════════════════════════════════ -->
 <section id="honours">
-  <div class="reveal">
-    <p class="section-eyebrow">榮譽殿堂</p>
-    <h2 class="section-title">我們的<span class="gold">驕傲</span></h2>
-    <p class="section-lead">每一面獎牌背後，都是教練與選手共同流下的汗水與淚水。</p>
+  <div class="honours-heading reveal">
+    <div>
+      <p class="section-eyebrow">榮譽殿堂</p>
+      <h2 class="section-title">我們的<span class="gold">驕傲</span></h2>
+      <p class="section-lead">每一面獎牌背後，都是教練與選手共同流下的汗水與淚水。</p>
+    </div>
   </div>
 
   <div class="honours-filter reveal" id="honoursFilter">
