@@ -183,21 +183,6 @@
       color: rgba(255,255,255,.62);
       line-height: 1.8;
     }
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .55rem;
-      margin-top: 1.2rem;
-    }
-    .chip {
-      border: 1px solid rgba(36,195,223,.32);
-      background: rgba(36,195,223,.1);
-      color: rgba(255,255,255,.82);
-      border-radius: 999px;
-      padding: .35rem .75rem;
-      font-size: .78rem;
-      cursor: pointer;
-    }
     @media (max-width: 700px) {
       .topbar { padding: .9rem 1rem; }
       .back-link { padding: .5rem .8rem; }
@@ -222,13 +207,6 @@
     <p class="lead">
       輸入選手姓名即可查詢東美泳隊、高雄市新莊高中與高雄市大仁國中相關公開成績。資料來源為游泳成績通，本頁只顯示已同步到東美網站的資料。
     </p>
-    <div class="chips" aria-label="快速查詢">
-      <button class="chip" type="button" data-name="李瀚">李瀚</button>
-      <button class="chip" type="button" data-name="胡閔惟">胡閔惟</button>
-      <button class="chip" type="button" data-name="郭叡">郭叡</button>
-      <button class="chip" type="button" data-name="林士傑">林士傑</button>
-    </div>
-
     <section class="search-panel" aria-label="東美選手成績查詢">
       <div class="searchbar">
         <input id="searchInput" type="search" placeholder="輸入姓名，例如：李瀚、胡閔惟、郭叡" autocomplete="off">
@@ -310,13 +288,6 @@
     input.addEventListener('keydown', event => {
       if (event.key === 'Enter') search();
     });
-    document.querySelectorAll('.chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        input.value = chip.dataset.name;
-        search();
-      });
-    });
-
     fetch('data/swim-results.json')
       .then(response => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
