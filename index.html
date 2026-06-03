@@ -1230,13 +1230,39 @@
       justify-content: flex-start;
       margin-top: .75rem;
     }
+    #pathway .reveal {
+      opacity: 1;
+      transform: none;
+    }
+    .pathway-track {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      width: 100%;
+      max-width: 100%;
+    }
     .pathway-header { margin-bottom: 2rem; }
-    .pathway-card { padding: 1.35rem 1rem 1.2rem; }
+    .pathway-card {
+      display: grid;
+      grid-template-columns: 7.2rem minmax(0, 1fr);
+      grid-template-areas:
+        "photo stage"
+        "photo title"
+        "photo text";
+      align-items: center;
+      column-gap: 1rem;
+      text-align: left;
+      padding: 1rem;
+    }
     .pathway-photo {
+      grid-area: photo;
       width: 7.2rem;
       height: 7.2rem;
     }
     .pathway-photo span { font-size: 2.55rem; }
+    .pathway-stage { grid-area: stage; }
+    .pathway-card h3 { grid-area: title; margin: .25rem 0 .35rem; }
+    .pathway-card p { grid-area: text; }
     .honours-heading {
       display: block;
       margin-bottom: 1.6rem;
@@ -1378,6 +1404,17 @@
     .coach-name { font-size: .92rem; }
     .coach-role { font-size: .68rem; }
     .coach-bio { font-size: .72rem; }
+    .pathway-card {
+      grid-template-columns: 5.4rem minmax(0, 1fr);
+      column-gap: .75rem;
+      padding: .85rem;
+    }
+    .pathway-photo {
+      width: 5.4rem;
+      height: 5.4rem;
+    }
+    .pathway-card h3 { font-size: .98rem; }
+    .pathway-card p { font-size: .74rem; }
     .hero-content { padding-top: 82px; }
     .hero-title {
       font-size: 2.35rem;
@@ -2131,6 +2168,11 @@
 function toggleMenu() {
   document.getElementById('navLinks').classList.toggle('open');
 }
+document.querySelectorAll('#navLinks a[href^="#"]').forEach(link => {
+  link.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
 
 /* ─── SCROLL REVEAL ─── */
 const observer = new IntersectionObserver(
