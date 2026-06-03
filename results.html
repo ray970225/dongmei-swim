@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成績查詢｜東美游泳隊</title>
+  <style>
+    :root {
+      --navy: #06182b;
+      --deep: #082844;
+      --aqua: #24c3df;
+      --gold: #f2c84b;
+      --white: #f8fbff;
+      --muted: rgba(248,251,255,.68);
+      --line: rgba(255,255,255,.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 78% 12%, rgba(36,195,223,.22), transparent 28rem),
+        radial-gradient(circle at 12% 78%, rgba(242,200,75,.12), transparent 24rem),
+        linear-gradient(180deg, #06182b 0%, #073354 52%, #06182b 100%);
+    }
+    a { color: inherit; text-decoration: none; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem clamp(1.2rem, 5vw, 4rem);
+      background: rgba(6,24,43,.86);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+    .brand {
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+    }
+    .brand span { color: var(--gold); }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.4rem;
+      padding: .55rem 1rem;
+      border: 1px solid rgba(36,195,223,.48);
+      border-radius: 999px;
+      color: rgba(255,255,255,.84);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    main {
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: clamp(2.8rem, 8vw, 5.4rem) 0 4rem;
+    }
+    .eyebrow {
+      color: var(--aqua);
+      font-size: .8rem;
+      font-weight: 900;
+      letter-spacing: .26em;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-family: "Noto Serif TC", "Microsoft JhengHei", serif;
+      font-size: clamp(2.4rem, 8vw, 5.2rem);
+      line-height: 1.02;
+      letter-spacing: 0;
+      margin-bottom: 1rem;
+    }
+    h1 span { color: var(--gold); }
+    .lead {
+      max-width: 48rem;
+      color: var(--muted);
+      font-size: clamp(.95rem, 2vw, 1.08rem);
+      line-height: 1.9;
+    }
+    .search-panel {
+      margin-top: 2.2rem;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background: rgba(255,255,255,.07);
+      box-shadow: 0 28px 70px rgba(0,0,0,.26);
+      overflow: hidden;
+    }
+    .searchbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .8rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+    }
+    input {
+      width: 100%;
+      min-height: 3.3rem;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      background: rgba(3,13,24,.72);
+      color: var(--white);
+      padding: 0 1.2rem;
+      font: inherit;
+      outline: none;
+    }
+    input::placeholder { color: rgba(255,255,255,.38); }
+    input:focus {
+      border-color: var(--aqua);
+      box-shadow: 0 0 0 4px rgba(36,195,223,.16);
+    }
+    button {
+      min-height: 3.3rem;
+      border: 0;
+      border-radius: 999px;
+      background: var(--aqua);
+      color: var(--navy);
+      padding: 0 1.55rem;
+      font: inherit;
+      font-weight: 950;
+      letter-spacing: .08em;
+      cursor: pointer;
+    }
+    .meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: .9rem 1.1rem;
+      color: rgba(255,255,255,.62);
+      font-size: .84rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .source {
+      color: rgba(255,255,255,.5);
+    }
+    .list {
+      display: grid;
+      gap: .75rem;
+      padding: 1rem;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 8.2rem minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      padding: .95rem 1rem;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+    }
+    .date {
+      color: var(--aqua);
+      font-weight: 900;
+      font-size: .88rem;
+    }
+    .title {
+      font-weight: 950;
+      margin-bottom: .24rem;
+    }
+    .sub {
+      color: rgba(255,255,255,.66);
+      font-size: .84rem;
+      line-height: 1.6;
+    }
+    .time {
+      color: var(--gold);
+      font-size: 1.12rem;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+    .empty {
+      padding: 2.4rem 1rem;
+      text-align: center;
+      color: rgba(255,255,255,.62);
+      line-height: 1.8;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+      margin-top: 1.2rem;
+    }
+    .chip {
+      border: 1px solid rgba(36,195,223,.32);
+      background: rgba(36,195,223,.1);
+      color: rgba(255,255,255,.82);
+      border-radius: 999px;
+      padding: .35rem .75rem;
+      font-size: .78rem;
+      cursor: pointer;
+    }
+    @media (max-width: 700px) {
+      .topbar { padding: .9rem 1rem; }
+      .back-link { padding: .5rem .8rem; }
+      .searchbar { grid-template-columns: 1fr; }
+      .row {
+        grid-template-columns: 1fr;
+        gap: .35rem;
+      }
+      .time { justify-self: start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">TMSC東<span>美</span>游泳隊</a>
+    <a class="back-link" href="index.html">回首頁</a>
+  </header>
+
+  <main>
+    <p class="eyebrow">RESULT SEARCH</p>
+    <h1>成績<span>查詢</span></h1>
+    <p class="lead">
+      輸入選手姓名即可查詢東美泳隊、高雄市新莊高中與高雄市大仁國中相關公開成績。資料來源為游泳成績通，本頁只顯示已同步到東美網站的資料。
+    </p>
+    <div class="chips" aria-label="快速查詢">
+      <button class="chip" type="button" data-name="李瀚">李瀚</button>
+      <button class="chip" type="button" data-name="胡閔惟">胡閔惟</button>
+      <button class="chip" type="button" data-name="郭叡">郭叡</button>
+      <button class="chip" type="button" data-name="林士傑">林士傑</button>
+    </div>
+
+    <section class="search-panel" aria-label="東美選手成績查詢">
+      <div class="searchbar">
+        <input id="searchInput" type="search" placeholder="輸入姓名，例如：李瀚、胡閔惟、郭叡" autocomplete="off">
+        <button id="searchBtn" type="button">查詢</button>
+      </div>
+      <div class="meta">
+        <span id="metaText">資料載入中...</span>
+        <span class="source">資料來源：游泳成績通</span>
+      </div>
+      <div class="list" id="resultsList">
+        <div class="empty">請輸入選手姓名開始查詢。</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const input = document.getElementById('searchInput');
+    const button = document.getElementById('searchBtn');
+    const list = document.getElementById('resultsList');
+    const meta = document.getElementById('metaText');
+    let rows = [];
+
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+
+    const formatRank = rank => rank ? `第 ${rank} 名` : '名次未列';
+
+    const render = query => {
+      const q = query.trim();
+      if (!q) {
+        list.innerHTML = '<div class="empty">請輸入選手姓名開始查詢。</div>';
+        meta.textContent = `已同步 ${rows.length} 筆成績`;
+        return;
+      }
+
+      const matches = rows
+        .filter(row => String(row.swimmer || '').includes(q))
+        .sort((a, b) => String(b.competition_date || '').localeCompare(String(a.competition_date || '')));
+
+      meta.textContent = matches.length
+        ? `找到 ${matches.length} 筆「${q}」相關成績`
+        : `找不到「${q}」的成績`;
+
+      if (!matches.length) {
+        list.innerHTML = '<div class="empty">目前沒有符合的同步資料。可確認姓名是否完整，或稍後重新同步成績資料。</div>';
+        return;
+      }
+
+      list.innerHTML = matches.slice(0, 80).map(row => `
+        <article class="row">
+          <div class="date">${escapeHtml(row.competition_date || '')}</div>
+          <div>
+            <div class="title">${escapeHtml(row.swimmer)}｜${escapeHtml(row.event || '未列項目')}</div>
+            <div class="sub">
+              ${escapeHtml(row.competition || '')}<br>
+              ${escapeHtml(row.team || '')} · ${escapeHtml(row.age_group || '')} · ${escapeHtml(row.round || '')} · ${escapeHtml(formatRank(row.rank))}
+            </div>
+          </div>
+          <div class="time">${escapeHtml(row.time || '-')}</div>
+        </article>
+      `).join('');
+    };
+
+    const search = () => {
+      const q = input.value;
+      const url = new URL(location.href);
+      if (q.trim()) url.searchParams.set('q', q.trim());
+      else url.searchParams.delete('q');
+      history.replaceState(null, '', url);
+      render(q);
+    };
+
+    button.addEventListener('click', search);
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') search();
+    });
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        input.value = chip.dataset.name;
+        search();
+      });
+    });
+
+    fetch('data/swim-results.json')
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        rows = Array.isArray(data) ? data : [];
+        const initial = new URLSearchParams(location.search).get('q') || '';
+        input.value = initial;
+        meta.textContent = `已同步 ${rows.length} 筆成績`;
+        render(initial);
+      })
+      .catch(error => {
+        meta.textContent = '資料載入失敗';
+        list.innerHTML = `<div class="empty">無法載入成績資料：${escapeHtml(error.message)}</div>`;
+      });
+  </script>
+</body>
+</html>

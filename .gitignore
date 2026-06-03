@@ -1,6 +1,11 @@
 .vscode/
+node_modules/
 .DS_Store
 Thumbs.db
 desktop.ini
 *.tmp
 *.log
+crawler/.auth/
+crawler/session/
+crawler/output/
+crawler/*.env
