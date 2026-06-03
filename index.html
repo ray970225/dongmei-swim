@@ -502,6 +502,111 @@
   }
 
   /* ───────────────────────────────────────────
+     PATHWAY
+  ─────────────────────────────────────────── */
+  #pathway {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(36,195,223,0.16), transparent 26rem),
+      radial-gradient(circle at 84% 18%, rgba(242,200,75,0.1), transparent 24rem),
+      linear-gradient(180deg, var(--tide) 0%, #155b87 34%, #0b3f68 72%, #071d33 100%);
+    color: var(--white);
+  }
+  #pathway .section-eyebrow { color: var(--aqua); }
+  #pathway .section-title { color: var(--white); }
+  #pathway .section-lead { color: rgba(255,255,255,0.72); }
+  .pathway-header {
+    max-width: 760px;
+    margin-bottom: 3rem;
+  }
+  .pathway-track {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.4rem;
+  }
+  .pathway-track::before {
+    content: '';
+    position: absolute;
+    left: 16%;
+    right: 16%;
+    top: 5.4rem;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(36,195,223,0.72), rgba(242,200,75,0.62), transparent);
+    pointer-events: none;
+  }
+  .pathway-card {
+    position: relative;
+    text-align: center;
+    padding: 1.6rem 1.2rem 1.35rem;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.045));
+    box-shadow: 0 22px 52px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.13);
+    backdrop-filter: blur(10px);
+  }
+  .pathway-card:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    top: 4.68rem;
+    right: -1.03rem;
+    z-index: 2;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--navy);
+    font-weight: 900;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.16);
+  }
+  .pathway-photo {
+    width: 8.8rem;
+    height: 8.8rem;
+    margin: 0 auto 1.2rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04)),
+      repeating-linear-gradient(90deg, rgba(36,195,223,0.18) 0 2px, transparent 2px 18px),
+      linear-gradient(135deg, #0b3f68, #24c3df);
+    border: 3px solid rgba(36,195,223,0.46);
+    box-shadow: 0 0 0 8px rgba(36,195,223,0.1), 0 18px 36px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+  .pathway-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pathway-photo span {
+    font-family: var(--font-serif);
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: var(--white);
+    text-shadow: 0 8px 18px rgba(0,0,0,0.22);
+  }
+  .pathway-stage {
+    color: var(--aqua);
+    font-size: .76rem;
+    letter-spacing: .16em;
+    margin-bottom: .45rem;
+  }
+  .pathway-card h3 {
+    font-family: var(--font-serif);
+    color: var(--white);
+    font-size: 1.15rem;
+    line-height: 1.35;
+    margin-bottom: .7rem;
+  }
+  .pathway-card p {
+    color: rgba(255,255,255,0.68);
+    font-size: .84rem;
+    line-height: 1.75;
+  }
+
+  /* ───────────────────────────────────────────
      NEWS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
   #news {
@@ -1015,6 +1120,28 @@
   ─────────────────────────────────────────── */
   @media (max-width: 900px) {
     .about-grid, .recruit-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .pathway-track {
+      grid-template-columns: 1fr;
+      max-width: 34rem;
+      margin: 0 auto;
+    }
+    .pathway-track::before {
+      left: 50%;
+      right: auto;
+      top: 8rem;
+      bottom: 8rem;
+      width: 2px;
+      height: auto;
+      background: linear-gradient(180deg, transparent, rgba(36,195,223,0.72), rgba(242,200,75,0.62), transparent);
+      transform: translateX(-50%);
+    }
+    .pathway-card:not(:last-child)::after {
+      top: auto;
+      right: auto;
+      left: 50%;
+      bottom: -1.05rem;
+      transform: translateX(-50%) rotate(90deg);
+    }
     .form-area { position: static; }
     .hero-stats { position: static; margin-top: 3rem; justify-content: flex-start; }
     #hero { flex-direction: column; justify-content: center; }
@@ -1042,7 +1169,74 @@
       border-bottom: 1px solid rgba(0,180,216,0.15);
     }
     .nav-links.open li { padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .coaches-grid { grid-template-columns: repeat(2, 1fr); }
+    .coaches-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .coach-card {
+      display: grid;
+      grid-template-columns: 6.1rem minmax(0, 1fr);
+      grid-template-areas:
+        "avatar name"
+        "avatar role"
+        "avatar bio"
+        "avatar certs"
+        "avatar links";
+      align-items: start;
+      column-gap: 1rem;
+      text-align: left;
+      padding: 1rem;
+      border-radius: 18px;
+    }
+    .coach-card:hover { transform: none; }
+    .coach-avatar {
+      grid-area: avatar;
+      width: 5.4rem;
+      height: 5.4rem;
+      margin: 0;
+      align-self: start;
+      position: sticky;
+      top: 5rem;
+    }
+    .coach-name {
+      grid-area: name;
+      font-size: 1rem;
+      margin-bottom: .2rem;
+    }
+    .coach-role {
+      grid-area: role;
+      margin-bottom: .55rem;
+      letter-spacing: .08em;
+      line-height: 1.55;
+    }
+    .coach-bio {
+      grid-area: bio;
+      font-size: .78rem;
+      line-height: 1.65;
+    }
+    .coach-line + .coach-line { margin-top: .16rem; }
+    .coach-card .coach-line:nth-child(n+3) { font-size: .74rem; }
+    .coach-certs {
+      grid-area: certs;
+      justify-content: flex-start;
+      margin-top: .7rem;
+    }
+    .cert-tag {
+      font-size: .62rem;
+      padding: .18rem .52rem;
+    }
+    .coach-links {
+      grid-area: links;
+      justify-content: flex-start;
+      margin-top: .75rem;
+    }
+    .pathway-header { margin-bottom: 2rem; }
+    .pathway-card { padding: 1.35rem 1rem 1.2rem; }
+    .pathway-photo {
+      width: 7.2rem;
+      height: 7.2rem;
+    }
+    .pathway-photo span { font-size: 2.55rem; }
     .honours-heading {
       display: block;
       margin-bottom: 1.6rem;
@@ -1172,6 +1366,18 @@
     section { padding: 70px 5%; }
   }
   @media (max-width: 380px) {
+    .coach-card {
+      grid-template-columns: 5.25rem minmax(0, 1fr);
+      column-gap: .75rem;
+      padding: .85rem;
+    }
+    .coach-avatar {
+      width: 4.65rem;
+      height: 4.65rem;
+    }
+    .coach-name { font-size: .92rem; }
+    .coach-role { font-size: .68rem; }
+    .coach-bio { font-size: .72rem; }
     .hero-content { padding-top: 82px; }
     .hero-title {
       font-size: 2.35rem;
@@ -1465,6 +1671,7 @@
   <div class="nav-logo">TMSC東<span>美</span>游泳隊</div>
   <ul class="nav-links" id="navLinks">
     <li><a href="#about">關於我們</a></li>
+    <li><a href="#pathway">升學路線</a></li>
     <li><a href="#news">最新動態</a></li>
     <li><a href="#coaches">教練團隊</a></li>
     <li><a href="#honours">榮譽殿堂</a></li>
@@ -1612,6 +1819,49 @@
 <div class="divider"></div>
 
 <!-- ═══════════════════════════════════════════
+     PATHWAY
+═══════════════════════════════════════════ -->
+<section id="pathway">
+  <div class="pathway-header reveal">
+    <p class="section-eyebrow">升學路線</p>
+    <h2 class="section-title">從國小到高中，<span class="gold">一路銜接</span></h2>
+    <p class="section-lead">
+      東美不只訓練游泳，也協助孩子建立穩定的選手養成路線。從基礎培養、競技銜接到高中階段，讓訓練與升學方向更有規劃。
+    </p>
+  </div>
+
+  <div class="pathway-track reveal" aria-label="東美升學與培訓路線">
+    <article class="pathway-card">
+      <div class="pathway-photo" aria-hidden="true">
+        <img src="中正ccps.jpg" alt="高雄市中正國小">
+      </div>
+      <div class="pathway-stage">01 · 國小階段</div>
+      <h3>高雄市中正國小</h3>
+      <p>建立水感、泳姿基礎與規律訓練習慣，讓孩子在穩定環境中開始累積競技能力。</p>
+    </article>
+
+    <article class="pathway-card">
+      <div class="pathway-photo" aria-hidden="true">
+        <img src="大仁國中LOGO.jpg" alt="高雄市大仁國中">
+      </div>
+      <div class="pathway-stage">02 · 國中階段</div>
+      <h3>高雄市大仁國中</h3>
+      <p>銜接更完整的訓練節奏，開始面對縣市賽、分齡賽與全國賽的競技挑戰。</p>
+    </article>
+
+    <article class="pathway-card">
+      <div class="pathway-photo" aria-hidden="true">
+        <img src="新莊高中.jpg" alt="高雄市新莊高中">
+      </div>
+      <div class="pathway-stage">03 · 高中階段</div>
+      <h3>高雄市新莊高中</h3>
+      <p>整合課業、訓練與賽事規劃，陪伴選手朝全中運、全國賽與未來升學目標前進。</p>
+    </article>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
      NEWS  (動態資料 — Google Sheets)
 ═══════════════════════════════════════════ -->
 <section id="news">
@@ -1715,9 +1965,23 @@
       </div>
       <div class="coach-name">林士傑</div>
       <div class="coach-role">助理教練 · Assistant Coach</div>
-      <div class="coach-bio">前台灣男子 100 公尺、200 公尺仰式全國紀錄保持人，曾獲選為國家代表隊國手</div>
+      <div class="coach-bio">
+        <span class="coach-line">學歷｜畢業於正修科技大學</span>
+        <span class="coach-line">帶隊｜高雄市立鹽埕國中游泳隊教練（105 年至 111 年）</span>
+        <span class="coach-line">帶隊｜高雄市立新莊高中游泳隊教練（111 年至今）</span>
+        <span class="coach-line">帶隊｜114 年全國運動會高雄市代表隊教練</span>
+        <span class="coach-line">選手｜曾為國內仰式全國紀錄保持人</span>
+        <span class="coach-line">選手｜98 年至 106 年代表高雄市參加全國運動會，多次榮獲金牌</span>
+        <span class="coach-line">選手｜2012 亞洲游泳錦標賽男子 200 公尺仰式第四名</span>
+        <span class="coach-line">選手｜2013 世界盃短水道游泳錦標賽男子 200 公尺仰式第八名</span>
+        <span class="coach-line">選手｜2014 亞洲運動會男子 200 公尺仰式第五名</span>
+        <span class="coach-line">選手｜2015 世界盃游泳錦標賽代表隊選手</span>
+        <span class="coach-line">選手｜108、110 年全國運動會男子 200 公尺仰式銀牌</span>
+        <span class="coach-line">培訓｜獲選 2012 倫敦、2016 里約、2020 東京奧運培訓隊</span>
+      </div>
       <div class="coach-certs">
-        <span class="cert-tag">中華民國C級教練</span>
+        <span class="cert-tag">中華民國游泳協會 B 級教練</span>
+        <span class="cert-tag">體育署專任運動教練證</span>
       </div>
     </div>
 
@@ -1848,6 +2112,7 @@
     <div class="footer-logo">東<span>美</span>游泳隊</div>
     <ul class="footer-links">
       <li><a href="#about">關於我們</a></li>
+      <li><a href="#pathway">升學路線</a></li>
       <li><a href="#news">最新動態</a></li>
       <li><a href="#coaches">教練介紹</a></li>
       <li><a href="#honours">榮譽殿堂</a></li>
