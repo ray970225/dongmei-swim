@@ -41,29 +41,6 @@
 
 提供招生資訊與報名表單連結，方便有興趣加入東美泳隊的家庭進一步聯繫。
 
-## 畫面截圖
-
-> 可將截圖放入 `docs/screenshots/` 資料夾，並使用以下檔名。若尚未放入圖片，README 仍可正常閱讀。
-
-### 首頁
-
-![首頁截圖](docs/screenshots/home.png)
-
-### 升學路線
-
-![升學路線截圖](docs/screenshots/pathway.png)
-
-### 教練團隊
-
-![教練團隊截圖](docs/screenshots/coaches.png)
-
-### 榮譽殿堂
-
-![榮譽殿堂截圖](docs/screenshots/honours.png)
-
-### 成績查詢
-
-![成績查詢截圖](docs/screenshots/results.png)
 
 ## 設計方向
 
