@@ -1,0 +1,349 @@
+@font-face {
+  font-family: "DongmeiSans";
+  src: local("Microsoft JhengHei");
+}
+
+:root {
+  --navy: #06182b;
+  --deep: #082844;
+  --water: #127fb3;
+  --aqua: #24c3df;
+  --gold: #f2c84b;
+  --foam: #d8f8ff;
+  --white: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.videoRoot {
+  background: var(--navy);
+  color: var(--white);
+  font-family: "DongmeiSans", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  overflow: hidden;
+}
+
+.scene {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(36, 195, 223, 0.24), transparent 25rem),
+    radial-gradient(circle at 14% 82%, rgba(242, 200, 75, 0.16), transparent 24rem),
+    linear-gradient(135deg, #06182b 0%, #073b60 52%, #04121f 100%);
+}
+
+.heroPhoto,
+.finalPhoto,
+.splitImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroPhoto {
+  position: absolute;
+  inset: 0;
+  filter: saturate(1.08) contrast(1.02);
+}
+
+.photoShade,
+.finalShade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3, 12, 22, 0.95) 0%, rgba(3, 12, 22, 0.72) 34%, rgba(3, 12, 22, 0.2) 100%),
+    linear-gradient(0deg, rgba(3, 12, 22, 0.64), rgba(3, 12, 22, 0.06));
+}
+
+.brandLockup {
+  position: absolute;
+  top: 64px;
+  left: 72px;
+  display: grid;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.brandLockup span,
+.kicker,
+.finalMessage span {
+  color: var(--aqua);
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.brandLockup strong {
+  color: var(--gold);
+  font-size: 34px;
+  letter-spacing: 0.08em;
+}
+
+.titleBlock {
+  position: relative;
+  z-index: 2;
+  max-width: 850px;
+}
+
+.titleBlock-left {
+  position: absolute;
+  left: 72px;
+  bottom: 132px;
+}
+
+.titleBlock-center {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.titleBlock h1 {
+  margin: 18px 0 24px;
+  color: var(--white);
+  font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  font-size: 104px;
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.titleBlock p {
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 31px;
+  font-weight: 500;
+  line-height: 1.62;
+}
+
+.waterlines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.waterline {
+  position: absolute;
+  left: -8%;
+  width: 116%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(216, 248, 255, 0.9), transparent);
+  border-radius: 999px;
+}
+
+.trainingScene {
+  display: grid;
+  grid-template-columns: 46% 54%;
+}
+
+.splitImage {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  clip-path: polygon(0 0, 92% 0, 76% 100%, 0 100%);
+}
+
+.splitImage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(6, 24, 43, 0.22), rgba(6, 24, 43, 0.74));
+}
+
+.trainingCopy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 110px 84px 110px 30px;
+}
+
+.trainingCopy .titleBlock {
+  position: static;
+}
+
+.beatGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 52px;
+  width: 100%;
+}
+
+.beatCard {
+  min-height: 146px;
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+.beatCard span {
+  color: var(--gold);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.beatCard strong {
+  display: block;
+  margin-top: 18px;
+  font-size: 34px;
+  letter-spacing: 0;
+}
+
+.rosterHeader {
+  position: absolute;
+  top: 86px;
+  left: 120px;
+  right: 120px;
+  z-index: 3;
+}
+
+.rosterHeader .titleBlock p {
+  margin: 0 auto;
+}
+
+.portraitTrack {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  bottom: 90px;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  align-items: end;
+}
+
+.portraitCard {
+  height: 490px;
+  overflow: hidden;
+  border: 3px solid var(--tone);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+}
+
+.portraitCard img {
+  width: 100%;
+  height: 390px;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.portraitCard span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: var(--white);
+  background: rgba(4, 18, 31, 0.86);
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.resultsCopy {
+  position: absolute;
+  left: 84px;
+  top: 128px;
+  z-index: 3;
+}
+
+.resultsCopy .titleBlock {
+  position: static;
+}
+
+.resultsBoard {
+  position: absolute;
+  right: 84px;
+  bottom: 128px;
+  z-index: 3;
+  display: grid;
+  gap: 18px;
+  width: 760px;
+}
+
+.resultRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 28px;
+  align-items: center;
+  min-height: 112px;
+  padding: 0 30px;
+  border-left: 8px solid var(--gold);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
+}
+
+.resultRow span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.resultRow strong {
+  color: var(--white);
+  font-size: 45px;
+  font-weight: 900;
+}
+
+.resultRow em {
+  color: var(--gold);
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.medalGlow {
+  position: absolute;
+  right: -160px;
+  top: -120px;
+  width: 560px;
+  height: 560px;
+  border-radius: 999px;
+  background: var(--gold);
+  filter: blur(90px);
+}
+
+.finalPhoto {
+  position: absolute;
+  inset: 0;
+}
+
+.finalShade {
+  background:
+    linear-gradient(0deg, rgba(3, 12, 22, 0.88), rgba(3, 12, 22, 0.34)),
+    radial-gradient(circle at 50% 56%, rgba(36, 195, 223, 0.18), transparent 42rem);
+}
+
+.finalMessage {
+  position: absolute;
+  z-index: 3;
+  left: 120px;
+  right: 120px;
+  bottom: 150px;
+  text-align: center;
+}
+
+.finalMessage strong {
+  display: block;
+  margin: 22px 0 20px;
+  color: var(--white);
+  font-size: 112px;
+  font-weight: 900;
+  line-height: 1.02;
+}
+
+.finalMessage p {
+  color: var(--gold);
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
