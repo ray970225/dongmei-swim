@@ -212,6 +212,27 @@ tr:hover td{background:rgba(0,180,216,0.04);}
 .mf-group input:focus,.mf-group textarea:focus,.mf-group select:focus{border-color:var(--aqua);}
 .mf-group textarea{resize:vertical;min-height:80px;}
 .mf-group select option{background:var(--deep);}
+.image-upload-box{
+  display:grid;grid-template-columns:96px 1fr;gap:.9rem;align-items:center;
+  padding:.85rem;background:var(--deep);border:1px dashed var(--border);border-radius:8px;
+}
+.image-preview{
+  width:96px;height:72px;border-radius:8px;overflow:hidden;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.72rem;
+}
+.image-preview img{width:100%;height:100%;object-fit:cover;}
+.image-upload-actions{min-width:0;}
+.image-upload-actions input[type=file]{
+  padding:.55rem;background:rgba(10,22,40,.7);cursor:pointer;
+}
+.image-upload-actions small{
+  display:block;color:var(--muted);font-size:.7rem;line-height:1.6;margin-top:.45rem;
+}
+.image-current-link{
+  display:inline-flex;margin-top:.4rem;color:var(--aqua);font-size:.74rem;text-decoration:none;
+}
+.image-current-link:hover{text-decoration:underline;}
 
 /* toast */
 .toast{
@@ -234,11 +255,30 @@ tr:hover td{background:rgba(0,180,216,0.04);}
 /* mobile */
 @media(max-width:700px){
   .sidebar{width:100%;position:static;flex-direction:row;flex-wrap:wrap;height:auto;}
-  .main{margin-left:0;}
+  .main{margin-left:0;padding:1rem;}
   nav.side-nav{display:flex;flex-direction:row;padding:.5rem;}
   .nav-item{padding:.5rem .8rem;border-left:none;border-bottom:3px solid transparent;}
   .nav-item.active{border-bottom-color:var(--aqua);border-left:none;}
   .sidebar-footer,.sidebar-logo small{display:none;}
+  .table-wrap{background:transparent;border:0;overflow:visible;}
+  table,thead,tbody,tr,th,td{display:block;width:100%;}
+  thead{display:none;}
+  tr{
+    background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:.75rem;margin-bottom:.85rem;
+  }
+  td{
+    display:grid;grid-template-columns:5.5rem 1fr;gap:.75rem;
+    padding:.55rem 0;border-bottom:1px solid rgba(30,49,88,0.45);
+  }
+  td:last-child{border-bottom:0;display:flex;justify-content:flex-end;gap:.4rem;}
+  td::before{
+    content:attr(data-label);color:var(--muted);font-size:.72rem;letter-spacing:.08em;
+  }
+  td:last-child::before{display:none;}
+  .td-truncate{max-width:none;white-space:normal;overflow:visible;text-overflow:clip;}
+  .image-upload-box{grid-template-columns:1fr;}
+  .image-preview{width:100%;height:160px;}
 }
 </style>
 </head>
@@ -367,10 +407,21 @@ tr:hover td{background:rgba(0,180,216,0.04);}
     </div>
     <div class="modal-body">
       <input type="hidden" id="news-id">
+      <input type="hidden" id="news-img">
       <div class="mf-group"><label>日期</label><input type="date" id="news-date"></div>
       <div class="mf-group"><label>標題</label><input type="text" id="news-title" placeholder="例：全國錦標賽三金載譽歸來"></div>
       <div class="mf-group"><label>內容描述</label><textarea id="news-desc" placeholder="簡短說明…"></textarea></div>
-      <div class="mf-group"><label>圖片網址（選填）</label><input type="url" id="news-img" placeholder="https://…"></div>
+      <div class="mf-group">
+        <label>上傳照片（選填）</label>
+        <div class="image-upload-box">
+          <div class="image-preview" id="news-img-preview">尚無圖片</div>
+          <div class="image-upload-actions">
+            <input type="file" id="news-img-file" accept="image/*">
+            <small>支援手機與電腦選取照片；儲存後會自動上傳並顯示在前台最新動態。</small>
+            <a class="image-current-link" id="news-img-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">查看目前圖片</a>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('news')">取消</button>
@@ -521,6 +572,79 @@ function toast(msg, err=false) {
   setTimeout(() => t.className = 'toast', 2800);
 }
 
+function setNewsImagePreview(url='') {
+  const preview = document.getElementById('news-img-preview');
+  const link = document.getElementById('news-img-link');
+  if (url) {
+    preview.innerHTML = `<img src="${url}" alt="最新動態圖片預覽">`;
+    link.href = url;
+    link.style.display = 'inline-flex';
+  } else {
+    preview.textContent = '尚無圖片';
+    link.removeAttribute('href');
+    link.style.display = 'none';
+  }
+}
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('圖片讀取失敗，請換一張照片試試'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function canvasToDataUrl(canvas, quality) {
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+async function compressNewsImage(file) {
+  const img = await loadImageFromFile(file);
+  const maxSide = 1400;
+  const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+  const width = Math.max(1, Math.round(img.naturalWidth * scale));
+  const height = Math.max(1, Math.round(img.naturalHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, width, height);
+
+  let quality = 0.82;
+  let dataUrl = canvasToDataUrl(canvas, quality);
+  while (dataUrl.length > 850000 && quality > 0.46) {
+    quality -= 0.08;
+    dataUrl = canvasToDataUrl(canvas, quality);
+  }
+  if (dataUrl.length > 950000) {
+    throw new Error('圖片仍然太大，請先裁切或換小一點的照片');
+  }
+  return dataUrl;
+}
+
+async function prepareNewsImageIfNeeded() {
+  const fileInput = document.getElementById('news-img-file');
+  const file = fileInput.files?.[0];
+  if (!file) return document.getElementById('news-img').value.trim();
+  if (!file.type.startsWith('image/')) throw new Error('請選擇圖片檔案');
+  return compressNewsImage(file);
+}
+
+document.getElementById('news-img-file').addEventListener('change', e => {
+  const file = e.target.files?.[0];
+  if (!file) {
+    setNewsImagePreview(document.getElementById('news-img').value.trim());
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    toast('請選擇圖片檔案', true);
+    e.target.value = '';
+    return;
+  }
+  setNewsImagePreview(URL.createObjectURL(file));
+});
+
 /* ── MODAL ── */
 window.openModal  = (type, data=null) => {
   if (type === 'news') {
@@ -530,6 +654,8 @@ window.openModal  = (type, data=null) => {
     document.getElementById('news-title').value = data?.title || '';
     document.getElementById('news-desc').value  = data?.desc  || '';
     document.getElementById('news-img').value   = data?.img   || '';
+    document.getElementById('news-img-file').value = '';
+    setNewsImagePreview(data?.img || '');
   } else if (type === 'honours') {
     document.getElementById('modal-honours-title').textContent = data ? '編輯獎項' : '新增獎項';
     document.getElementById('honours-id').value    = data?.id    || '';
@@ -595,11 +721,11 @@ function renderNewsList() {
     <thead><tr><th>日期</th><th>標題</th><th>描述</th><th>圖片</th><th></th></tr></thead>
     <tbody>${newsData.map(r=>`
       <tr>
-        <td>${r.date||'—'}</td>
-        <td><b>${r.title||''}</b></td>
-        <td class="td-truncate">${r.desc||''}</td>
-        <td>${r.img ? `<a href="${r.img}" target="_blank" style="color:var(--aqua);font-size:.75rem;">查看</a>` : '—'}</td>
-        <td>
+        <td data-label="日期">${r.date||'—'}</td>
+        <td data-label="標題"><b>${r.title||''}</b></td>
+        <td data-label="描述" class="td-truncate">${r.desc||''}</td>
+        <td data-label="圖片">${r.img ? `<a href="${r.img}" target="_blank" style="color:var(--aqua);font-size:.75rem;">查看</a>` : '—'}</td>
+        <td data-label="操作">
           <button class="btn-icon" onclick='editNews(${JSON.stringify(r)})'>✏️</button>
           <button class="btn-icon btn-del" onclick="removeNews('${r.id}')">🗑️</button>
         </td>
@@ -615,6 +741,7 @@ window.removeNews = async id => {
 };
 window.saveNews = async () => {
   const id    = document.getElementById('news-id').value;
+  const saveBtn = document.querySelector('#modal-news .btn-primary');
   const data  = {
     date:  document.getElementById('news-date').value,
     title: document.getElementById('news-title').value.trim(),
@@ -622,10 +749,21 @@ window.saveNews = async () => {
     img:   document.getElementById('news-img').value.trim(),
   };
   if (!data.title) { toast('請填寫標題', true); return; }
-  await saveDoc('news', id, data);
-  closeModal('news');
-  toast(id ? '已更新' : '已新增 ✓');
-  loadNews().then(loadDashboard);
+  try {
+    saveBtn.disabled = true;
+    saveBtn.textContent = '處理圖片中…';
+    data.img = await prepareNewsImageIfNeeded();
+    await saveDoc('news', id, data);
+    closeModal('news');
+    toast(id ? '已更新' : '已新增 ✓');
+    loadNews().then(loadDashboard);
+  } catch (e) {
+    console.error(e);
+    toast(e.message || '圖片上傳失敗，請稍後再試', true);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '儲存';
+  }
 };
 
 /* ════ HONOURS ════ */
@@ -643,12 +781,12 @@ function renderHonoursList() {
     <thead><tr><th>類別</th><th>賽事</th><th>選手</th><th>成績明細</th><th>年份</th><th></th></tr></thead>
     <tbody>${honoursData.map(r=>`
       <tr>
-        <td><span class="badge badge-aqua">${r.cat||''}</span></td>
-        <td class="td-truncate">${r.event||''}</td>
-        <td>${r.name||''}</td>
-        <td class="td-truncate">${(r.items||[]).join(' / ')}</td>
-        <td>${r.year||''}</td>
-        <td>
+        <td data-label="類別"><span class="badge badge-aqua">${r.cat||''}</span></td>
+        <td data-label="賽事" class="td-truncate">${r.event||''}</td>
+        <td data-label="選手">${r.name||''}</td>
+        <td data-label="成績明細" class="td-truncate">${(r.items||[]).join(' / ')}</td>
+        <td data-label="年份">${r.year||''}</td>
+        <td data-label="操作">
           <button class="btn-icon" onclick='editHonours(${JSON.stringify(r)})'>✏️</button>
           <button class="btn-icon btn-del" onclick="removeHonours('${r.id}')">🗑️</button>
         </td>
@@ -692,11 +830,11 @@ function renderCoachesList() {
     <thead><tr><th>姓名</th><th>職稱</th><th>簡介</th><th>證照</th><th></th></tr></thead>
     <tbody>${coachesData.map(r=>`
       <tr>
-        <td><b>${r.name||''}</b></td>
-        <td>${r.role||''}</td>
-        <td class="td-truncate">${r.bio||''}</td>
-        <td class="td-truncate">${r.certs||''}</td>
-        <td>
+        <td data-label="姓名"><b>${r.name||''}</b></td>
+        <td data-label="職稱">${r.role||''}</td>
+        <td data-label="簡介" class="td-truncate">${r.bio||''}</td>
+        <td data-label="證照" class="td-truncate">${r.certs||''}</td>
+        <td data-label="操作">
           <button class="btn-icon" onclick='editCoaches(${JSON.stringify(r)})'>✏️</button>
           <button class="btn-icon btn-del" onclick="removeCoaches('${r.id}')">🗑️</button>
         </td>
@@ -740,11 +878,11 @@ function renderRecruitList() {
     <thead><tr><th>班別</th><th>年齡</th><th>費用</th><th>說明</th><th></th></tr></thead>
     <tbody>${recruitData.map(r=>`
       <tr>
-        <td><b>${r.name||''}</b></td>
-        <td>${r.age||''}</td>
-        <td>${r.fee||'—'}</td>
-        <td class="td-truncate">${r.desc||''}</td>
-        <td>
+        <td data-label="班別"><b>${r.name||''}</b></td>
+        <td data-label="年齡">${r.age||''}</td>
+        <td data-label="費用">${r.fee||'—'}</td>
+        <td data-label="說明" class="td-truncate">${r.desc||''}</td>
+        <td data-label="操作">
           <button class="btn-icon" onclick='editRecruit(${JSON.stringify(r)})'>✏️</button>
           <button class="btn-icon btn-del" onclick="removeRecruit('${r.id}')">🗑️</button>
         </td>
@@ -782,9 +920,9 @@ function loadDashboard() {
     <thead><tr><th>日期</th><th>標題</th><th>描述</th></tr></thead>
     <tbody>${recent.map(r=>`
       <tr>
-        <td>${r.date||'—'}</td>
-        <td><b>${r.title||''}</b></td>
-        <td class="td-truncate">${r.desc||''}</td>
+        <td data-label="日期">${r.date||'—'}</td>
+        <td data-label="標題"><b>${r.title||''}</b></td>
+        <td data-label="描述" class="td-truncate">${r.desc||''}</td>
       </tr>`).join('')}
     </tbody></table>`;
 }
