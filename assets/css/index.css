@@ -146,8 +146,16 @@
   }
 
   /* wave layers */
-  .wave-wrap { position:absolute; bottom:0; left:0; right:0; overflow:hidden; line-height:0; }
-  .wave-wrap svg { display:block; width:100%; }
+   .wave-wrap {
+     position: absolute;
+     right: 0;
+     bottom: 0;
+     left: 0;
+     height: clamp(96px, 15vh, 180px);
+     background: linear-gradient(180deg, transparent 0%, rgba(9,38,61,0.26) 36%, #09263d 100%);
+     pointer-events: none;
+   }
+   .wave-wrap svg { display: none; }
 
   .jelly-scene {
     position: absolute;
@@ -239,8 +247,11 @@
     .logo-core,
     .logo-ribbon,
     .logo-waves,
-    .water-ribbons {
+    .water-ribbons,
+    .coach-drawer,
+    .coach-drawer-backdrop {
       animation: none !important;
+      transition-duration: .01ms !important;
     }
   }
 
@@ -383,19 +394,6 @@
     padding: 100px 5%;
     overflow: hidden;
   }
-  section:not(#hero)::before {
-    content: '';
-    position: absolute;
-    left: -6%;
-    right: -6%;
-    top: -1px;
-    height: 42px;
-    background:
-      radial-gradient(120% 70% at 18% 0%, rgba(255,255,255,0.28) 0 46%, transparent 47%),
-      radial-gradient(120% 70% at 70% 0%, rgba(255,255,255,0.18) 0 48%, transparent 49%);
-    opacity: .7;
-    pointer-events: none;
-  }
   .section-eyebrow {
     font-size: .75rem; letter-spacing: .3em; text-transform: uppercase;
     color: var(--water); margin-bottom: .6rem;
@@ -416,11 +414,9 @@
     margin-bottom: 3rem;
   }
 
-  /* divider */
+  /* Seamless section joins */
   .divider {
-    width: 100%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(23,155,215,0.18), transparent);
-    margin: 0;
+    display: none;
   }
 
   /* ───────────────────────────────────────────
@@ -672,26 +668,36 @@
   /* ───────────────────────────────────────────
      COACHES
   ─────────────────────────────────────────── */
-  #coaches {
+   #coaches {
     background:
       radial-gradient(circle at 18% 12%, rgba(36,195,223,0.18), transparent 28rem),
       radial-gradient(circle at 86% 32%, rgba(242,200,75,0.12), transparent 24rem),
-      linear-gradient(180deg, #071d33 0%, #0b3f68 58%, #06182b 100%);
+      linear-gradient(180deg, #06182b 0%, #0b3f68 58%, #06182b 100%);
     color: var(--white);
   }
   #coaches .section-eyebrow { color: var(--aqua); }
   #coaches .section-title { color: var(--white); }
   #coaches .section-lead { color: rgba(255,255,255,0.72); }
   .coaches-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    max-width: 1180px;
+    margin: 3rem auto 0;
   }
   .coach-card {
+    position: relative;
+    display: flex;
+    flex: 1 1 240px;
+    flex-direction: column;
+    align-items: center;
+    max-width: 277px;
+    min-height: 340px;
     text-align: center;
-    transition: transform .24s ease;
-    padding: 1.6rem 1.2rem;
+    cursor: pointer;
+    transition: transform .24s ease, border-color .24s ease, background .24s ease, box-shadow .24s ease;
+    padding: 1.7rem 1.25rem 1.35rem;
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 24px;
     background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035));
@@ -703,6 +709,11 @@
     border-color: rgba(36,195,223,0.38);
     background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
     box-shadow: 0 24px 58px rgba(0,0,0,0.24);
+  }
+  .coach-card:focus-within,
+  .coach-card.is-selected {
+    border-color: rgba(242,200,75,0.62);
+    box-shadow: 0 24px 58px rgba(0,0,0,0.24), 0 0 0 3px rgba(242,200,75,0.1);
   }
   .coach-avatar {
     width: 120px; height: 120px;
@@ -722,8 +733,11 @@
     box-shadow: 0 14px 34px rgba(18,127,179,0.24), 0 0 0 8px rgba(36,195,223,0.12);
   }
   .coach-card:hover .coach-avatar img { transform: scale(1.06); }
-  .coach-name { font-family: var(--font-serif); font-weight: 700; font-size: 1.1rem; margin-bottom: .3rem; color: var(--white); }
-  .coach-role { font-size: .78rem; color: var(--aqua); letter-spacing: .12em; margin-bottom: .7rem; }
+  .coach-name { font-family: var(--font-serif); font-weight: 700; font-size: 1.1rem; margin-bottom: .35rem; color: var(--white); }
+  .coach-role { min-height: 2.8rem; font-size: .78rem; color: var(--aqua); letter-spacing: .1em; line-height: 1.6; }
+  .coach-drawer-ready .coach-card > .coach-bio,
+  .coach-drawer-ready .coach-card > .coach-certs,
+  .coach-drawer-ready .coach-card > .coach-links { display: none; }
   .coach-bio  { font-size: .82rem; line-height: 1.7; color: rgba(255,255,255,0.68); }
   .coach-line { display: block; }
   .coach-line + .coach-line { margin-top: .2rem; }
@@ -776,6 +790,135 @@
     box-shadow: 0 14px 32px rgba(24,119,242,0.34);
     filter: saturate(1.08);
   }
+  .coach-card-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    margin-top: auto;
+    padding: .58rem 1rem;
+    border: 1px solid rgba(36,195,223,0.42);
+    border-radius: 999px;
+    background: rgba(36,195,223,0.1);
+    color: var(--foam);
+    font-family: var(--font-sans);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    cursor: pointer;
+    transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .coach-card-action::after { content: '→'; font-size: .9rem; }
+  .coach-card:hover .coach-card-action,
+  .coach-card-action:focus-visible {
+    border-color: var(--aqua);
+    background: var(--aqua);
+    color: var(--navy);
+    outline: none;
+    transform: translateX(2px);
+  }
+
+  /* Coach detail drawer */
+  body.coach-drawer-open { overflow: hidden; }
+  .coach-drawer-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    visibility: hidden;
+    pointer-events: none;
+    transition: visibility 0s linear .35s;
+  }
+  .coach-drawer-shell.is-open {
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+  .coach-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(2,12,23,0.7);
+    opacity: 0;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: opacity .3s ease;
+  }
+  .coach-drawer-shell.is-open .coach-drawer-backdrop { opacity: 1; }
+  .coach-drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    width: min(540px, 92vw);
+    height: 100dvh;
+    overflow: hidden;
+    border-left: 1px solid rgba(36,195,223,0.28);
+    background:
+      radial-gradient(circle at 86% 8%, rgba(36,195,223,0.16), transparent 22rem),
+      linear-gradient(180deg, #0b304f 0%, #071d33 100%);
+    color: var(--white);
+    box-shadow: -28px 0 70px rgba(0,0,0,0.38);
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.22,.8,.25,1);
+  }
+  .coach-drawer-shell.is-open .coach-drawer { transform: translateX(0); }
+  .coach-drawer-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 50%;
+    background: rgba(7,29,51,0.72);
+    color: var(--white);
+    font-size: 1.35rem;
+    cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .coach-drawer-close:hover,
+  .coach-drawer-close:focus-visible {
+    border-color: var(--aqua);
+    background: var(--water);
+    outline: none;
+    transform: rotate(6deg);
+  }
+  .coach-drawer-header {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+    padding: 4rem 2rem 1.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .coach-drawer-avatar {
+    width: 112px;
+    height: 112px;
+    overflow: hidden;
+    border: 3px solid var(--aqua);
+    border-radius: 50%;
+    background: var(--deep);
+    box-shadow: 0 0 0 8px rgba(36,195,223,0.1), 0 18px 34px rgba(0,0,0,0.28);
+  }
+  .coach-drawer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .coach-drawer-kicker { margin-bottom: .45rem; color: var(--aqua); font-size: .68rem; letter-spacing: .2em; }
+  .coach-drawer-name { margin: 0 0 .4rem; font-family: var(--font-serif); font-size: 1.65rem; line-height: 1.35; }
+  .coach-drawer-role { color: rgba(255,255,255,0.68); font-size: .78rem; letter-spacing: .08em; line-height: 1.6; }
+  .coach-drawer-scroll { overflow-y: auto; padding: 1.7rem 2rem 2.25rem; scrollbar-color: rgba(36,195,223,0.55) transparent; }
+  .coach-drawer-label { margin-bottom: .8rem; color: var(--gold); font-size: .68rem; font-weight: 700; letter-spacing: .2em; }
+  .coach-drawer-details .coach-bio { display: block; color: rgba(255,255,255,0.78); font-size: .88rem; line-height: 1.85; }
+  .coach-drawer-details .coach-line {
+    padding: .65rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .coach-drawer-details .coach-line + .coach-line { margin-top: 0; }
+  .coach-drawer-details .coach-certs { display: flex; justify-content: flex-start; gap: .5rem; margin-top: 1.4rem; }
+  .coach-drawer-details .cert-tag { padding: .35rem .7rem; font-size: .7rem; }
+  .coach-drawer-details .coach-links { display: flex; justify-content: flex-start; margin-top: 1.4rem; }
 
   /* ───────────────────────────────────────────
      HONOURS — dynamic from Google Sheets
@@ -943,8 +1086,8 @@
   /* ───────────────────────────────────────────
      RECRUIT
   ─────────────────────────────────────────── */
-  #recruit {
-    background: linear-gradient(180deg, #0b3f68 0%, #092f50 38%, #06182b 100%);
+   #recruit {
+    background: linear-gradient(180deg, #083a5d 0%, #092f50 38%, #06182b 100%);
     position: relative; overflow: hidden;
     color: var(--white);
   }
@@ -1078,10 +1221,10 @@
   /* ───────────────────────────────────────────
      FOOTER
   ─────────────────────────────────────────── */
-  footer {
-    background: #060e1c;
+   footer {
+    background: linear-gradient(180deg, #06182b 0%, #060e1c 100%);
     padding: 3rem 5%;
-    border-top: 1px solid rgba(0,180,216,0.1);
+    border-top: 0;
     color: var(--white);
   }
   .footer-inner {
@@ -1162,6 +1305,7 @@
     }
     .nav-links.open li { padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .coaches-grid {
+      display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;
     }
@@ -1171,10 +1315,11 @@
       grid-template-areas:
         "avatar name"
         "avatar role"
-        "avatar bio"
-        "avatar certs"
-        "avatar links";
+        "avatar action";
       align-items: start;
+      width: 100%;
+      max-width: none;
+      min-height: 0;
       column-gap: 1rem;
       text-align: left;
       padding: 1rem;
@@ -1187,8 +1332,6 @@
       height: 5.4rem;
       margin: 0;
       align-self: start;
-      position: sticky;
-      top: 5rem;
     }
     .coach-name {
       grid-area: name;
@@ -1197,31 +1340,18 @@
     }
     .coach-role {
       grid-area: role;
-      margin-bottom: .55rem;
+      min-height: 0;
+      margin-bottom: .6rem;
       letter-spacing: .08em;
       line-height: 1.55;
     }
-    .coach-bio {
-      grid-area: bio;
-      font-size: .78rem;
-      line-height: 1.65;
-    }
-    .coach-line + .coach-line { margin-top: .16rem; }
-    .coach-card .coach-line:nth-child(n+3) { font-size: .74rem; }
-    .coach-certs {
-      grid-area: certs;
-      justify-content: flex-start;
-      margin-top: .7rem;
-    }
-    .cert-tag {
-      font-size: .62rem;
-      padding: .18rem .52rem;
-    }
-    .coach-links {
-      grid-area: links;
-      justify-content: flex-start;
-      margin-top: .75rem;
-    }
+    .coach-card-action { grid-area: action; justify-self: start; margin-top: 0; padding: .45rem .8rem; }
+    .coach-drawer { width: 100%; }
+    .coach-drawer-header { grid-template-columns: 84px minmax(0, 1fr); gap: 1rem; padding: 4.5rem 1.25rem 1.4rem; }
+    .coach-drawer-avatar { width: 84px; height: 84px; }
+    .coach-drawer-name { font-size: 1.35rem; }
+    .coach-drawer-scroll { padding: 1.35rem 1.25rem 2rem; }
+    .coach-drawer-details .coach-bio { font-size: .82rem; }
     #pathway .reveal {
       opacity: 1;
       transform: none;
@@ -1524,10 +1654,6 @@
   body.intro-running .nav-links,
   body.intro-running .hamburger {
     opacity: 0;
-  }
-  body.intro-done > *:not(#intro-overlay) {
-    visibility: visible;
-    pointer-events: auto;
   }
   body.intro-running #hero .hero-bg,
   body.intro-running #hero .lane-lines,
