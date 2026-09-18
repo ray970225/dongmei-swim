@@ -1,160 +1,144 @@
 import { chromium } from 'playwright';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+const ROOT = new URL('../', import.meta.url);
 const STATE_FILE = new URL('./.auth/swim-state.json', import.meta.url);
-const OUT_DIR = new URL('./output/', import.meta.url);
+const CONFIG_FILE = new URL('./swim-config.json', import.meta.url);
+const DATA_FILE = new URL('./data/swim-results.json', ROOT);
+const META_FILE = new URL('./data/swim-results-meta.json', ROOT);
 const statePath = fileURLToPath(STATE_FILE);
 
-const TARGET_TERMS = ['高雄市新莊高中', '東美泳隊', '大仁國中'];
-const TARGET_TEAM_KEYWORDS = [
-  '高雄市新莊高中',
-  '新莊高中',
-  '高市新莊',
-  '新莊HCHS',
-  '東美泳隊',
-  '高雄市東美泳隊',
-  '東美大仁',
-  '大仁國中',
-  '高雄市大仁國中'
-];
-
-const PAGE_LIMIT = 50;
-const RESULT_LIMIT = 20;
-const REQUEST_DELAY_MS = 450;
-
-if (!existsSync(statePath)) {
-  console.error('找不到登入 session。請先執行：npm run swim:login');
-  process.exit(1);
-}
-
-await mkdir(OUT_DIR, { recursive: true });
-
-const browser = await chromium.launch({
-  headless: true,
-  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-  args: ['--disable-blink-features=AutomationControlled']
-});
-
-const context = await browser.newContext({
-  storageState: statePath,
-  locale: 'zh-TW'
-});
-const page = await context.newPage();
+const DEFAULT_CONFIG = {
+  searchTerms: ['高雄市新莊高中', '東美泳隊', '大仁國中'],
+  teamKeywords: ['高雄市新莊高中', '新莊高中', '高市新莊', '新莊HCHS', '東美泳隊', '高雄市東美泳隊', '東美大仁', '大仁國中', '高雄市大仁國中'],
+  pageSize: 100,
+  requestDelayMs: 500
+};
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const unique = values => [...new Set(values.filter(Boolean))];
 const includesAny = (value, keywords) => {
   const text = Array.isArray(value) ? value.join(' ') : String(value || '');
   return keywords.some(keyword => text.includes(keyword));
 };
 
-async function apiGet(path) {
-  const result = await page.evaluate(async url => {
-    const response = await fetch(url, {
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' }
-    });
-    const text = await response.text();
-    return {
-      ok: response.ok,
-      status: response.status,
-      text
-    };
-  }, `https://swim.orz.tw${path}`);
-
-  if (!result.ok) {
-    throw new Error(`API ${path} failed: ${result.status} ${result.text.slice(0, 160)}`);
-  }
-  return result.text ? JSON.parse(result.text) : {};
+async function loadConfig() {
+  if (!existsSync(fileURLToPath(CONFIG_FILE))) return DEFAULT_CONFIG;
+  const configured = JSON.parse(await readFile(CONFIG_FILE, 'utf8'));
+  return {
+    ...DEFAULT_CONFIG,
+    ...configured,
+    pageSize: Math.min(100, Math.max(1, Number(configured.pageSize || DEFAULT_CONFIG.pageSize))),
+    requestDelayMs: Math.max(0, Number(configured.requestDelayMs ?? DEFAULT_CONFIG.requestDelayMs))
+  };
 }
 
-await page.goto('https://swim.orz.tw/search', { waitUntil: 'domcontentloaded' });
+async function writeJsonAtomically(url, value) {
+  const target = fileURLToPath(url);
+  const temp = `${target}.${process.pid}.tmp`;
+  await writeFile(temp, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  await rename(temp, target);
+}
 
-const swimmersById = new Map();
+async function restoreSessionFromEnvironment() {
+  if (existsSync(statePath)) return;
+  const encodedState = process.env.SWIM_STORAGE_STATE_BASE64;
+  if (!encodedState) throw new Error('找不到登入 session。請先執行 npm run swim:login，或設定 SWIM_STORAGE_STATE_BASE64。');
+  await mkdir(new URL('./.auth/', import.meta.url), { recursive: true });
+  await writeFile(statePath, Buffer.from(encodedState, 'base64').toString('utf8'), 'utf8');
+}
 
-for (const term of TARGET_TERMS) {
+async function fetchAllPages(apiGet, path, pageSize, delayMs) {
+  const records = [];
   let offset = 0;
-  let hasMore = true;
+  for (;;) {
+    const separator = path.includes('?') ? '&' : '?';
+    const payload = await apiGet(`${path}${separator}limit=${pageSize}&offset=${offset}`);
+    const page = Array.isArray(payload.data) ? payload.data : [];
+    records.push(...page);
+    if (!payload.has_more || page.length === 0) break;
+    offset += page.length;
+    await sleep(delayMs);
+  }
+  return records;
+}
 
-  while (hasMore) {
-    const query = `/api/swimmers?q=${encodeURIComponent(term)}&limit=${PAGE_LIMIT}&offset=${offset}&region=TW`;
-    console.log(`同步選手：${term} offset=${offset}`);
-    const payload = await apiGet(query);
-    const swimmers = payload.data || [];
+const config = await loadConfig();
+await restoreSessionFromEnvironment();
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.CHROME_PATH || undefined,
+  args: ['--disable-blink-features=AutomationControlled']
+});
 
+try {
+  const context = await browser.newContext({ storageState: statePath, locale: 'zh-TW' });
+  const page = await context.newPage();
+  await page.goto('https://swim.orz.tw/search', { waitUntil: 'domcontentloaded' });
+
+  async function apiGet(path) {
+    const result = await page.evaluate(async url => {
+      const response = await fetch(url, { credentials: 'include', headers: { Accept: 'application/json' } });
+      return { ok: response.ok, status: response.status, text: await response.text() };
+    }, `https://swim.orz.tw${path}`);
+    if (!result.ok) throw new Error(`API ${path} failed: ${result.status} ${result.text.slice(0, 160)}`);
+    return result.text ? JSON.parse(result.text) : {};
+  }
+
+  const swimmersById = new Map();
+  for (const term of config.searchTerms) {
+    console.log(`搜尋選手：${term}`);
+    const swimmers = await fetchAllPages(apiGet, `/api/swimmers?q=${encodeURIComponent(term)}&region=TW`, config.pageSize, config.requestDelayMs);
     for (const swimmer of swimmers) {
-      const relatedTeams = [
-        swimmer.latest_team,
-        ...(swimmer.recent_teams || [])
-      ];
-      if (includesAny(relatedTeams, TARGET_TEAM_KEYWORDS)) {
-        const existing = swimmersById.get(swimmer.id) || {};
-        swimmersById.set(swimmer.id, {
-          ...existing,
-          ...swimmer,
-          matched_terms: [...new Set([...(existing.matched_terms || []), term])],
-          matched_teams: [...new Set([...(existing.matched_teams || []), ...relatedTeams.filter(Boolean)])]
-        });
-      }
+      const relatedTeams = unique([swimmer.latest_team, ...(swimmer.recent_teams || [])]);
+      if (!includesAny(relatedTeams, config.teamKeywords)) continue;
+      const previous = swimmersById.get(swimmer.id) || {};
+      swimmersById.set(swimmer.id, {
+        ...previous,
+        ...swimmer,
+        matched_terms: unique([...(previous.matched_terms || []), term]),
+        matched_teams: unique([...(previous.matched_teams || []), ...relatedTeams])
+      });
     }
-
-    hasMore = Boolean(payload.has_more) && swimmers.length > 0;
-    offset += PAGE_LIMIT;
-    await sleep(REQUEST_DELAY_MS);
+    await sleep(config.requestDelayMs);
   }
-}
 
-const swimmers = [...swimmersById.values()]
-  .sort((a, b) => (b.results_count || 0) - (a.results_count || 0));
-
-const results = [];
-for (const [index, swimmer] of swimmers.entries()) {
-  console.log(`同步成績 ${index + 1}/${swimmers.length}：${swimmer.name}`);
-  const payload = await apiGet(`/api/results?swimmer_id=${encodeURIComponent(swimmer.id)}&limit=${RESULT_LIMIT}&offset=0&sort=date_desc`);
-  for (const result of payload.data || []) {
-    if (!includesAny(result.team, TARGET_TEAM_KEYWORDS)) continue;
-    results.push({
-      id: result.id,
-      swimmer_id: swimmer.id,
-      swimmer: swimmer.name,
-      swimmer_en: swimmer.name_en,
-      gender: swimmer.gender,
-      birth_year: swimmer.birth_year,
-      team: result.team,
-      event: result.event?.name || result.event_name || '',
-      competition: result.competition_name,
-      competition_date: result.competition_date,
-      rank: result.rank,
-      time: result.time,
-      time_milliseconds: result.time_milliseconds,
-      pool_type: result.pool_type,
-      round: result.round,
-      age_group: result.age_group?.name || '',
-      source: result.source || 'Swim Insights',
-      source_file: result.source_file || '',
-      synced_at: new Date().toISOString()
-    });
+  const swimmers = [...swimmersById.values()].sort((a, b) => (b.results_count || 0) - (a.results_count || 0));
+  const resultsById = new Map();
+  for (const [index, swimmer] of swimmers.entries()) {
+    console.log(`同步成績 ${index + 1}/${swimmers.length}：${swimmer.name}`);
+    const sourceResults = await fetchAllPages(apiGet, `/api/results?swimmer_id=${encodeURIComponent(swimmer.id)}&sort=date_desc`, config.pageSize, config.requestDelayMs);
+    for (const result of sourceResults) {
+      if (!includesAny(result.team, config.teamKeywords)) continue;
+      const id = result.id || `${swimmer.id}-${result.competition_date}-${result.event?.name || result.event_name}-${result.time}`;
+      resultsById.set(id, {
+        id, swimmer_id: swimmer.id, swimmer: swimmer.name, swimmer_en: swimmer.name_en || '',
+        gender: swimmer.gender || '', birth_year: swimmer.birth_year || null, team: result.team || '',
+        event: result.event?.name || result.event_name || '', competition: result.competition_name || '',
+        competition_date: result.competition_date || '', rank: result.rank ?? null, time: result.time || '',
+        time_milliseconds: result.time_milliseconds ?? null, pool_type: result.pool_type || '', round: result.round || '',
+        age_group: result.age_group?.name || '', source: result.source || 'Swim Insights', source_file: result.source_file || ''
+      });
+    }
+    await sleep(config.requestDelayMs);
   }
-  await sleep(REQUEST_DELAY_MS);
+
+  const syncedAt = new Date().toISOString();
+  const results = [...resultsById.values()].map(result => ({ ...result, synced_at: syncedAt }))
+    .sort((a, b) => String(b.competition_date).localeCompare(String(a.competition_date)));
+  const metadata = {
+    version: 2, source: '游泳成績通', synced_at: syncedAt,
+    swimmer_count: swimmers.length, result_count: results.length,
+    search_terms: config.searchTerms, team_keywords: config.teamKeywords
+  };
+
+  // 僅在所有 API 請求成功後才取代網站資料，避免失敗時把有效資料清空。
+  await mkdir(new URL('./data/', ROOT), { recursive: true });
+  await writeJsonAtomically(DATA_FILE, results);
+  await writeJsonAtomically(META_FILE, metadata);
+  console.log(`完成：${swimmers.length} 位選手，${results.length} 筆成績；更新時間 ${syncedAt}`);
+} finally {
+  await browser.close();
 }
-
-const snapshot = {
-  version: 1,
-  source: 'Swim Insights / 游泳成績通',
-  synced_at: new Date().toISOString(),
-  target_terms: TARGET_TERMS,
-  target_team_keywords: TARGET_TEAM_KEYWORDS,
-  swimmer_count: swimmers.length,
-  result_count: results.length,
-  swimmers,
-  results
-};
-
-await writeFile(new URL('./swimmers.json', OUT_DIR), JSON.stringify(swimmers, null, 2), 'utf8');
-await writeFile(new URL('./results.json', OUT_DIR), JSON.stringify(results, null, 2), 'utf8');
-await writeFile(new URL('./snapshot.json', OUT_DIR), JSON.stringify(snapshot, null, 2), 'utf8');
-
-await browser.close();
-
-console.log(`完成：${swimmers.length} 位選手，${results.length} 筆近期成績。`);

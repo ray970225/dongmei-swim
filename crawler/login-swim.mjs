@@ -13,7 +13,7 @@ await mkdir(AUTH_DIR, { recursive: true });
 const browser = await chromium.launch({
   headless: false,
   slowMo: 60,
-  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  executablePath: process.env.CHROME_PATH || undefined,
   args: [
     '--disable-blink-features=AutomationControlled'
   ]

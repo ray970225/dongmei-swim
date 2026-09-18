@@ -2,6 +2,7 @@ const input = document.getElementById('searchInput');
     const button = document.getElementById('searchBtn');
     const list = document.getElementById('resultsList');
     const meta = document.getElementById('metaText');
+    const updatedAt = document.getElementById('updatedAt');
     let rows = [];
 
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -13,6 +14,16 @@ const input = document.getElementById('searchInput');
     }[char]));
 
     const formatRank = rank => rank ? `第 ${rank} 名` : '名次未列';
+
+    const formatUpdatedAt = value => {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '最後更新時間未提供';
+      return `最後更新：${new Intl.DateTimeFormat('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      }).format(date)}（台灣時間）`;
+    };
 
     const render = query => {
       const q = query.trim();
@@ -63,13 +74,17 @@ const input = document.getElementById('searchInput');
     input.addEventListener('keydown', event => {
       if (event.key === 'Enter') search();
     });
-    fetch('data/swim-results.json')
-      .then(response => {
+    Promise.all([
+      fetch('data/swim-results.json').then(response => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();
-      })
-      .then(data => {
+      }),
+      fetch('data/swim-results-meta.json').then(response => response.ok ? response.json() : null).catch(() => null)
+    ])
+      .then(([data, metadata]) => {
         rows = Array.isArray(data) ? data : [];
+        const fallbackTimestamp = rows.map(row => row.synced_at).filter(Boolean).sort().at(-1);
+        updatedAt.textContent = formatUpdatedAt(metadata?.synced_at || fallbackTimestamp);
         const initial = new URLSearchParams(location.search).get('q') || '';
         input.value = initial;
         meta.textContent = `已同步 ${rows.length} 筆成績`;
@@ -77,5 +92,6 @@ const input = document.getElementById('searchInput');
       })
       .catch(error => {
         meta.textContent = '資料載入失敗';
+        updatedAt.textContent = '最後更新時間無法取得';
         list.innerHTML = `<div class="empty">無法載入成績資料：${escapeHtml(error.message)}</div>`;
       });
