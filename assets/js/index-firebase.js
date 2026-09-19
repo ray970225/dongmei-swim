@@ -14,9 +14,9 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 function medalIcon(award='') {
-  if (award.includes('🥇')||award.includes('第一')) return '🥇';
-  if (award.includes('🥈')||award.includes('第二')) return '🥈';
-  if (award.includes('🥉')||award.includes('第三')) return '🥉';
+  if (award.includes('🥇')||award.includes('第一')||/第\s*1\s*名/.test(award)) return '🥇';
+  if (award.includes('🥈')||award.includes('第二')||/第\s*2\s*名/.test(award)) return '🥈';
+  if (award.includes('🥉')||award.includes('第三')||/第\s*3\s*名/.test(award)) return '🥉';
   return '🏅';
 }
 
@@ -65,17 +65,31 @@ const HONOURS_PER_PAGE = 6;
 async function loadHonours() {
   const loadingEl = document.getElementById('honoursLoading');
   const errorEl   = document.getElementById('honoursError');
-  try {
-    const snap = await getDocs(collection(db, 'honours'));
-    allHonours = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    allHonours.sort((a,b) => (b.year||0)-(a.year||0));
-    loadingEl.style.display = 'none';
-    renderHonours('all');
-  } catch(e) {
-    loadingEl.style.display = 'none';
+  const [manualResult, automaticResult] = await Promise.allSettled([
+    getDocs(collection(db, 'honours')),
+    fetch('data/swim-honours.json', { cache: 'no-store' }).then(async response => {
+      if (!response.ok) throw new Error(`自動榮譽資料載入失敗：${response.status}`);
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error('自動榮譽資料格式錯誤');
+      return data;
+    })
+  ]);
+
+  const manualHonours = manualResult.status === 'fulfilled'
+    ? manualResult.value.docs.map(d => ({ id: d.id, source: 'manual', ...d.data() }))
+    : [];
+  const automaticHonours = automaticResult.status === 'fulfilled' ? automaticResult.value : [];
+  allHonours = [...automaticHonours, ...manualHonours]
+    .sort((a, b) => String(b.date || b.year || '').localeCompare(String(a.date || a.year || '')) ||
+      Number(a.best_rank || 99) - Number(b.best_rank || 99));
+
+  loadingEl.style.display = 'none';
+  if (!allHonours.length) {
     errorEl.style.display = 'block';
-    errorEl.textContent = '⚠️ 榮譽資料載入失敗。';
+    errorEl.textContent = '⚠️ 榮譽資料載入失敗，請稍後再試。';
+    return;
   }
+  renderHonours('all');
 }
 
 function renderHonours(cat = currentHonoursCat, page = 1) {
@@ -102,12 +116,16 @@ function renderHonours(cat = currentHonoursCat, page = 1) {
         <div class="honour-event">${r.event||''} · ${r.year||''}</div>
         <div class="honour-name">${r.name||''}</div>
         <div class="honour-items">${
-          (r.items||[]).map(line => {
+          (r.item_details || (r.items||[]).map(line => {
             const parts = line.trim().split(/\s+/);
-            const event = parts[0]||'';
-            const time  = parts[1]||'';
-            const award = parts.slice(2).join(' ')||'';
-            const medal = award.includes('第一') ? '🥇' : award.includes('第二') ? '🥈' : award.includes('第三') ? '🥉' : '🏅';
+            return { event: parts[0] || '', time: parts[1] || '', award: parts.slice(2).join(' ') || '' };
+          })).map(item => {
+            const event = item.event || '';
+            const time = item.time || '';
+            const award = item.award || (item.rank ? `第 ${item.rank} 名` : '');
+            const medal = item.rank === 1 || award.includes('第一') || /第\s*1\s*名/.test(award) ? '🥇'
+              : item.rank === 2 || award.includes('第二') || /第\s*2\s*名/.test(award) ? '🥈'
+              : item.rank === 3 || award.includes('第三') || /第\s*3\s*名/.test(award) ? '🥉' : '🏅';
             return `<div class="honour-item">
               <span class="hi-event">${event}</span>
               ${time ? `<span class="hi-time">${time}</span>` : ''}
@@ -128,9 +146,13 @@ function renderHonoursPagination(totalPages) {
     return;
   }
 
-  const pageButtons = Array.from({ length: totalPages }, (_, i) => {
-    const page = i + 1;
-    return `<button class="page-btn ${page === currentHonoursPage ? 'active' : ''}" data-page="${page}" aria-label="第 ${page} 頁">${page}</button>`;
+  const visiblePages = new Set([1, totalPages]);
+  for (let page = currentHonoursPage - 2; page <= currentHonoursPage + 2; page += 1) {
+    if (page >= 1 && page <= totalPages) visiblePages.add(page);
+  }
+  const pageButtons = [...visiblePages].sort((a, b) => a - b).map((page, index, pages) => {
+    const gap = index && page - pages[index - 1] > 1 ? '<span class="page-ellipsis" aria-hidden="true">…</span>' : '';
+    return `${gap}<button class="page-btn ${page === currentHonoursPage ? 'active' : ''}" data-page="${page}" aria-label="第 ${page} 頁">${page}</button>`;
   }).join('');
 
   pagination.innerHTML = `

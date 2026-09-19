@@ -2,12 +2,14 @@ import { chromium } from 'playwright';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { createAutomaticHonours } from './honours.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const STATE_FILE = new URL('./.auth/swim-state.json', import.meta.url);
 const CONFIG_FILE = new URL('./swim-config.json', import.meta.url);
 const DATA_FILE = new URL('./data/swim-results.json', ROOT);
 const META_FILE = new URL('./data/swim-results-meta.json', ROOT);
+const HONOURS_FILE = new URL('./data/swim-honours.json', ROOT);
 const statePath = fileURLToPath(STATE_FILE);
 
 const DEFAULT_CONFIG = {
@@ -128,17 +130,20 @@ try {
   const syncedAt = new Date().toISOString();
   const results = [...resultsById.values()].map(result => ({ ...result, synced_at: syncedAt }))
     .sort((a, b) => String(b.competition_date).localeCompare(String(a.competition_date)));
+  const automaticHonours = createAutomaticHonours(results, syncedAt);
   const metadata = {
     version: 2, source: '游泳成績通', synced_at: syncedAt,
     swimmer_count: swimmers.length, result_count: results.length,
+    automatic_honours_count: automaticHonours.length,
     search_terms: config.searchTerms, team_keywords: config.teamKeywords
   };
 
   // 僅在所有 API 請求成功後才取代網站資料，避免失敗時把有效資料清空。
   await mkdir(new URL('./data/', ROOT), { recursive: true });
   await writeJsonAtomically(DATA_FILE, results);
+  await writeJsonAtomically(HONOURS_FILE, automaticHonours);
   await writeJsonAtomically(META_FILE, metadata);
-  console.log(`完成：${swimmers.length} 位選手，${results.length} 筆成績；更新時間 ${syncedAt}`);
+  console.log(`完成：${swimmers.length} 位選手，${results.length} 筆成績，${automaticHonours.length} 張榮譽卡；更新時間 ${syncedAt}`);
 } finally {
   await browser.close();
 }
