@@ -12,6 +12,7 @@ const RESULTS_PER_PAGE = 24;
 let rows = [];
 let performanceByResult = new Map();
 let trendSeriesByKey = new Map();
+let trendResizeTimer = null;
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -132,9 +133,12 @@ const renderTrendChart = key => {
     return;
   }
 
-  const width = 760;
-  const height = 270;
-  const padding = { top: 28, right: 24, bottom: 48, left: 82 };
+  const mobileChart = window.matchMedia('(max-width: 700px)').matches;
+  const width = mobileChart ? 360 : 760;
+  const height = mobileChart ? 230 : 270;
+  const padding = mobileChart
+    ? { top: 24, right: 18, bottom: 42, left: 58 }
+    : { top: 28, right: 24, bottom: 48, left: 82 };
   const times = series.map(row => Number(row.time_milliseconds));
   const min = Math.min(...times);
   const max = Math.max(...times);
@@ -146,7 +150,10 @@ const renderTrendChart = key => {
   const ticks = [0, 0.5, 1].map(position => high - (high - low) * position);
   const line = series.map((row, index) => `${index ? 'L' : 'M'} ${x(index).toFixed(1)} ${y(Number(row.time_milliseconds)).toFixed(1)}`).join(' ');
   const dateLabel = row => String(row.competition_date || '').replace(/^\d{4}-/, '').replace('-', '/');
-  const xLabels = [0, Math.floor((series.length - 1) / 2), series.length - 1]
+  const xLabelIndexes = mobileChart
+    ? [0, series.length - 1]
+    : [0, Math.floor((series.length - 1) / 2), series.length - 1];
+  const xLabels = xLabelIndexes
     .filter((value, index, items) => items.indexOf(value) === index)
     .map(index => `<text class="trend-label" x="${x(index)}" y="${height - 18}" text-anchor="middle">${escapeHtml(dateLabel(series[index]))}</text>`)
     .join('');
@@ -296,6 +303,13 @@ pagination.addEventListener('click', event => {
   pagination.dataset.page = String(page);
   render(input.value, page);
   list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+window.addEventListener('resize', () => {
+  window.clearTimeout(trendResizeTimer);
+  trendResizeTimer = window.setTimeout(() => {
+    const selectedTrend = document.getElementById('trendSelect')?.value;
+    if (selectedTrend) renderTrendChart(selectedTrend);
+  }, 160);
 });
 
 Promise.all([

@@ -272,8 +272,11 @@
       .meta { display: grid; gap: .45rem; padding: .85rem 1rem; font-size: .78rem; }
       .source { display: none; }
       .insights { padding: .85rem; }
-      .trend-chart { min-width: 38rem; }
-      #trendChart { overflow-x: auto; padding-bottom: .25rem; }
+      .insight-head { align-items: stretch; }
+      .trend-chart { min-width: 0; width: 100%; }
+      #trendChart { overflow: hidden; padding: .1rem 0 .25rem; }
+      .trend-label { font-size: 11px; }
+      .trend-value { font-size: 11px; }
       .trend-select { width: 100%; }
       .list { padding: .75rem; gap: .65rem; }
       .row {
