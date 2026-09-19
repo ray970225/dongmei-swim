@@ -1087,6 +1087,16 @@
     padding: 0 .1rem;
   }
 
+  .local-intro {
+    padding: clamp(3.5rem, 7vw, 5.5rem) 5%;
+    background: linear-gradient(135deg, #e9f8fc, #d7eef6);
+    color: var(--ink);
+  }
+  .local-intro > * { width: min(760px, 100%); margin-left: auto; margin-right: auto; }
+  .local-intro .section-eyebrow { margin-bottom: .7rem; color: var(--water); }
+  .local-intro .section-title { margin-bottom: .9rem; }
+  .local-intro p:last-child { color: var(--muted); line-height: 1.9; font-size: clamp(.9rem, 2vw, 1.02rem); }
+
   /* ───────────────────────────────────────────
      RECRUIT
   ─────────────────────────────────────────── */
@@ -1421,6 +1431,7 @@
       backdrop-filter: blur(8px);
     }
     .page-btn { min-width: 2.45rem; height: 2.45rem; }
+    .local-intro { padding: 3.25rem 5%; }
     .score-query-link {
       width: 100%;
       margin-top: 1.2rem;

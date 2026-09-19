@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+
+Sitemap: https://ray970225.github.io/dongmei-swim/sitemap.xml
