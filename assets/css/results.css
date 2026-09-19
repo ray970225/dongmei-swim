@@ -152,6 +152,28 @@
     .source {
       color: rgba(255,255,255,.5);
     }
+    .insights {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .insight-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: .8rem;
+      flex-wrap: wrap;
+      margin-bottom: .8rem;
+    }
+    .insight-title { font-weight: 950; }
+    .insight-sub { color: rgba(255,255,255,.6); font-size: .82rem; margin-top: .22rem; }
+    .trend-select { min-width: min(100%, 18rem); min-height: 2.65rem; font-size: .88rem; }
+    .trend-chart { display: block; width: 100%; height: auto; overflow: visible; }
+    .trend-axis { stroke: rgba(255,255,255,.24); stroke-width: 1; }
+    .trend-grid { stroke: rgba(255,255,255,.1); stroke-width: 1; }
+    .trend-line { fill: none; stroke: var(--aqua); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+    .trend-point { fill: var(--gold); stroke: var(--navy); stroke-width: 2; }
+    .trend-label { fill: rgba(255,255,255,.62); font-size: 12px; font-family: inherit; }
+    .trend-value { fill: var(--white); font-size: 12px; font-weight: 900; font-family: inherit; }
     .list {
       display: grid;
       gap: .75rem;
@@ -176,11 +198,27 @@
       font-weight: 950;
       margin-bottom: .24rem;
     }
+    .pb-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-left: .45rem;
+      padding: .12rem .42rem;
+      border-radius: 999px;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: .7rem;
+      font-weight: 950;
+      letter-spacing: .08em;
+      vertical-align: .1rem;
+    }
     .sub {
       color: rgba(255,255,255,.66);
       font-size: .84rem;
       line-height: 1.6;
     }
+    .delta { display: inline-block; margin-top: .3rem; font-weight: 800; }
+    .delta-faster { color: #62e6bd; }
+    .delta-slower { color: #ffad9b; }
     .time {
       color: var(--gold);
       font-size: 1.12rem;
@@ -198,6 +236,7 @@
       .back-link { padding: .5rem .8rem; }
       .searchbar { grid-template-columns: 1fr; }
       .filterbar { grid-template-columns: 1fr; }
+      .trend-select { width: 100%; }
       .row {
         grid-template-columns: 1fr;
         gap: .35rem;
