@@ -93,7 +93,7 @@
       border-bottom: 1px solid var(--line);
       background: rgba(255,255,255,.06);
     }
-    input {
+    input, select {
       width: 100%;
       min-height: 3.3rem;
       border: 1px solid rgba(255,255,255,.18);
@@ -105,10 +105,12 @@
       outline: none;
     }
     input::placeholder { color: rgba(255,255,255,.38); }
-    input:focus {
+    input:focus, select:focus {
       border-color: var(--aqua);
       box-shadow: 0 0 0 4px rgba(36,195,223,.16);
     }
+    select { cursor: pointer; }
+    select option { color: #06182b; }
     button {
       min-height: 3.3rem;
       border: 0;
@@ -120,6 +122,21 @@
       font-weight: 950;
       letter-spacing: .08em;
       cursor: pointer;
+    }
+    .filterbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .8rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .filter-field {
+      display: grid;
+      gap: .4rem;
+      color: rgba(255,255,255,.72);
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .06em;
     }
     .meta {
       display: flex;
@@ -180,6 +197,7 @@
       .topbar { padding: .9rem 1rem; }
       .back-link { padding: .5rem .8rem; }
       .searchbar { grid-template-columns: 1fr; }
+      .filterbar { grid-template-columns: 1fr; }
       .row {
         grid-template-columns: 1fr;
         gap: .35rem;
