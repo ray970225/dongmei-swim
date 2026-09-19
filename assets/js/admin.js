@@ -153,14 +153,6 @@ window.openModal  = (type, data=null) => {
     document.getElementById('honours-name').value  = data?.name  || '';
     document.getElementById('honours-year').value  = data?.year  || new Date().getFullYear();
     document.getElementById('honours-items').value = (data?.items || []).join('\n');
-  } else if (type === 'coaches') {
-    document.getElementById('modal-coaches-title').textContent = data ? '編輯教練' : '新增教練';
-    document.getElementById('coaches-id').value    = data?.id    || '';
-    document.getElementById('coaches-name').value  = data?.name  || '';
-    document.getElementById('coaches-role').value  = data?.role  || '';
-    document.getElementById('coaches-bio').value   = data?.bio   || '';
-    document.getElementById('coaches-certs').value = data?.certs || '';
-    document.getElementById('coaches-img').value   = data?.img   || '';
   } else if (type === 'recruit') {
     document.getElementById('modal-recruit-title').textContent = data ? '編輯班別' : '新增班別';
     document.getElementById('recruit-id').value   = data?.id   || '';
@@ -191,7 +183,7 @@ async function delDoc(col, id) {
 
 /* ── LOAD ALL ── */
 async function loadAll() {
-  await Promise.all([loadNews(), loadHonours(), loadCoaches(), loadRecruit()]);
+  await Promise.all([loadNews(), loadHonours(), loadRecruit()]);
   loadDashboard();
 }
 
@@ -303,54 +295,6 @@ window.saveHonours = async () => {
   closeModal('honours');
   toast(id ? '已更新' : '已新增 ✓');
   loadHonours();
-};
-
-/* ════ COACHES ════ */
-let coachesData = [];
-async function loadCoaches() {
-  coachesData = await loadCollection('coaches');
-  document.getElementById('cnt-coaches').textContent = coachesData.length;
-  renderCoachesList();
-}
-function renderCoachesList() {
-  const el = document.getElementById('coachesList');
-  if (!coachesData.length) { el.innerHTML = '<div class="empty-state">尚無資料</div>'; return; }
-  el.innerHTML = `<table>
-    <thead><tr><th>姓名</th><th>職稱</th><th>簡介</th><th>證照</th><th></th></tr></thead>
-    <tbody>${coachesData.map(r=>`
-      <tr>
-        <td data-label="姓名"><b>${r.name||''}</b></td>
-        <td data-label="職稱">${r.role||''}</td>
-        <td data-label="簡介" class="td-truncate">${r.bio||''}</td>
-        <td data-label="證照" class="td-truncate">${r.certs||''}</td>
-        <td data-label="操作">
-          <button class="btn-icon" onclick='editCoaches(${JSON.stringify(r)})'>✏️</button>
-          <button class="btn-icon btn-del" onclick="removeCoaches('${r.id}')">🗑️</button>
-        </td>
-      </tr>`).join('')}
-    </tbody></table>`;
-}
-window.editCoaches = data => openModal('coaches', data);
-window.removeCoaches = async id => {
-  if (!confirm('確定刪除？')) return;
-  await delDoc('coaches', id);
-  toast('已刪除');
-  loadCoaches();
-};
-window.saveCoaches = async () => {
-  const id   = document.getElementById('coaches-id').value;
-  const data = {
-    name:  document.getElementById('coaches-name').value.trim(),
-    role:  document.getElementById('coaches-role').value.trim(),
-    bio:   document.getElementById('coaches-bio').value.trim(),
-    certs: document.getElementById('coaches-certs').value.trim(),
-    img:   document.getElementById('coaches-img').value.trim(),
-  };
-  if (!data.name) { toast('請填寫姓名', true); return; }
-  await saveDoc('coaches', id, data);
-  closeModal('coaches');
-  toast(id ? '已更新' : '已新增 ✓');
-  loadCoaches();
 };
 
 /* ════ RECRUIT ════ */

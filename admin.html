@@ -42,9 +42,6 @@
       <div class="nav-item" data-tab="honours" onclick="switchTab(this)">
         <span class="nav-icon">🏅</span>榮譽殿堂
       </div>
-      <div class="nav-item" data-tab="coaches" onclick="switchTab(this)">
-        <span class="nav-icon">👨‍🏫</span>教練團隊
-      </div>
       <div class="nav-item" data-tab="recruit" onclick="switchTab(this)">
         <span class="nav-icon">📋</span>招生資訊
       </div>
@@ -65,7 +62,6 @@
       <div class="stats-row">
         <div class="stat-card"><div class="num" id="cnt-news">—</div><div class="lbl">最新動態</div></div>
         <div class="stat-card"><div class="num" id="cnt-honours">—</div><div class="lbl">榮譽記錄</div></div>
-        <div class="stat-card"><div class="num" id="cnt-coaches">—</div><div class="lbl">教練人數</div></div>
         <div class="stat-card"><div class="num" id="cnt-recruit">—</div><div class="lbl">招生班別</div></div>
       </div>
       <div class="table-wrap">
@@ -93,17 +89,6 @@
       </div>
       <div class="table-wrap">
         <div id="honoursList"><div class="loading">載入中…</div></div>
-      </div>
-    </div>
-
-    <!-- COACHES -->
-    <div class="tab-content" id="tab-coaches">
-      <div class="page-header">
-        <div class="page-title">教練團隊<small>管理教練資料</small></div>
-        <button class="btn-primary" onclick="openModal('coaches')">＋ 新增教練</button>
-      </div>
-      <div class="table-wrap">
-        <div id="coachesList"><div class="loading">載入中…</div></div>
       </div>
     </div>
 
@@ -182,28 +167,6 @@
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('honours')">取消</button>
       <button class="btn-primary" onclick="saveHonours()">儲存</button>
-    </div>
-  </div>
-</div>
-
-<!-- Coaches Modal -->
-<div class="modal-overlay" id="modal-coaches">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-coaches-title">新增教練</h3>
-      <button class="btn-close" onclick="closeModal('coaches')">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="coaches-id">
-      <div class="mf-group"><label>姓名</label><input type="text" id="coaches-name" placeholder="例：陳建宏"></div>
-      <div class="mf-group"><label>職稱</label><input type="text" id="coaches-role" placeholder="例：總教練"></div>
-      <div class="mf-group"><label>簡介</label><textarea id="coaches-bio" placeholder="教練背景…"></textarea></div>
-      <div class="mf-group"><label>證照（逗號分隔）</label><input type="text" id="coaches-certs" placeholder="例：中華民國A級教練, ASCA Level 3"></div>
-      <div class="mf-group"><label>圖片網址（選填）</label><input type="url" id="coaches-img" placeholder="https://…"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal('coaches')">取消</button>
-      <button class="btn-primary" onclick="saveCoaches()">儲存</button>
     </div>
   </div>
 </div>
