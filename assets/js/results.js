@@ -1,11 +1,14 @@
 const input = document.getElementById('searchInput');
 const button = document.getElementById('searchBtn');
+const clearButton = document.getElementById('clearBtn');
 const competitionSelect = document.getElementById('competitionSelect');
 const eventSelect = document.getElementById('eventSelect');
 const list = document.getElementById('resultsList');
 const meta = document.getElementById('metaText');
 const updatedAt = document.getElementById('updatedAt');
 const insightsPanel = document.getElementById('insightsPanel');
+const pagination = document.getElementById('resultsPagination');
+const RESULTS_PER_PAGE = 24;
 let rows = [];
 let performanceByResult = new Map();
 let trendSeriesByKey = new Map();
@@ -78,7 +81,8 @@ const buildPerformanceIndex = sourceRows => {
   sourceRows.forEach(row => {
     if (!Number.isFinite(Number(row.time_milliseconds)) || Number(row.time_milliseconds) <= 0) return;
     const key = performanceKey(row);
-    groups.set(key, [...(groups.get(key) || []), row]);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
   });
 
   performanceByResult = new Map();
@@ -106,7 +110,8 @@ const buildTrendSeries = sourceRows => {
   sourceRows.forEach(row => {
     if (!Number.isFinite(Number(row.time_milliseconds)) || Number(row.time_milliseconds) <= 0) return;
     const key = `${row.event || '未列項目'}|${row.pool_type || '未列池別'}`;
-    trendSeriesByKey.set(key, [...(trendSeriesByKey.get(key) || []), row]);
+    if (!trendSeriesByKey.has(key)) trendSeriesByKey.set(key, []);
+    trendSeriesByKey.get(key).push(row);
   });
   trendSeriesByKey.forEach((series, key) => {
     trendSeriesByKey.set(key, series.sort((a, b) =>
@@ -194,13 +199,33 @@ const performanceMarkup = row => {
   return '<br><span class="delta">與前次相同</span>';
 };
 
-const render = query => {
+const renderPagination = (total, page, query) => {
+  const totalPages = Math.ceil(total / RESULTS_PER_PAGE);
+  if (totalPages <= 1) {
+    pagination.innerHTML = '';
+    return;
+  }
+  const visiblePages = new Set([1, totalPages]);
+  for (let number = page - 1; number <= page + 1; number += 1) {
+    if (number >= 1 && number <= totalPages) visiblePages.add(number);
+  }
+  const buttons = [...visiblePages].sort((a, b) => a - b).map((number, index, numbers) => {
+    const ellipsis = index && number - numbers[index - 1] > 1 ? '<span class="page-ellipsis" aria-hidden="true">…</span>' : '';
+    return `${ellipsis}<button class="page-btn ${number === page ? 'active' : ''}" type="button" data-page="${number}" aria-label="第 ${number} 頁">${number}</button>`;
+  }).join('');
+  pagination.innerHTML = `<button class="page-btn" type="button" data-page="${page - 1}" ${page === 1 ? 'disabled' : ''} aria-label="上一頁">‹</button>${buttons}<button class="page-btn" type="button" data-page="${page + 1}" ${page === totalPages ? 'disabled' : ''} aria-label="下一頁">›</button>`;
+  pagination.dataset.query = query;
+  pagination.dataset.page = String(page);
+};
+
+const render = (query, requestedPage = 1) => {
   const q = query.trim();
   const competition = competitionSelect.value;
   const event = eventSelect.value;
   if (!q && !competition && !event) {
     renderInsights([], '');
     list.innerHTML = '<div class="empty">請輸入選手姓名，或選擇賽事／項目開始查詢。</div>';
+    pagination.innerHTML = '';
     meta.textContent = `已同步 ${rows.length} 筆成績`;
     return;
   }
@@ -216,12 +241,16 @@ const render = query => {
   if (!matches.length) {
     renderInsights([], '');
     list.innerHTML = '<div class="empty">目前沒有符合的同步資料。可調整姓名、賽事或項目後再試一次。</div>';
+    pagination.innerHTML = '';
     return;
   }
 
   renderInsights(matches, q);
+  const totalPages = Math.ceil(matches.length / RESULTS_PER_PAGE);
+  const page = Math.min(Math.max(requestedPage, 1), totalPages);
+  const pageRows = matches.slice((page - 1) * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE);
 
-  list.innerHTML = matches.map(row => `
+  list.innerHTML = pageRows.map(row => `
     <article class="row">
       <div class="date">${escapeHtml(row.competition_date || '')}</div>
       <div>
@@ -233,9 +262,10 @@ const render = query => {
       <div class="time">${escapeHtml(row.time || '-')}</div>
     </article>
   `).join('');
+  renderPagination(matches.length, page, q);
 };
 
-const search = () => {
+const search = (resetPage = true) => {
   const q = input.value.trim();
   const url = new URL(location.href);
   const filters = { q, competition: competitionSelect.value, event: eventSelect.value };
@@ -244,13 +274,29 @@ const search = () => {
     else url.searchParams.delete(key);
   });
   history.replaceState(null, '', url);
-  render(q);
+  clearButton.hidden = !q && !competitionSelect.value && !eventSelect.value;
+  render(q, resetPage ? 1 : Number(pagination.dataset.page || 1));
 };
 
-button.addEventListener('click', search);
+button.addEventListener('click', () => search(true));
 input.addEventListener('keydown', event => { if (event.key === 'Enter') search(); });
 competitionSelect.addEventListener('change', () => { syncEventOptions(); search(); });
 eventSelect.addEventListener('change', search);
+clearButton.addEventListener('click', () => {
+  input.value = '';
+  competitionSelect.value = '';
+  syncEventOptions();
+  search();
+  input.focus();
+});
+pagination.addEventListener('click', event => {
+  const pageButton = event.target.closest('[data-page]');
+  if (!pageButton || pageButton.disabled) return;
+  const page = Number(pageButton.dataset.page);
+  pagination.dataset.page = String(page);
+  render(input.value, page);
+  list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 Promise.all([
   fetch('data/swim-results.json').then(response => {
@@ -271,6 +317,7 @@ Promise.all([
     const fallbackTimestamp = rows.map(row => row.synced_at).filter(Boolean).sort().at(-1);
     updatedAt.textContent = formatUpdatedAt(metadata?.synced_at || fallbackTimestamp);
     input.value = params.get('q') || '';
+    clearButton.hidden = !input.value && !competitionSelect.value && !eventSelect.value;
     render(input.value);
   })
   .catch(error => {

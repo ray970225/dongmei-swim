@@ -20,8 +20,12 @@
     </p>
     <section class="search-panel" aria-label="東美選手成績查詢">
       <div class="searchbar">
-        <input id="searchInput" type="search" placeholder="輸入姓名，例如：李瀚、胡閔惟、郭叡" autocomplete="off">
-        <button id="searchBtn" type="button">查詢</button>
+        <label class="sr-only" for="searchInput">選手姓名</label>
+        <input id="searchInput" type="search" placeholder="輸入選手姓名，例如：李瀚、胡閔惟、郭叡" autocomplete="off" enterkeyhint="search">
+        <div class="search-actions">
+          <button id="clearBtn" class="clear-btn" type="button" hidden>清除</button>
+          <button id="searchBtn" type="button">查詢成績</button>
+        </div>
       </div>
       <div class="filterbar" aria-label="成績篩選條件">
         <label class="filter-field" for="competitionSelect">
@@ -34,7 +38,7 @@
         </label>
       </div>
       <div class="meta">
-        <span id="metaText">資料載入中...</span>
+        <strong id="metaText">資料載入中...</strong>
         <span id="updatedAt">最後更新時間載入中...</span>
         <span class="source">資料來源：游泳成績通</span>
       </div>
@@ -42,9 +46,10 @@
       <div class="list" id="resultsList">
         <div class="empty">請輸入選手姓名開始查詢。</div>
       </div>
+      <nav class="results-pagination" id="resultsPagination" aria-label="成績列表分頁"></nav>
     </section>
   </main>
 
-  <script src="assets/js/results.js?v=20260919-pb-trend"></script>
+  <script src="assets/js/results.js?v=20260919-mobile-ux"></script>
 </body>
 </html>

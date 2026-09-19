@@ -61,8 +61,11 @@ let allHonours = [];
 let currentHonoursCat = 'all';
 let currentHonoursPage = 1;
 const HONOURS_PER_PAGE = 6;
+let honoursLoadStarted = false;
 
 async function loadHonours() {
+  if (honoursLoadStarted) return;
+  honoursLoadStarted = true;
   const loadingEl = document.getElementById('honoursLoading');
   const errorEl   = document.getElementById('honoursError');
   const [manualResult, automaticResult] = await Promise.allSettled([
@@ -179,4 +182,17 @@ document.getElementById('honoursPagination').addEventListener('click', e => {
 });
 
 loadNews();
-loadHonours();
+
+// 榮譽資料量較大，捲動接近區塊時才下載，讓手機開啟首頁更快。
+const honoursSection = document.getElementById('honours');
+const startHonoursLoading = () => loadHonours();
+if (location.hash === '#honours' || !('IntersectionObserver' in window)) {
+  startHonoursLoading();
+} else {
+  const honoursObserver = new IntersectionObserver(entries => {
+    if (!entries.some(entry => entry.isIntersecting)) return;
+    honoursObserver.disconnect();
+    startHonoursLoading();
+  }, { rootMargin: '420px 0px' });
+  honoursObserver.observe(honoursSection);
+}
