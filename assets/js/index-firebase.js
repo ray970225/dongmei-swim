@@ -13,11 +13,26 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-function medalIcon(award='') {
-  if (award.includes('🥇')||award.includes('第一')||/第\s*1\s*名/.test(award)) return '🥇';
-  if (award.includes('🥈')||award.includes('第二')||/第\s*2\s*名/.test(award)) return '🥈';
-  if (award.includes('🥉')||award.includes('第三')||/第\s*3\s*名/.test(award)) return '🥉';
-  return '🏅';
+function rankFromAward(award = '') {
+  const text = String(award);
+  if (text.includes('第一') || /第\s*1\s*名/.test(text)) return 1;
+  if (text.includes('第二') || /第\s*2\s*名/.test(text)) return 2;
+  if (text.includes('第三') || /第\s*3\s*名/.test(text)) return 3;
+  const match = text.match(/第\s*(\d+)\s*名/);
+  return match ? Number(match[1]) : null;
+}
+
+function medalOrRank(rank, award = '') {
+  const resolvedRank = Number(rank) || rankFromAward(award);
+  if (resolvedRank === 1) return '🥇';
+  if (resolvedRank === 2) return '🥈';
+  if (resolvedRank === 3) return '🥉';
+  return resolvedRank ? `第 ${resolvedRank} 名` : '';
+}
+
+function medalForRank(rank, award = '') {
+  const marker = medalOrRank(rank, award);
+  return ['🥇', '🥈', '🥉'].includes(marker) ? marker : '';
 }
 
 /* scroll reveal observer (已在上方 script 宣告，這裡重新取得) */
@@ -114,7 +129,7 @@ function renderHonours(cat = currentHonoursCat, page = 1) {
 
   grid.innerHTML = pageData.map(r => `
     <div class="honour-card reveal">
-      <div class="honour-medal">${medalIcon(r.award||'')}</div>
+      <div class="honour-medal ${Number(r.best_rank || rankFromAward(r.award)) > 3 ? 'honour-rank' : ''}">${medalOrRank(r.best_rank, r.award)}</div>
       <div class="honour-info">
         <div class="honour-event">${r.event||''} · ${r.year||''}</div>
         <div class="honour-name">${r.name||''}</div>
@@ -126,13 +141,11 @@ function renderHonours(cat = currentHonoursCat, page = 1) {
             const event = item.event || '';
             const time = item.time || '';
             const award = item.award || (item.rank ? `第 ${item.rank} 名` : '');
-            const medal = item.rank === 1 || award.includes('第一') || /第\s*1\s*名/.test(award) ? '🥇'
-              : item.rank === 2 || award.includes('第二') || /第\s*2\s*名/.test(award) ? '🥈'
-              : item.rank === 3 || award.includes('第三') || /第\s*3\s*名/.test(award) ? '🥉' : '🏅';
+            const medal = medalForRank(item.rank, award);
             return `<div class="honour-item">
               <span class="hi-event">${event}</span>
               ${time ? `<span class="hi-time">${time}</span>` : ''}
-              ${award ? `<span class="hi-award">${medal} ${award}</span>` : ''}
+              ${award ? `<span class="hi-award">${medal ? `${medal} ` : ''}${award}</span>` : ''}
             </div>`;
           }).join('')
         }</div>
