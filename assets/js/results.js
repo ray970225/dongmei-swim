@@ -12,6 +12,20 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
 }[char]));
 const uniqueSorted = values => [...new Set(values.filter(Boolean))]
   .sort((a, b) => String(a).localeCompare(String(b), 'zh-Hant'));
+const newestCompetitionsFirst = sourceRows => {
+  const latestDateByCompetition = new Map();
+  sourceRows.forEach(row => {
+    if (!row.competition) return;
+    const date = String(row.competition_date || '');
+    if (date > (latestDateByCompetition.get(row.competition) || '')) {
+      latestDateByCompetition.set(row.competition, date);
+    }
+  });
+  return [...latestDateByCompetition.keys()].sort((a, b) => {
+    const dateOrder = (latestDateByCompetition.get(b) || '').localeCompare(latestDateByCompetition.get(a) || '');
+    return dateOrder || String(a).localeCompare(String(b), 'zh-Hant');
+  });
+};
 const formatRank = rank => rank ? `第 ${rank} 名` : '名次未列';
 
 const formatUpdatedAt = value => {
@@ -109,7 +123,7 @@ Promise.all([
     const params = new URLSearchParams(location.search);
     const initialCompetition = params.get('competition') || '';
     const initialEvent = params.get('event') || '';
-    setOptions(competitionSelect, uniqueSorted(rows.map(row => row.competition)), '全部賽事', initialCompetition);
+    setOptions(competitionSelect, newestCompetitionsFirst(rows), '全部賽事', initialCompetition);
     syncEventOptions();
     eventSelect.value = [...eventSelect.options].some(option => option.value === initialEvent) ? initialEvent : '';
     const fallbackTimestamp = rows.map(row => row.synced_at).filter(Boolean).sort().at(-1);
