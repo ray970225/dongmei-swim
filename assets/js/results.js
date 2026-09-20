@@ -13,6 +13,8 @@ let rows = [];
 let performanceByResult = new Map();
 let trendSeriesByKey = new Map();
 let trendResizeTimer = null;
+let activeTrendKey = '';
+let trendListKey = '';
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -46,6 +48,9 @@ const formatDifference = milliseconds => {
 };
 const swimmerKey = row => row.swimmer_id || row.swimmer || '';
 const performanceKey = row => [swimmerKey(row), row.event || '', row.pool_type || '未列池別'].join('|');
+const trendKey = (event, poolType) => [event || '未列項目', poolType || '未列池別'].join('\u0001');
+const trendKeyParts = key => String(key).split('\u0001');
+const trendLabel = key => trendKeyParts(key).join('｜');
 
 const formatUpdatedAt = value => {
   const date = new Date(value);
@@ -110,7 +115,7 @@ const buildTrendSeries = sourceRows => {
   trendSeriesByKey = new Map();
   sourceRows.forEach(row => {
     if (!Number.isFinite(Number(row.time_milliseconds)) || Number(row.time_milliseconds) <= 0) return;
-    const key = `${row.event || '未列項目'}|${row.pool_type || '未列池別'}`;
+    const key = trendKey(row.event, row.pool_type);
     if (!trendSeriesByKey.has(key)) trendSeriesByKey.set(key, []);
     trendSeriesByKey.get(key).push(row);
   });
@@ -134,11 +139,12 @@ const renderTrendChart = key => {
   }
 
   const mobileChart = window.matchMedia('(max-width: 700px)').matches;
-  const width = mobileChart ? 360 : 760;
+  const pointSpacing = mobileChart ? 66 : 82;
   const height = mobileChart ? 230 : 270;
   const padding = mobileChart
     ? { top: 24, right: 18, bottom: 42, left: 58 }
     : { top: 28, right: 24, bottom: 48, left: 82 };
+  const width = Math.max(mobileChart ? 360 : 760, padding.left + padding.right + (series.length - 1) * pointSpacing);
   const times = series.map(row => Number(row.time_milliseconds));
   const min = Math.min(...times);
   const max = Math.max(...times);
@@ -150,24 +156,40 @@ const renderTrendChart = key => {
   const ticks = [0, 0.5, 1].map(position => high - (high - low) * position);
   const line = series.map((row, index) => `${index ? 'L' : 'M'} ${x(index).toFixed(1)} ${y(Number(row.time_milliseconds)).toFixed(1)}`).join(' ');
   const dateLabel = row => String(row.competition_date || '').replace(/^\d{4}-/, '').replace('-', '/');
-  const xLabelIndexes = mobileChart
-    ? [0, series.length - 1]
-    : [0, Math.floor((series.length - 1) / 2), series.length - 1];
-  const xLabels = xLabelIndexes
-    .filter((value, index, items) => items.indexOf(value) === index)
-    .map(index => `<text class="trend-label" x="${x(index)}" y="${height - 18}" text-anchor="middle">${escapeHtml(dateLabel(series[index]))}</text>`)
+  const xLabels = series
+    .map((row, index) => `<text class="trend-label" x="${x(index)}" y="${height - 18}" text-anchor="middle">${escapeHtml(dateLabel(row))}</text>`)
     .join('');
   const yGrid = ticks.map(value => `<g><line class="trend-grid" x1="${padding.left}" x2="${width - padding.right}" y1="${y(value)}" y2="${y(value)}" />
     <text class="trend-label" x="${padding.left - 10}" y="${y(value) + 4}" text-anchor="end">${escapeHtml(formatTime(value))}</text></g>`).join('');
-  const points = series.map((row, index) => `<circle class="trend-point" cx="${x(index)}" cy="${y(Number(row.time_milliseconds))}" r="5">
-    <title>${escapeHtml(`${row.competition_date}｜${row.competition}｜${row.time}`)}</title></circle>`).join('');
-  const last = series.at(-1);
-  chart.innerHTML = `<svg class="trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(`${key} 成績趨勢圖`)}">
+  const points = series.map((row, index) => {
+    const pointY = y(Number(row.time_milliseconds));
+    const valueY = pointY - 12 < padding.top + 10 ? pointY + 18 : pointY - 12;
+    return `<g class="trend-node"><circle class="trend-point" cx="${x(index)}" cy="${pointY}" r="5">
+      <title>${escapeHtml(`${row.competition_date}｜${row.competition}｜${row.time}`)}</title></circle>
+      <text class="trend-value" x="${x(index)}" y="${valueY}" text-anchor="middle">${escapeHtml(row.time || '')}</text></g>`;
+  }).join('');
+  const [trendEvent, trendPoolType] = trendKeyParts(key);
+  chart.innerHTML = `<div class="trend-scroll-hint">每個節點均顯示成績${series.length > 6 ? '，可左右滑動查看完整趨勢' : ''}</div><svg class="trend-chart" style="width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(`${trendEvent} ${trendPoolType} 成績趨勢圖`)}">
     <line class="trend-axis" x1="${padding.left}" x2="${width - padding.right}" y1="${height - padding.bottom}" y2="${height - padding.bottom}" />
     ${yGrid}<path class="trend-line" d="${line}" />${points}
-    <text class="trend-value" x="${x(series.length - 1)}" y="${y(Number(last.time_milliseconds)) - 12}" text-anchor="middle">${escapeHtml(last.time || '')}</text>
     ${xLabels}
   </svg>`;
+};
+
+const activateTrend = key => {
+  activeTrendKey = key;
+  trendListKey = key;
+  const [event] = trendKeyParts(key);
+  competitionSelect.value = '';
+  syncEventOptions();
+  eventSelect.value = [...eventSelect.options].some(option => option.value === event) ? event : '';
+  const url = new URL(location.href);
+  url.searchParams.set('q', input.value.trim());
+  url.searchParams.set('event', eventSelect.value);
+  url.searchParams.delete('competition');
+  history.replaceState(null, '', url);
+  render(input.value, 1);
+  list.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 const renderInsights = (matches, query) => {
@@ -186,15 +208,16 @@ const renderInsights = (matches, query) => {
     insightsPanel.hidden = true;
     return;
   }
-  const defaultKey = options[0][0];
+  const selectedKey = options.some(([key]) => key === activeTrendKey) ? activeTrendKey : options[0][0];
+  activeTrendKey = selectedKey;
   insightsPanel.hidden = false;
   insightsPanel.innerHTML = `<div class="insight-head">
     <div><div class="insight-title">${escapeHtml(swimmerRows[0]?.swimmer || '')}｜成績趨勢</div>
-      <div class="insight-sub">PB 依同項目、同池別的有效計時成績計算</div></div>
-    <select id="trendSelect" class="trend-select" aria-label="選擇趨勢項目">${options.map(([key]) => `<option value="${escapeHtml(key)}">${escapeHtml(key)}</option>`).join('')}</select>
+      <div class="insight-sub">選擇趨勢項目後，下方成績會同步切換為同項目、同池別的所有有效計時紀錄</div></div>
+    <select id="trendSelect" class="trend-select" aria-label="選擇趨勢項目">${options.map(([key]) => `<option value="${escapeHtml(key)}">${escapeHtml(trendLabel(key))}</option>`).join('')}</select>
   </div><div id="trendChart"></div>`;
-  document.getElementById('trendSelect').addEventListener('change', event => renderTrendChart(event.target.value));
-  renderTrendChart(defaultKey);
+  document.getElementById('trendSelect').addEventListener('change', event => activateTrend(event.target.value));
+  renderTrendChart(selectedKey);
 };
 
 const performanceMarkup = row => {
@@ -242,9 +265,6 @@ const render = (query, requestedPage = 1) => {
     .filter(row => !competition || row.competition === competition)
     .filter(row => !event || row.event === event)
     .sort((a, b) => String(b.competition_date || '').localeCompare(String(a.competition_date || '')));
-  const summary = selectionSummary(competition, event);
-  meta.textContent = matches.length ? `找到 ${matches.length} 筆成績${summary}` : `找不到符合條件的成績${summary}`;
-
   if (!matches.length) {
     renderInsights([], '');
     list.innerHTML = '<div class="empty">目前沒有符合的同步資料。可調整姓名、賽事或項目後再試一次。</div>';
@@ -253,9 +273,16 @@ const render = (query, requestedPage = 1) => {
   }
 
   renderInsights(matches, q);
-  const totalPages = Math.ceil(matches.length / RESULTS_PER_PAGE);
+  const trendRows = trendListKey && q && uniqueSorted(matches.map(swimmerKey)).length === 1
+    ? trendSeriesByKey.get(trendListKey) || []
+    : [];
+  const displayRows = trendRows.length ? [...trendRows].reverse() : matches;
+  const summary = selectionSummary(competitionSelect.value, eventSelect.value);
+  const trendSummary = trendRows.length ? `｜趨勢：${trendKeyParts(trendListKey)[1]}` : '';
+  meta.textContent = `找到 ${displayRows.length} 筆成績${summary}${trendSummary}`;
+  const totalPages = Math.ceil(displayRows.length / RESULTS_PER_PAGE);
   const page = Math.min(Math.max(requestedPage, 1), totalPages);
-  const pageRows = matches.slice((page - 1) * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE);
+  const pageRows = displayRows.slice((page - 1) * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE);
 
   list.innerHTML = pageRows.map(row => `
     <article class="row">
@@ -269,10 +296,12 @@ const render = (query, requestedPage = 1) => {
       <div class="time">${escapeHtml(row.time || '-')}</div>
     </article>
   `).join('');
-  renderPagination(matches.length, page, q);
+  renderPagination(displayRows.length, page, q);
 };
 
 const search = (resetPage = true) => {
+  activeTrendKey = '';
+  trendListKey = '';
   const q = input.value.trim();
   const url = new URL(location.href);
   const filters = { q, competition: competitionSelect.value, event: eventSelect.value };

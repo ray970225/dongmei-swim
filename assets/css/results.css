@@ -174,7 +174,9 @@
     .insight-title { font-weight: 950; }
     .insight-sub { color: rgba(255,255,255,.6); font-size: .82rem; margin-top: .22rem; }
     .trend-select { min-width: min(100%, 18rem); min-height: 2.65rem; font-size: .88rem; }
-    .trend-chart { display: block; width: 100%; height: auto; overflow: visible; }
+    #trendChart { overflow-x: auto; overscroll-behavior-inline: contain; padding: .1rem 0 .35rem; }
+    .trend-scroll-hint { color: rgba(255,255,255,.58); font-size: .75rem; margin: 0 0 .45rem; }
+    .trend-chart { display: block; min-width: 100%; height: auto; overflow: visible; }
     .trend-axis { stroke: rgba(255,255,255,.24); stroke-width: 1; }
     .trend-grid { stroke: rgba(255,255,255,.1); stroke-width: 1; }
     .trend-line { fill: none; stroke: var(--aqua); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
@@ -273,8 +275,8 @@
       .source { display: none; }
       .insights { padding: .85rem; }
       .insight-head { align-items: stretch; }
-      .trend-chart { min-width: 0; width: 100%; }
-      #trendChart { overflow: hidden; padding: .1rem 0 .25rem; }
+      .trend-chart { min-width: 100%; width: auto; }
+      #trendChart { overflow-x: auto; padding: .1rem 0 .3rem; -webkit-overflow-scrolling: touch; }
       .trend-label { font-size: 11px; }
       .trend-value { font-size: 11px; }
       .trend-select { width: 100%; }
