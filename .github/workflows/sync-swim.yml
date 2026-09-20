@@ -1,0 +1,55 @@
+name: 同步游泳成績
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每天台灣時間 02:17（UTC 18:17），避開整點排程尖峰。
+    - cron: '17 18 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: swim-results-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: 取得網站原始碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安裝專案套件
+        run: npm ci
+
+      - name: 安裝 Chromium 瀏覽器
+        run: npx playwright install --with-deps chromium
+
+      - name: 同步游泳成績
+        env:
+          SWIM_STORAGE_STATE_BASE64: ${{ secrets.SWIM_STORAGE_STATE_BASE64 }}
+        run: npm run swim:sync
+
+      - name: 驗證同步資料
+        run: npm run swim:check
+
+      - name: 提交更新資料
+        run: |
+          if git diff --quiet; then
+            echo "沒有資料變更，不建立提交。"
+            exit 0
+          fi
+          git config user.name "dongmei-swim-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/swim-results.json data/swim-results-meta.json data/swim-honours.json data/swim-sync-status.json
+          git commit -m "自動同步游泳成績"
+          git push
