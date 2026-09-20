@@ -9,6 +9,7 @@ const updatedAt = document.getElementById('updatedAt');
 const insightsPanel = document.getElementById('insightsPanel');
 const pagination = document.getElementById('resultsPagination');
 const RESULTS_PER_PAGE = 24;
+const TREND_DISPLAY_LIMIT = 10;
 let rows = [];
 let performanceByResult = new Map();
 let trendSeriesByKey = new Map();
@@ -51,6 +52,9 @@ const performanceKey = row => [swimmerKey(row), row.event || '', row.pool_type |
 const trendKey = (event, poolType) => [event || '未列項目', poolType || '未列池別'].join('\u0001');
 const trendKeyParts = key => String(key).split('\u0001');
 const trendLabel = key => trendKeyParts(key).join('｜');
+const trendDisplayRows = series => series.length > TREND_DISPLAY_LIMIT
+  ? series.slice(-TREND_DISPLAY_LIMIT)
+  : series;
 
 const formatUpdatedAt = value => {
   const date = new Date(value);
@@ -128,7 +132,8 @@ const buildTrendSeries = sourceRows => {
 };
 
 const renderTrendChart = key => {
-  const series = trendSeriesByKey.get(key) || [];
+  const fullSeries = trendSeriesByKey.get(key) || [];
+  const series = trendDisplayRows(fullSeries);
   const select = document.getElementById('trendSelect');
   if (select) select.value = key;
   const chart = document.getElementById('trendChart');
@@ -169,7 +174,10 @@ const renderTrendChart = key => {
       <text class="trend-value" x="${x(index)}" y="${valueY}" text-anchor="middle">${escapeHtml(row.time || '')}</text></g>`;
   }).join('');
   const [trendEvent, trendPoolType] = trendKeyParts(key);
-  chart.innerHTML = `<div class="trend-scroll-hint">每個節點均顯示成績${series.length > 6 ? '，可左右滑動查看完整趨勢' : ''}</div><svg class="trend-chart" style="width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(`${trendEvent} ${trendPoolType} 成績趨勢圖`)}">
+  const displayHint = fullSeries.length > series.length
+    ? `顯示最近 ${series.length} 筆有效計時成績（共 ${fullSeries.length} 筆）`
+    : `顯示全部 ${series.length} 筆有效計時成績`;
+  chart.innerHTML = `<div class="trend-scroll-hint">${displayHint}，每個節點均標示成績${series.length > 6 ? '，可左右滑動查看' : ''}</div><svg class="trend-chart" style="width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(`${trendEvent} ${trendPoolType} 成績趨勢圖`)}">
     <line class="trend-axis" x1="${padding.left}" x2="${width - padding.right}" y1="${height - padding.bottom}" y2="${height - padding.bottom}" />
     ${yGrid}<path class="trend-line" d="${line}" />${points}
     ${xLabels}
@@ -274,7 +282,7 @@ const render = (query, requestedPage = 1) => {
 
   renderInsights(matches, q);
   const trendRows = trendListKey && q && uniqueSorted(matches.map(swimmerKey)).length === 1
-    ? trendSeriesByKey.get(trendListKey) || []
+    ? trendDisplayRows(trendSeriesByKey.get(trendListKey) || [])
     : [];
   const displayRows = trendRows.length ? [...trendRows].reverse() : matches;
   const summary = selectionSummary(competitionSelect.value, eventSelect.value);
