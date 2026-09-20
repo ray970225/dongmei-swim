@@ -10,7 +10,9 @@ const CONFIG_FILE = new URL('./swim-config.json', import.meta.url);
 const DATA_FILE = new URL('./data/swim-results.json', ROOT);
 const META_FILE = new URL('./data/swim-results-meta.json', ROOT);
 const HONOURS_FILE = new URL('./data/swim-honours.json', ROOT);
+const SYNC_STATUS_FILE = new URL('./data/swim-sync-status.json', ROOT);
 const statePath = fileURLToPath(STATE_FILE);
+const syncStartedAt = new Date();
 
 const DEFAULT_CONFIG = {
   searchTerms: ['高雄市新莊高中', '東美泳隊', '大仁國中'],
@@ -42,6 +44,15 @@ async function writeJsonAtomically(url, value) {
   const temp = `${target}.${process.pid}.tmp`;
   await writeFile(temp, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
   await rename(temp, target);
+}
+
+async function readJsonIfExists(url, fallback) {
+  try {
+    return JSON.parse(await readFile(url, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') return fallback;
+    throw error;
+  }
 }
 
 async function restoreSessionFromEnvironment() {
@@ -128,6 +139,8 @@ try {
   }
 
   const syncedAt = new Date().toISOString();
+  const previousResults = await readJsonIfExists(DATA_FILE, []);
+  const previousIds = new Set(Array.isArray(previousResults) ? previousResults.map(result => result.id) : []);
   const results = [...resultsById.values()].map(result => ({ ...result, synced_at: syncedAt }))
     .sort((a, b) => String(b.competition_date).localeCompare(String(a.competition_date)));
   const automaticHonours = createAutomaticHonours(results, syncedAt);
@@ -137,12 +150,32 @@ try {
     automatic_honours_count: automaticHonours.length,
     search_terms: config.searchTerms, team_keywords: config.teamKeywords
   };
+  const previousStatus = await readJsonIfExists(SYNC_STATUS_FILE, { history: [] });
+  const summary = {
+    status: 'success',
+    synced_at: syncedAt,
+    swimmer_count: swimmers.length,
+    result_count: results.length,
+    new_result_count: results.filter(result => !previousIds.has(result.id)).length,
+    automatic_honours_count: automaticHonours.length,
+    duration_seconds: Math.max(0, Math.round((Date.now() - syncStartedAt.getTime()) / 1000)),
+    source: '游泳成績通'
+  };
+  const history = [summary, ...(Array.isArray(previousStatus.history) ? previousStatus.history : [])]
+    .slice(0, 20);
+  const syncStatus = {
+    version: 1,
+    last_success_at: syncedAt,
+    ...summary,
+    history
+  };
 
   // 僅在所有 API 請求成功後才取代網站資料，避免失敗時把有效資料清空。
   await mkdir(new URL('./data/', ROOT), { recursive: true });
   await writeJsonAtomically(DATA_FILE, results);
   await writeJsonAtomically(HONOURS_FILE, automaticHonours);
   await writeJsonAtomically(META_FILE, metadata);
+  await writeJsonAtomically(SYNC_STATUS_FILE, syncStatus);
   console.log(`完成：${swimmers.length} 位選手，${results.length} 筆成績，${automaticHonours.length} 張榮譽卡；更新時間 ${syncedAt}`);
 } finally {
   await browser.close();

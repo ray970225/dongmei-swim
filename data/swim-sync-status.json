@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "status": "success",
+  "last_success_at": "2026-09-18T12:12:35.908Z",
+  "synced_at": "2026-09-18T12:12:35.908Z",
+  "swimmer_count": 354,
+  "result_count": 9908,
+  "new_result_count": 0,
+  "automatic_honours_count": 1374,
+  "duration_seconds": 0,
+  "source": "游泳成績通",
+  "history": [
+    {
+      "status": "success",
+      "synced_at": "2026-09-18T12:12:35.908Z",
+      "swimmer_count": 354,
+      "result_count": 9908,
+      "new_result_count": 0,
+      "automatic_honours_count": 1374,
+      "duration_seconds": 0,
+      "source": "游泳成績通"
+    }
+  ]
+}

@@ -183,8 +183,43 @@ async function delDoc(col, id) {
 
 /* ── LOAD ALL ── */
 async function loadAll() {
-  await Promise.all([loadNews(), loadHonours(), loadRecruit()]);
+  await Promise.all([loadNews(), loadHonours(), loadRecruit(), loadSyncStatus()]);
   loadDashboard();
+}
+
+/* ── SWIM DATA SYNC STATUS ── */
+function formatSyncTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('zh-TW', {
+    dateStyle: 'medium', timeStyle: 'short', hour12: false
+  }).format(date);
+}
+
+async function loadSyncStatus() {
+  const state = document.getElementById('sync-state');
+  const summary = document.getElementById('syncSummary');
+  try {
+    const response = await fetch(`data/swim-sync-status.json?ts=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`同步紀錄讀取失敗：${response.status}`);
+    const data = await response.json();
+    if (data.status !== 'success' || !data.last_success_at) throw new Error('同步紀錄格式不正確');
+    state.textContent = '正常';
+    state.classList.remove('is-error');
+    summary.innerHTML = `
+      <div class="sync-summary-head"><strong>✓ 最近一次資料同步成功</strong><span>${formatSyncTime(data.last_success_at)}</span></div>
+      <div class="sync-summary-grid">
+        <div><b>${Number(data.swimmer_count || 0).toLocaleString()}</b><span>位選手</span></div>
+        <div><b>${Number(data.result_count || 0).toLocaleString()}</b><span>筆成績</span></div>
+        <div><b>+${Number(data.new_result_count || 0).toLocaleString()}</b><span>本次新增</span></div>
+        <div><b>${Number(data.automatic_honours_count || 0).toLocaleString()}</b><span>前八名榮譽</span></div>
+      </div>`;
+  } catch (error) {
+    console.error(error);
+    state.textContent = '待確認';
+    state.classList.add('is-error');
+    summary.innerHTML = '<div class="sync-summary-error">暫時無法讀取同步紀錄；請確認資料檔是否已完整推送。</div>';
+  }
 }
 
 /* ════ NEWS ════ */
