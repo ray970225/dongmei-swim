@@ -28,7 +28,10 @@ if (!isSupabaseConfigured()) {
     sendButton.disabled = false;
     sendButton.innerHTML = '寄送重設連結 <span aria-hidden="true">↗</span>';
     if (error) {
-      errorMessage.textContent = '目前無法寄送重設連結，請稍後再試或聯絡教練團。';
+      const status = Number.isInteger(error.status) ? `HTTP ${error.status}` : '';
+      const code = typeof error.code === 'string' && /^[a-z0-9_-]{1,48}$/i.test(error.code) ? error.code : '';
+      const diagnostic = [status, code].filter(Boolean).join(' · ');
+      errorMessage.textContent = `目前無法寄送重設連結${diagnostic ? `（${diagnostic}）` : ''}，請稍後再試或聯絡教練團。`;
       return;
     }
 
