@@ -1,4 +1,4 @@
-import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
+import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-4';
 
 const $ = selector => document.querySelector(selector);
 let supabase;
@@ -388,11 +388,19 @@ if (!isSupabaseConfigured()) $('#configNotice').hidden = false;
 else {
   supabase = await getSupabase(); $('#loginPanel').hidden = false;
   $('#loginForm').addEventListener('submit', async event => {
-    event.preventDefault(); const button = event.currentTarget.querySelector('button'); button.disabled = true;
-    const { data, error } = await supabase.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
-    button.disabled = false;
-    if (error) { $('#loginError').textContent = '登入失敗，請確認管理員帳號與密碼。'; return; }
-    await activate(data.session);
+    event.preventDefault(); const button = event.currentTarget.querySelector('button');
+    if (button.disabled) return;
+    button.disabled = true; button.textContent = '登入中…'; $('#loginError').textContent = '';
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
+      if (error) { $('#loginError').textContent = '登入失敗，請確認管理員帳號與密碼。'; return; }
+      await activate(data.session);
+    } catch (error) {
+      console.error('Admin sign-in failed:', error instanceof Error ? error.name : 'UnknownError');
+      $('#loginError').textContent = '登入服務暫時無法連線，請稍後重試。';
+    } finally {
+      button.disabled = false; button.textContent = '登入管理台 ↗';
+    }
   });
   $('#signOutButton').addEventListener('click', async () => { await supabase.auth.signOut(); showLogin(); });
   document.querySelectorAll('.admin-tabs button').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));

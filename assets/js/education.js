@@ -1,4 +1,4 @@
-import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-3';
+import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-4';
 
 const $ = selector => document.querySelector(selector);
 let authLinkType = new URLSearchParams(location.hash.slice(1)).get('type') || '';
@@ -205,12 +205,19 @@ if (!isSupabaseConfigured()) {
   $('#loginForm').addEventListener('submit', async event => {
     event.preventDefault();
     const button = event.currentTarget.querySelector('button[type="submit"]');
+    if (button.disabled) return;
     setBusy(button, true);
     loginError.textContent = '';
-    const { data, error } = await supabase.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
-    button.disabled = false; button.textContent = '登入隊內資料庫 ↗';
-    if (error) { loginError.textContent = '登入失敗，請確認帳號與密碼。'; return; }
-    await activate(data.session);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
+      if (error) { loginError.textContent = '登入失敗，請確認帳號與密碼。'; return; }
+      await activate(data.session);
+    } catch (error) {
+      console.error('Member sign-in failed:', error instanceof Error ? error.name : 'UnknownError');
+      loginError.textContent = '登入服務暫時無法連線，請稍後重試。';
+    } finally {
+      setBusy(button, false, '登入隊內資料庫 ↗');
+    }
   });
   $('#savePassword').addEventListener('click', async event => {
     const button = event.currentTarget;

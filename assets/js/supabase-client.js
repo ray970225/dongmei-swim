@@ -41,11 +41,19 @@ export async function getSupabase() {
     const body = ['GET', 'HEAD'].includes(method)
       ? undefined
       : isJson ? await request.arrayBuffer() : request.body;
+    const controller = new AbortController();
+    const abortRequest = () => controller.abort(request.signal.reason);
+    if (request.signal.aborted) abortRequest();
+    else request.signal.addEventListener('abort', abortRequest, { once: true });
+    const timeout = setTimeout(() => controller.abort(new DOMException('Supabase request timed out.', 'TimeoutError')), 20000);
     try {
-      return await fetch(endpoint, { method, headers, body, signal: request.signal, redirect: 'manual' });
+      return await fetch(endpoint, { method, headers, body, signal: controller.signal, redirect: 'manual' });
     } catch (error) {
       console.error('TMSC Supabase proxy request failed:', method, error instanceof Error ? error.name : 'UnknownError');
       throw error;
+    } finally {
+      clearTimeout(timeout);
+      request.signal.removeEventListener('abort', abortRequest);
     }
   } : undefined;
   return createClient(config.url, config.proxyUrl ? 'proxy-client' : config.publishableKey, {
