@@ -223,9 +223,8 @@ if (!isSupabaseConfigured()) {
     if (error) { loginError.textContent = '密碼設定失敗，請稍後再試。'; return; }
     authLinkType = '';
     history.replaceState(null, '', location.pathname);
-    togglePasswordSetup(false); $('#signOutButton').hidden = true;
-    const { data: { session } } = await supabase.auth.getSession();
-    await activate(session);
+    await supabase.auth.signOut();
+    showLogin('密碼已更新，請使用新密碼登入。');
   });
   $('#signOutButton').addEventListener('click', async () => {
     await supabase.auth.signOut();
