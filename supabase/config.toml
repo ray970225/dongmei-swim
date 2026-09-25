@@ -1,0 +1,2 @@
+[functions.tmsc-api]
+verify_jwt = false

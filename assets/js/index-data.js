@@ -1,17 +1,12 @@
-import { initializeApp }     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs }
-                              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
 
-const firebaseConfig = {
-  apiKey:            "AIzaSyAllss1eAGWAxzUshcOOXfqGtLP1ikSqfI",
-  authDomain:        "dongmei-swim.firebaseapp.com",
-  projectId:         "dongmei-swim",
-  storageBucket:     "dongmei-swim.firebasestorage.app",
-  messagingSenderId: "766030230820",
-  appId:             "1:766030230820:web:422a37a4ef2a1be627efb1"
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+let supabasePromise;
+
+async function publicSupabase() {
+  if (!isSupabaseConfigured()) return null;
+  supabasePromise ||= getSupabase();
+  return supabasePromise;
+}
 
 function rankFromAward(award = '') {
   const text = String(award);
@@ -46,8 +41,13 @@ async function loadNews() {
   const loadingEl = document.getElementById('newsLoading');
   const errorEl   = document.getElementById('newsError');
   try {
-    const snap = await getDocs(collection(db, 'news'));
-    let rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    let rows;
+    const client = await publicSupabase();
+    if (client) {
+      const { data, error } = await client.from('site_news').select('id,date,title,desc,img').order('date', { ascending: false });
+      if (error) throw error;
+      rows = data || [];
+    } else rows = [];
     rows.sort((a,b) => (b.date||'').localeCompare(a.date||''));
     loadingEl.style.display = 'none';
     const grid = document.getElementById('newsGrid');
@@ -84,7 +84,7 @@ async function loadHonours() {
   const loadingEl = document.getElementById('honoursLoading');
   const errorEl   = document.getElementById('honoursError');
   const [manualResult, automaticResult] = await Promise.allSettled([
-    getDocs(collection(db, 'honours')),
+    loadManualHonours(),
     fetch('data/swim-honours.json', { cache: 'no-store' }).then(async response => {
       if (!response.ok) throw new Error(`自動榮譽資料載入失敗：${response.status}`);
       const data = await response.json();
@@ -94,10 +94,12 @@ async function loadHonours() {
   ]);
 
   const manualHonours = manualResult.status === 'fulfilled'
-    ? manualResult.value.docs.map(d => ({ id: d.id, source: 'manual', ...d.data() }))
+    ? manualResult.value
     : [];
   const automaticHonours = automaticResult.status === 'fulfilled' ? automaticResult.value : [];
   allHonours = [...automaticHonours, ...manualHonours]
+    .filter((row, index, rows) => rows.findIndex(other =>
+      other.event === row.event && other.name === row.name && String(other.year) === String(row.year)) === index)
     .sort((a, b) => String(b.date || b.year || '').localeCompare(String(a.date || a.year || '')) ||
       Number(a.best_rank || 99) - Number(b.best_rank || 99));
 
@@ -108,6 +110,16 @@ async function loadHonours() {
     return;
   }
   renderHonours('all');
+}
+
+async function loadManualHonours() {
+  const client = await publicSupabase();
+  if (client) {
+    const { data, error } = await client.from('site_honours').select('id,cat,event,name,year,items');
+    if (error) throw error;
+    return (data || []).map(row => ({ ...row, source: 'manual' }));
+  }
+  throw new Error('網站資料服務尚未設定');
 }
 
 function renderHonours(cat = currentHonoursCat, page = 1) {
@@ -194,7 +206,23 @@ document.getElementById('honoursPagination').addEventListener('click', e => {
   renderHonours(currentHonoursCat, Number(btn.dataset.page));
 });
 
+async function loadRecruitmentGroups() {
+  const client = await publicSupabase();
+  if (!client) return;
+  const { data, error } = await client.from('recruitment_classes').select('name,age,desc').order('sort_order');
+  if (error || !data?.length) return;
+  const host = document.querySelector('.recruit-groups'); host.replaceChildren();
+  data.forEach(group => {
+    const card = document.createElement('div'); card.className = 'group-card';
+    const title = document.createElement('div'); title.className = 'group-title'; title.textContent = group.name;
+    const age = document.createElement('div'); age.className = 'group-age'; age.textContent = group.age;
+    const desc = document.createElement('div'); desc.className = 'group-desc'; desc.textContent = group.desc;
+    card.append(title, age, desc); host.append(card);
+  });
+}
+
 loadNews();
+void loadRecruitmentGroups();
 
 // 榮譽資料量較大，捲動接近區塊時才下載，讓手機開啟首頁更快。
 const honoursSection = document.getElementById('honours');

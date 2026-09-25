@@ -349,15 +349,58 @@ window.addEventListener('resize', () => {
   }, 160);
 });
 
-Promise.all([
-  fetch('data/swim-results.json').then(response => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  }),
-  fetch('data/swim-results-meta.json').then(response => response.ok ? response.json() : null).catch(() => null)
-])
-  .then(([data, metadata]) => {
-    rows = Array.isArray(data) ? data : [];
+async function loadResultSource() {
+  const supabaseModule = await import('./supabase-client.js');
+  if (!supabaseModule.isSupabaseConfigured()) {
+    const [data, metadata] = await Promise.all([
+      fetch('data/swim-results.json').then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }),
+      fetch('data/swim-results-meta.json').then(response => response.ok ? response.json() : null).catch(() => null)
+    ]);
+    return { rows: Array.isArray(data) ? data : [], metadata };
+  }
+
+  const client = await supabaseModule.getSupabase();
+  const pageSize = 1000;
+  const importedRows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await client.from('results')
+      .select('id,event_name,competition_date,team_name,rank,time_text,time_milliseconds,pool_type,round_name,age_group,source_name,source_file,athlete:athletes!inner(source_swimmer_id,full_name,english_name,gender,birth_year),meet:meets(name)')
+      .order('competition_date', { ascending: false }).range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    importedRows.push(...(data || []).map(result => ({
+      id: result.id,
+      swimmer_id: result.athlete?.source_swimmer_id || '',
+      swimmer: result.athlete?.full_name || '',
+      swimmer_en: result.athlete?.english_name || '',
+      gender: result.athlete?.gender || '',
+      birth_year: result.athlete?.birth_year ?? null,
+      team: result.team_name || '',
+      event: result.event_name,
+      competition: result.meet?.name || '',
+      competition_date: result.competition_date || '',
+      rank: result.rank,
+      time: result.time_text || '',
+      time_milliseconds: result.time_milliseconds,
+      pool_type: result.pool_type || '',
+      round: result.round_name || '',
+      age_group: result.age_group || '',
+      source: result.source_name || '',
+      source_file: result.source_file || ''
+    })));
+    if (!data || data.length < pageSize) break;
+  }
+  const { data: metadata, error: metadataError } = await client.from('sync_state')
+    .select('last_success_at').eq('singleton', true).maybeSingle();
+  if (metadataError) throw metadataError;
+  return { rows: importedRows, metadata: { synced_at: metadata?.last_success_at } };
+}
+
+loadResultSource()
+  .then(({ rows: resultRows, metadata }) => {
+    rows = resultRows;
     buildPerformanceIndex(rows);
     const params = new URLSearchParams(location.search);
     const initialCompetition = params.get('competition') || '';

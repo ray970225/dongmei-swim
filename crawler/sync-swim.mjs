@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +12,11 @@ const HONOURS_FILE = new URL('./data/swim-honours.json', ROOT);
 const SYNC_STATUS_FILE = new URL('./data/swim-sync-status.json', ROOT);
 const statePath = fileURLToPath(STATE_FILE);
 const syncStartedAt = new Date();
+
+if (process.env.SWIM_SOURCE_AUTOMATION_AUTHORIZED !== 'true') {
+  throw new Error('成績來源尚未授權自動擷取；請勿執行 crawler，改用核准的匯出資料。');
+}
+const { chromium } = await import('playwright');
 
 const DEFAULT_CONFIG = {
   searchTerms: ['高雄市新莊高中', '東美泳隊', '大仁國中'],

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "source": "游泳成績通",
-  "synced_at": "2026-09-18T12:12:35.908Z",
+  "synced_at": "2026-09-25T13:20:50.422Z",
   "swimmer_count": 354,
   "result_count": 9908,
   "search_terms": [
@@ -19,5 +19,7 @@
     "東美大仁",
     "大仁國中",
     "高雄市大仁國中"
-  ]
+  ],
+  "automatic_honours_count": 1374,
+  "visibility_filtered": true
 }

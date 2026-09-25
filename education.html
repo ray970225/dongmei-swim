@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#071318">
+  <title>隊內升學資料庫｜東美游泳隊</title>
+  <link rel="stylesheet" href="assets/css/v2.css?v=tmsc-brand-1">
+</head>
+<body class="member-shell">
+  <header class="v2-header">
+    <a class="v2-wordmark" href="index.html" aria-label="東美游泳隊首頁"><span class="wordmark-t">TMSC</span><span class="wordmark-name">東美游泳隊</span></a>
+    <nav class="v2-nav" aria-label="主選單"><a href="index.html">首頁</a><a href="results.html">公開成績</a><a class="active" href="education.html">升學資料庫</a><a id="athleteNavLink" href="athletes.html" hidden>選手資料</a></nav>
+    <div class="account-nav"><span id="memberLabel">MEMBER ACCESS</span><a class="text-button" id="adminLink" href="admin-v2.html" hidden>管理台</a><button class="text-button" id="signOutButton" type="button" hidden>登出</button></div>
+  </header>
+
+  <main class="member-main">
+    <section id="configNotice" class="notice" hidden><p class="eyebrow">SETUP REQUIRED</p><h1>隊內資料庫準備中</h1><p>這個頁面尚未連上安全的會員資料庫。設定完成後，只有登入的東美會員能看到文章與附件。</p></section>
+    <section id="loginPanel" class="login-layout" hidden>
+      <div class="login-copy"><p class="eyebrow">TMSC · MEMBER MODE</p><h1>升學資訊，<br><span class="aqua-text">留在隊內。</span></h1><p>報名資訊、招生簡章與重要日期集中整理，供東美內部會員查閱。</p><div class="lane-rule" aria-hidden="true"></div><span class="small-label">PRIVATE KNOWLEDGE BASE</span></div>
+      <form id="loginForm" class="login-form"><div id="loginFields"><label for="email">會員電子郵件</label><input id="email" name="email" type="email" autocomplete="username" required><label for="password">密碼</label><input id="password" name="password" type="password" autocomplete="current-password" required><button class="button-primary" type="submit">登入隊內資料庫 <span aria-hidden="true">↗</span></button><p class="small-note">帳號由教練團邀請建立，本站不開放自行註冊。</p></div><div id="passwordSetup" hidden><p class="eyebrow">FIRST SIGN-IN</p><label for="newPassword">設定新密碼</label><input id="newPassword" type="password" autocomplete="new-password" minlength="10" required><button class="button-primary" id="savePassword" type="button">設定密碼並繼續</button></div><p id="loginError" class="form-error" role="alert"></p></form>
+    </section>
+
+    <section id="educationApp" hidden>
+      <div class="member-kicker"><span class="status-dot"></span> TMSC MEMBER MODE <span id="memberName"></span></div>
+      <section class="education-hero"><div><p class="eyebrow">EDUCATION / 01</p><h1>下一站，<br><span class="aqua-text">由準備開始。</span></h1><p>升學情報、招生簡章與重要日期，整理成一份隊內知識庫。</p></div><div class="hero-lane" aria-hidden="true"><span>01</span><i></i><span>02</span></div></section>
+      <section class="deadline-strip" id="deadlineStrip" hidden><p class="eyebrow">UPCOMING DATES</p><div id="deadlineList" class="deadline-list"></div></section>
+      <section class="library-section"><div class="library-heading"><div><p class="eyebrow">THE LIBRARY</p><h2>最新資訊</h2></div><label class="search-field"><span class="sr-only">搜尋隊內文章</span><input id="articleSearch" type="search" placeholder="搜尋升學資訊" autocomplete="off"><span aria-hidden="true">⌕</span></label></div><div class="category-list" id="categoryList" aria-label="文章分類"></div><div id="articleList" class="article-list" aria-live="polite"></div></section>
+      <section id="reader" class="reader" hidden><button id="backToLibrary" class="text-button" type="button">← 回到文章列表</button><article><p class="eyebrow" id="readerCategory"></p><h2 id="readerTitle"></h2><p class="reader-summary" id="readerSummary"></p><div class="reader-body" id="readerBody"></div><div id="readerAttachments" class="reader-attachments"></div></article></section>
+    </section>
+  </main>
+  <script src="assets/js/runtime-config.js"></script>
+  <script type="module" src="assets/js/education.js"></script>
+</body>
+</html>

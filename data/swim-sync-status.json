@@ -1,7 +1,7 @@
 {
   "version": 1,
   "status": "success",
-  "last_success_at": "2026-09-18T12:12:35.908Z",
+  "last_success_at": "2026-09-25T13:20:50.422Z",
   "synced_at": "2026-09-18T12:12:35.908Z",
   "swimmer_count": 354,
   "result_count": 9908,
@@ -12,7 +12,7 @@
   "history": [
     {
       "status": "success",
-      "synced_at": "2026-09-18T12:12:35.908Z",
+      "synced_at": "2026-09-25T13:20:50.422Z",
       "swimmer_count": 354,
       "result_count": 9908,
       "new_result_count": 0,

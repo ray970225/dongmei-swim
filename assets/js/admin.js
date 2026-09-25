@@ -5,18 +5,11 @@ import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, o
                                    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ── CONFIG ── */
-const firebaseConfig = {
-  apiKey:            "AIzaSyAllss1eAGWAxzUshcOOXfqGtLP1ikSqfI",
-  authDomain:        "dongmei-swim.firebaseapp.com",
-  projectId:         "dongmei-swim",
-  storageBucket:     "dongmei-swim.firebasestorage.app",
-  messagingSenderId: "766030230820",
-  appId:             "1:766030230820:web:422a37a4ef2a1be627efb1"
-};
+const firebaseConfig = globalThis.TMSC_FIREBASE_CONFIG;
 
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const app = firebaseConfig ? initializeApp(firebaseConfig) : null;
+const auth = app ? getAuth(app) : null;
+const db = app ? getFirestore(app) : null;
 
 /* ── AUTH ── */
 window.doLogin = async () => {
@@ -24,6 +17,7 @@ window.doLogin = async () => {
   const pwd   = document.getElementById('loginPwd').value;
   const err   = document.getElementById('loginErr');
   err.textContent = '';
+  if (!auth) { err.textContent = '管理服務尚未完成安全設定。'; return; }
   try {
     await signInWithEmailAndPassword(auth, email, pwd);
   } catch(e) {
@@ -31,9 +25,9 @@ window.doLogin = async () => {
   }
 };
 
-window.doLogout = () => signOut(auth);
+window.doLogout = () => auth ? signOut(auth) : Promise.resolve();
 
-onAuthStateChanged(auth, user => {
+if (auth) onAuthStateChanged(auth, user => {
   if (user) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminShell').style.display  = 'block';
@@ -44,6 +38,10 @@ onAuthStateChanged(auth, user => {
     document.getElementById('adminShell').style.display  = 'none';
   }
 });
+else {
+  const loginError = document.getElementById('loginErr');
+  if (loginError) loginError.textContent = '管理服務尚未完成安全設定。';
+}
 
 /* ── TAB SWITCH ── */
 window.switchTab = el => {

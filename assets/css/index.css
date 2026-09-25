@@ -67,6 +67,20 @@
     transition: opacity .2s, color .2s;
   }
   .nav-links a:hover { opacity: 1; color: var(--gold); }
+  .nav-member {
+    display: inline-flex;
+    align-items: center;
+    padding: .42rem .9rem;
+    border: 1px solid rgba(36,195,223,0.52);
+    border-radius: 999px;
+    color: var(--aqua) !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+  }
+  .nav-member:hover {
+    background: rgba(36,195,223,0.14);
+    border-color: var(--aqua);
+  }
   .nav-score {
     display: inline-flex;
     align-items: center;

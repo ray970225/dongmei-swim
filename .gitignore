@@ -9,3 +9,8 @@ crawler/.auth/
 crawler/session/
 crawler/output/
 crawler/*.env
+.env
+.env.*
+!.env.example
+supabase/.env
+assets/js/runtime-config.js
