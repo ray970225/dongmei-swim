@@ -55,6 +55,8 @@ supabase functions deploy manage-member
 supabase functions deploy dispatch-swim-sync
 ```
 
+- 會員忘記密碼時，由 `forgot-password.html` 呼叫 `resetPasswordForEmail()`，並指定返回已允許的 `education.html`；重設連結驗證後才可更新密碼。Supabase Auth 的預設 Site URL 仍是首頁，因此從 Dashboard 直接寄送的重設信會回到首頁；會員應從網站登入頁的「忘記密碼？」重新寄送。
+
 Supabase 會為 Edge Functions 提供專案 URL、anon key 與 service-role key。另在 Supabase Edge Function secrets 設定：
 
 - `GITHUB_DISPATCH_TOKEN`：限用於 `ray970225/dongmei-swim` 的 GitHub token，需能派送 Actions workflow。

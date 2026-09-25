@@ -215,6 +215,7 @@ if (!isSupabaseConfigured()) {
   $('#savePassword').addEventListener('click', async event => {
     const button = event.currentTarget;
     const password = $('#newPassword').value;
+    if (password !== $('#confirmPassword').value) { loginError.textContent = '兩次輸入的密碼不一致。'; return; }
     if (password.length < 10) { loginError.textContent = '請設定至少 10 個字元的密碼。'; return; }
     button.disabled = true; loginError.textContent = '';
     const { error } = await supabase.auth.updateUser({ password });
@@ -237,7 +238,12 @@ if (!isSupabaseConfigured()) {
     $('#deadlineStrip').hidden = !$('#deadlineList').children.length;
   });
   const { data: { session } } = await supabase.auth.getSession();
+  const authHash = new URLSearchParams(location.hash.slice(1));
+  const authError = authHash.get('error_description') || authHash.get('error');
   if (session) await activate(session);
+  else if (authError) {
+    showLogin('重設連結無效或已過期，請重新寄送密碼重設郵件。');
+  }
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session) setTimeout(() => void activate(session), 0);
     else showLogin();
