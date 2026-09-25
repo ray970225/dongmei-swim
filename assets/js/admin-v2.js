@@ -7,6 +7,17 @@ let categories = [];
 let syncTimer;
 let activeUserId = '';
 const loadedContent = new Set();
+// Re-enable only after source permission and backend dispatch secrets are confirmed.
+const swimSyncAvailable = false;
+
+const taskHelp = {
+  sync: { scope: '成績管理 · 目前暫停', title: '同步選手成績', description: '目前外部來源尚未授權自動擷取，因此不會執行同步。授權完成後，這裡會顯示同步結果與歷史紀錄。' },
+  articles: { scope: '隊內資料 · 會員限定', title: '管理升學文章與附件', description: '新增文章、招生簡章、重要日期、圖片或 PDF。只有登入且啟用中的東美會員能閱讀已發布內容。' },
+  members: { scope: '隊內資料 · 帳號管理', title: '邀請或停用會員', description: '邀請隊員建立登入帳號，或暫停一般會員的存取。本站不開放自行註冊，也不能從這裡建立管理員。' },
+  news: { scope: '公開官網 · 首頁消息', title: '管理最新動態', description: '新增、修改或移除官網首頁所有訪客都看得到的隊務消息。' },
+  honours: { scope: '公開官網 · 榮譽殿堂', title: '管理榮譽紀錄', description: '維護賽事、年份、選手、成績與名次，儲存後會更新官網榮譽殿堂。' },
+  recruit: { scope: '公開官網 · 招生區', title: '管理招生班別', description: '更新班別名稱、適合年齡、費用和說明；儲存後會顯示在官網招生區。' }
+};
 
 async function uploadWithSignedUrl(bucketName, path, file) {
   const storage = supabase.storage.from(bucketName);
@@ -35,8 +46,17 @@ async function verifyAdmin(session) {
 }
 
 function switchTab(tab) {
-  document.querySelectorAll('.admin-tabs button').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
+  const isHome = tab === 'home';
+  $('#adminHeading').hidden = !isHome;
+  $('#adminHome').hidden = !isHome;
+  $('#adminTaskHeader').hidden = isHome;
   document.querySelectorAll('.admin-pane').forEach(pane => pane.classList.toggle('active', pane.id === `pane-${tab}`));
+  if (!isHome) {
+    const help = taskHelp[tab];
+    $('#activeTaskScope').textContent = help.scope;
+    $('#activeTaskTitle').textContent = help.title;
+    $('#activeTaskDescription').textContent = help.description;
+  }
   if (['news', 'honours', 'recruit'].includes(tab) && !loadedContent.has(tab)) {
     void loadPublicContent(tab).catch(error => {
       const messageId = { news: 'siteNewsMessage', honours: 'siteHonourMessage', recruit: 'recruitmentMessage' }[tab];
@@ -79,8 +99,8 @@ function renderSync(rows) {
   const busy = latest && ['queued', 'running'].includes(latest.status);
   const cooldownUntil = latest ? new Date(latest.requested_at).getTime() + 15 * 60 * 1000 : 0;
   const cooldown = Date.now() < cooldownUntil;
-  const button = $('#syncButton'); button.disabled = Boolean(busy || cooldown);
-  button.innerHTML = busy ? '<span class="spinner"></span>同步處理中…' : cooldown ? '<span>◷</span>請稍後再同步' : '<span>↻</span>同步最新成績';
+  const button = $('#syncButton'); button.disabled = !swimSyncAvailable || Boolean(busy || cooldown);
+  button.innerHTML = !swimSyncAvailable ? '<span>Ⅱ</span>目前暫停同步' : busy ? '<span class="spinner"></span>同步處理中…' : cooldown ? '<span>◷</span>請稍後再同步' : '<span>↻</span>開始同步成績';
   if (busy) {
     clearTimeout(syncTimer); syncTimer = setTimeout(() => void loadSyncJobs(), 7000);
   } else if (cooldown) {
@@ -98,6 +118,10 @@ async function loadSyncJobs() {
 
 async function triggerSync() {
   const button = $('#syncButton'); button.disabled = true;
+  if (!swimSyncAvailable) {
+    message($('#syncMessage'), '同步目前暫停：尚未取得外部成績來源的自動擷取授權。');
+    return;
+  }
   message($('#syncMessage'), '正在安全啟動同步工作…'); $('#syncResult').hidden = true;
   const { data, error } = await supabase.functions.invoke('dispatch-swim-sync', { body: {} });
   if (error || data?.error) {
@@ -125,8 +149,9 @@ async function loadArticles() {
   if (!articles.length) { list.textContent = '目前尚無文章。'; return; }
   articles.forEach(article => {
     const row = document.createElement('button'); row.type = 'button'; row.className = 'compact-row article-admin-row';
+    row.setAttribute('aria-label', `編輯隊內文章：${article.title}`);
     const title = document.createElement('strong'); title.textContent = article.title;
-    const status = document.createElement('span'); status.textContent = article.status === 'published' ? '已發布' : '草稿';
+    const status = document.createElement('span'); status.textContent = `${article.status === 'published' ? '已發布' : '草稿'} · 點選以編輯`;
     row.append(title, status); row.addEventListener('click', () => {
       void editArticle(article).catch(error => message($('#articleMessage'), error.message || '文章載入失敗。', true));
     }); list.append(row);
@@ -148,11 +173,13 @@ function renderPublicContent(tab, rows) {
     const copy = document.createElement('div'); const title = document.createElement('strong'); title.textContent = config.title(row);
     const detail = document.createElement('span'); detail.textContent = config.detail(row); copy.append(title, detail);
     const actions = document.createElement('div'); actions.className = 'editor-actions';
-    const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'button-secondary'; edit.textContent = '編輯';
+    const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'button-secondary';
+    edit.textContent = `編輯${{ news: '消息', honours: '獎項紀錄', recruit: '招生班別' }[tab]}`;
     edit.addEventListener('click', () => editPublicContent(tab, row));
-    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button'; remove.textContent = '刪除';
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button';
+    remove.textContent = `刪除${{ news: '消息', honours: '獎項紀錄', recruit: '招生班別' }[tab]}`;
     remove.addEventListener('click', async () => {
-      if (!confirm('確定刪除這筆公開資料？')) return;
+      if (!confirm(`確定刪除「${config.title(row)}」？刪除後官網訪客將看不到這筆資料。`)) return;
       remove.disabled = true;
       const { error } = await supabase.from(config.table).delete().eq('id', row.id);
       if (error) { message($(config.message), error.message || '刪除失敗。', true); remove.disabled = false; return; }
@@ -361,7 +388,9 @@ async function loadMembers() {
     const row = document.createElement('div'); row.className = 'compact-row member-row';
     const copy = document.createElement('div'); const name = document.createElement('strong'); name.textContent = profile.display_name || profile.email;
     const email = document.createElement('span'); email.textContent = profile.email; copy.append(name, email);
-    const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = 'button-secondary'; toggle.textContent = profile.active ? '停用' : '重新啟用';
+    const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = 'button-secondary';
+    toggle.textContent = profile.active ? '停用會員帳號' : '重新啟用帳號';
+    toggle.setAttribute('aria-label', `${toggle.textContent}：${profile.display_name || profile.email}`);
     toggle.addEventListener('click', async () => {
       toggle.disabled = true;
       const { data: result, error: invokeError } = await supabase.functions.invoke('manage-member', { body: { action: 'set_active', profileId: profile.id, active: !profile.active } });
@@ -380,6 +409,7 @@ async function activate(session) {
     if (!admin) { showLogin('此帳號沒有管理員權限。'); return; }
     $('#loginPanel').hidden = true; $('#adminApp').hidden = false; $('#signOutButton').hidden = false;
     $('#memberLabel').textContent = 'ADMIN MODE'; $('#adminName').textContent = admin.display_name ? `· ${admin.display_name}` : '';
+    switchTab('home');
     await Promise.all([loadSyncJobs(), loadArticles(), loadMembers()]);
   } catch (error) { console.error(error); showLogin('管理資料載入失敗，請重新登入。'); }
 }
@@ -403,7 +433,8 @@ else {
     }
   });
   $('#signOutButton').addEventListener('click', async () => { await supabase.auth.signOut(); showLogin(); });
-  document.querySelectorAll('.admin-tabs button').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));
+  document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));
+  $('#backToAdminHome').addEventListener('click', () => switchTab('home'));
   $('#syncButton').addEventListener('click', triggerSync);
   $('#newArticleButton').addEventListener('click', () => {
     void editArticle().catch(error => message($('#articleMessage'), error.message || '文章載入失敗。', true));
