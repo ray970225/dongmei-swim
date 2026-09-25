@@ -20,6 +20,20 @@ if (!isSupabaseConfigured()) {
     errorMessage.textContent = '';
     message.textContent = '';
 
+    let browserTransport = 'failed';
+    try {
+      const probeUrl = new URL('https://xsmbubwgtkbtsyiskivf.supabase.co/functions/v1/tmsc-api');
+      probeUrl.searchParams.set('path', '/diagnostic-probe');
+      const probe = await fetch(probeUrl, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-client-info': 'tmsc-browser-probe', 'x-supabase-api-version': '2024-01-01' },
+        body: '{}'
+      });
+      browserTransport = `HTTP ${probe.status}`;
+    } catch (probeError) {
+      browserTransport = probeError instanceof Error ? probeError.name : 'UnknownError';
+    }
+
     const redirectTo = new URL('education.html', location.href);
     const { error } = await supabase.auth.resetPasswordForEmail(emailInput.value.trim(), {
       redirectTo: redirectTo.href
@@ -31,7 +45,7 @@ if (!isSupabaseConfigured()) {
       const status = Number.isInteger(error.status) ? `HTTP ${error.status}` : '';
       const code = typeof error.code === 'string' && /^[a-z0-9_-]{1,48}$/i.test(error.code) ? error.code : '';
       const diagnostic = [status, code].filter(Boolean).join(' · ');
-      errorMessage.textContent = `目前無法寄送重設連結${diagnostic ? `（${diagnostic}）` : ''}，請稍後再試或聯絡教練團。`;
+      errorMessage.textContent = `目前無法寄送重設連結${diagnostic ? `（${diagnostic}）` : ''}。連線檢查：${browserTransport}。`;
       return;
     }
 
