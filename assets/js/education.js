@@ -11,6 +11,7 @@ let allArticles = [];
 let categories = [];
 let activeCategory = '';
 let activeUserId = '';
+const memberViewRequested = new URLSearchParams(location.search).get('view') === 'member';
 
 function setBusy(button, busy, label) {
   button.disabled = busy;
@@ -189,6 +190,10 @@ async function activate(session) {
   try {
     const member = await currentMember(session);
     if (!member) { showLogin('此帳號尚未啟用為東美會員，請聯絡教練團。'); return; }
+    if (member.role === 'admin' && !memberViewRequested) {
+      location.replace('admin-v2.html');
+      return;
+    }
     loginPanel.hidden = true;
     appPanel.hidden = false;
     $('#memberName').textContent = member.display_name ? `· ${member.display_name}` : '';
