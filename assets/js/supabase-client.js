@@ -34,8 +34,14 @@ export async function getSupabase() {
     const endpoint = new URL(config.proxyUrl);
     endpoint.searchParams.set('path', `${source.pathname}${source.search}`);
     const headers = sanitizeProxyHeaders(request.headers);
-    const body = ['GET', 'HEAD'].includes(request.method.toUpperCase()) ? undefined : request.body;
-    return fetch(endpoint, { method: request.method, headers, body, signal: request.signal, redirect: 'manual' });
+    const method = request.method.toUpperCase();
+    const isJson = request.headers.get('content-type')?.toLowerCase().includes('application/json');
+    // Supabase Auth sends small JSON payloads. Buffer these before the second fetch so
+    // browsers do not have to forward a streaming Request body across origins.
+    const body = ['GET', 'HEAD'].includes(method)
+      ? undefined
+      : isJson ? await request.arrayBuffer() : request.body;
+    return fetch(endpoint, { method, headers, body, signal: request.signal, redirect: 'manual' });
   } : undefined;
   return createClient(config.url, config.proxyUrl ? 'proxy-client' : config.publishableKey, {
     global: proxyFetch ? { fetch: proxyFetch } : undefined,

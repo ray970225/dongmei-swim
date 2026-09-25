@@ -1,4 +1,4 @@
-import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
+import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-2';
 
 const configNotice = document.querySelector('#configNotice');
 const resetPanel = document.querySelector('#resetPanel');
