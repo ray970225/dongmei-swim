@@ -37,6 +37,14 @@ function togglePasswordSetup(show) {
   });
   $('#passwordSetup').hidden = !show;
   $('#newPassword').required = show;
+  $('#confirmPassword').required = show;
+}
+
+function signInErrorMessage(error) {
+  if (error?.code === 'invalid_credentials') return '帳號或密碼錯誤，請重新確認。';
+  if (error?.code === 'email_not_confirmed') return '此帳號尚未完成啟用，請聯絡教練團。';
+  if (error?.code === 'over_request_rate_limit') return '登入嘗試過於頻繁，請稍後再試。';
+  return '登入系統發生錯誤，請稍後重試。';
 }
 
 async function currentMember(session) {
@@ -201,6 +209,7 @@ if (!isSupabaseConfigured()) {
   configNotice.hidden = false;
 } else {
   supabase = await getSupabase();
+  togglePasswordSetup(false);
   $('#loginPanel').hidden = false;
   $('#loginForm').addEventListener('submit', async event => {
     event.preventDefault();
@@ -210,7 +219,7 @@ if (!isSupabaseConfigured()) {
     loginError.textContent = '';
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
-      if (error) { loginError.textContent = '登入失敗，請確認帳號與密碼。'; return; }
+      if (error) { loginError.textContent = signInErrorMessage(error); return; }
       await activate(data.session);
     } catch (error) {
       console.error('Member sign-in failed:', error instanceof Error ? error.name : 'UnknownError');
