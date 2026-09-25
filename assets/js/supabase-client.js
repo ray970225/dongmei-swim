@@ -41,7 +41,12 @@ export async function getSupabase() {
     const body = ['GET', 'HEAD'].includes(method)
       ? undefined
       : isJson ? await request.arrayBuffer() : request.body;
-    return fetch(endpoint, { method, headers, body, signal: request.signal, redirect: 'manual' });
+    try {
+      return await fetch(endpoint, { method, headers, body, signal: request.signal, redirect: 'manual' });
+    } catch (error) {
+      console.error('TMSC Supabase proxy request failed:', method, error instanceof Error ? error.name : 'UnknownError');
+      throw error;
+    }
   } : undefined;
   return createClient(config.url, config.proxyUrl ? 'proxy-client' : config.publishableKey, {
     global: proxyFetch ? { fetch: proxyFetch } : undefined,
