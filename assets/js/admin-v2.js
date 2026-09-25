@@ -167,7 +167,14 @@ const publicContent = {
 function renderPublicContent(tab, rows) {
   const config = publicContent[tab];
   const host = $(config.host); host.replaceChildren();
-  if (!rows.length) { host.textContent = '目前尚無資料。'; return; }
+  if (!rows.length) {
+    const empty = document.createElement('div'); empty.className = 'admin-empty-state'; empty.setAttribute('role', 'status');
+    const title = document.createElement('strong');
+    title.textContent = { news: '目前沒有首頁消息', honours: '目前沒有比賽獎項', recruit: '目前沒有招生班別' }[tab];
+    const detail = document.createElement('span');
+    detail.textContent = { news: '發布後，訪客就會在官網首頁看到這則消息。', honours: '新增賽事和名次後，會顯示在官網榮譽殿堂。', recruit: '新增班別後，會顯示在官網招生區。' }[tab];
+    empty.append(title, detail); host.append(empty); return;
+  }
   rows.forEach(row => {
     const item = document.createElement('div'); item.className = 'compact-row';
     const copy = document.createElement('div'); const title = document.createElement('strong'); title.textContent = config.title(row);

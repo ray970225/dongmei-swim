@@ -139,9 +139,19 @@ button:disabled { opacity: .55; cursor: wait; }
 .admin-action-link:hover { color: var(--tmsc-white); }
 .admin-task-header { padding: .25rem 0 1.3rem; margin-bottom: 1.3rem; border-bottom: 1px solid var(--tmsc-line); }
 .admin-back-button { padding: .45rem 0; border: 0; background: transparent; color: var(--tmsc-aqua); font: inherit; font-size: .76rem; cursor: pointer; }
-.admin-task-header .eyebrow { margin-top: .75rem; }
-.admin-task-header h1 { margin: .4rem 0; font-size: clamp(2rem, 4vw, 3.1rem); letter-spacing: -.045em; }
-.admin-task-header > p:last-child { max-width: 54rem; margin: .35rem 0 0; color: var(--tmsc-muted); font-size: .84rem; line-height: 1.7; }
+.admin-v2 .admin-task-header { padding: 0 0 .85rem; margin: 0 0 .85rem; }
+.admin-v2 .admin-back-button { min-height: 32px; padding: .2rem 0; }
+.admin-v2 .admin-task-header .eyebrow { margin: .45rem 0 .2rem; }
+.admin-v2 .admin-task-header h1 { margin: .2rem 0; font-size: clamp(1.9rem, 3.3vw, 2.6rem); letter-spacing: -.045em; }
+.admin-v2 .admin-task-header > p:last-child { max-width: 54rem; margin: .25rem 0 0; color: var(--tmsc-muted); font-size: .82rem; line-height: 1.6; }
+.admin-v2 .admin-pane { padding-top: 0; }
+.admin-v2 .admin-list-head { align-items: center; margin: .4rem 0 .6rem; padding-bottom: .65rem; border-bottom: 1px solid var(--tmsc-line); }
+.admin-v2 .admin-list-head h2 { margin: .25rem 0 0; font-size: clamp(1.3rem, 2vw, 1.65rem); }
+.admin-v2 .admin-pane > .admin-message:empty { display: none; }
+.admin-v2 .admin-empty-state { display: grid; gap: .3rem; padding: 1.1rem 1rem; border: 1px solid var(--tmsc-line); border-left: 2px solid var(--tmsc-aqua); background: rgba(11,63,104,.22); }
+.admin-v2 .admin-empty-state strong { font-size: .88rem; }
+.admin-v2 .admin-empty-state span { color: var(--tmsc-muted); font-size: .76rem; line-height: 1.6; }
+.admin-v2 .admin-list-head .button-secondary { flex: 0 0 auto; }
 .admin-help { max-width: 50rem; margin: -.2rem 0 1rem; color: var(--tmsc-muted); font-size: .78rem; line-height: 1.7; }
 .sync-paused-note { display: grid; gap: .35rem; margin-bottom: 1rem; padding: .85rem 1rem; border-left: 2px solid var(--tmsc-gold); background: rgba(242,200,75,.08); }
 .sync-paused-note strong { color: #f2d982; font-size: .84rem; }
@@ -251,8 +261,11 @@ button:disabled { opacity: .55; cursor: wait; }
   .admin-action-card { min-height: 0; padding: .95rem; }
   .admin-action-card h3 { margin: .65rem 0 .3rem; }
   .admin-action-card > p { margin-bottom: .45rem; }
-  .admin-task-header { padding-bottom: 1rem; margin-bottom: .8rem; }
-  .admin-task-header h1 { font-size: 2rem; }
+  .admin-v2 .admin-task-header { padding-bottom: .7rem; margin-bottom: .65rem; }
+  .admin-v2 .admin-task-header h1 { font-size: 1.8rem; }
+  .admin-v2 .admin-list-head { align-items: start; gap: .75rem; }
+  .admin-v2 .admin-list-head .button-secondary { min-height: 42px; padding: .55rem .7rem; font-size: .72rem; }
+  .admin-v2 .admin-empty-state { padding: .9rem; }
   .sync-paused-note { padding: .75rem; }
   .education-main { padding-top: 1rem !important; }
   .athlete-main { width: min(100% - 2rem, 620px); padding-top: 2rem; }
