@@ -3,9 +3,26 @@ import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
 const sourceSwimmerId = params.get('swimmer_id') || '';
+const requestedName = params.get('name') || '';
 let resultRows = [];
 let selectedEvent = '';
 let selectedPool = '';
+
+function normalizeName(value) { return String(value || '').normalize('NFKC').replace(/[\s　]+/g, '').trim(); }
+function athleteSummary(rows) {
+  const values = key => [...new Set(rows.map(row => String(row[key] || '').trim()).filter(Boolean))];
+  const years = values('birth_year');
+  const englishNames = values('english_name');
+  const genders = values('gender');
+  return {
+    full_name: rows[0].full_name,
+    english_name: englishNames.length === 1 ? englishNames[0] : '',
+    gender: genders.length === 1 ? genders[0] : (genders.length > 1 ? '性別來源不一致' : ''),
+    birth_year: years.length === 1 ? years[0] : '',
+    birth_year_conflict: years.length > 1,
+    source_count: rows.length
+  };
+}
 
 function timeText(ms) {
   const total = ms / 1000;
@@ -119,15 +136,19 @@ function renderSplits(splits, rows) {
 }
 
 async function start() {
-  if (!sourceSwimmerId) { setState('請從選手資料名單選擇選手', '此頁僅載入可查閱的真實賽事成績。'); return; }
+  if (!sourceSwimmerId && !requestedName) { setState('請從選手資料名單選擇選手', '此頁僅載入可查閱的真實賽事成績。'); return; }
   let supabase = null;
   let athlete;
   if (isSupabaseConfigured()) {
     supabase=await getSupabase();
-    const {data,error}=await supabase.from('athletes').select('id,source_swimmer_id,full_name,english_name,gender,birth_year,visibility').eq('source_swimmer_id',sourceSwimmerId).eq('active',true).maybeSingle();
+    const {data,error}=await supabase.from('athletes').select('id,source_swimmer_id,full_name,english_name,gender,birth_year,visibility').eq('active',true).order('full_name');
     if(error||!data){setState('找不到公開選手資料','此選手資料目前不可公開查閱，或尚未完成資料庫匯入。');return;}
-    athlete=data;
-    const response=await supabase.from('results').select('id,event_name,competition_date,team_name,rank,time_text,time_milliseconds,pool_type,round_name,age_group,meet_id,meets(name)').eq('athlete_id',athlete.id).order('competition_date',{ascending:false});
+    const sourceAthlete = data.find(row => row.source_swimmer_id === sourceSwimmerId);
+    const targetName = requestedName || sourceAthlete?.full_name || '';
+    const matchedAthletes = data.filter(row => normalizeName(row.full_name) === normalizeName(targetName));
+    if(!matchedAthletes.length){setState('找不到公開選手資料','此選手資料目前不可公開查閱，或尚未完成資料庫匯入。');return;}
+    athlete=athleteSummary(matchedAthletes);
+    const response=await supabase.from('results').select('id,athlete_id,event_name,competition_date,team_name,rank,time_text,time_milliseconds,pool_type,round_name,age_group,meet_id,meets(name)').in('athlete_id',matchedAthletes.map(row=>row.id)).order('competition_date',{ascending:false});
     if(response.error){setState('成績暫時無法載入','請稍後再試。');return;}
     resultRows=response.data||[];
   } else {
@@ -135,12 +156,18 @@ async function start() {
     const response=await fetch('data/swim-results.json');
     if(!response.ok)throw new Error(`成績載入失敗：${response.status}`);
     const snapshot=await response.json();
-    resultRows=snapshot.filter(row=>String(row.swimmer_id)===sourceSwimmerId).map(row=>({
+    const sourceAthlete = snapshot.find(row => String(row.swimmer_id) === sourceSwimmerId);
+    const targetName = requestedName || sourceAthlete?.swimmer || '';
+    const matchedRows = snapshot.filter(row => normalizeName(row.swimmer) === normalizeName(targetName));
+    resultRows=matchedRows.map(row=>({
       ...row,event_name:row.event,competition_date:row.competition_date,time_text:row.time,
       pool_type:row.pool_type||'池別未列',meets:{name:row.competition||'賽事名稱未列'}
     }));
-    const first=resultRows[0];
-    athlete=first?{full_name:first.swimmer,english_name:first.swimmer_en,gender:first.gender,birth_year:first.birth_year}:null;
+    const people = [...new Map(matchedRows.map(row => [row.swimmer_id, {
+      source_swimmer_id: row.swimmer_id, full_name: row.swimmer, english_name: row.swimmer_en,
+      gender: row.gender, birth_year: row.birth_year
+    }])).values()];
+    athlete=people.length?athleteSummary(people):null;
   }
   if(!athlete){setState('找不到選手資料','此選手尚無可查閱的公開成績。');return;}
   if(!resultRows.length){setState('目前沒有公開成績','之後同步到的公開紀錄會顯示在這裡。');return;}
@@ -148,7 +175,9 @@ async function start() {
   if(!resultRows.length){setState('目前沒有可用的計時成績','目前紀錄中沒有有效計時資料，暫時無法製作項目最佳或趨勢圖。');return;}
   $('#athleteState').hidden=true; $('#athleteContent').hidden=false;
   $('#athleteName').textContent=athlete.full_name;
-  $('#athleteMeta').textContent=[athlete.english_name,athlete.gender,athlete.birth_year?`${athlete.birth_year} 年生`:null,'TMSC'].filter(Boolean).join(' / ');
+  const birthLabel=athlete.birth_year_conflict?'出生年份來源不一致':(athlete.birth_year?`${athlete.birth_year} 年生`:null);
+  const sourceLabel=athlete.source_count>1?`已整合 ${athlete.source_count} 筆同名來源資料`:null;
+  $('#athleteMeta').textContent=[athlete.english_name,athlete.gender,birthLabel,sourceLabel,'TMSC'].filter(Boolean).join(' / ');
   $('#resultCount').textContent=`${resultRows.length} 筆有效紀錄`;
   const groups=eventGroups(resultRows);
   const bestRows=[...groups.entries()].map(([key,list])=>({key,row:list.reduce((best,row)=>Number(row.time_milliseconds)<Number(best.time_milliseconds)?row:best)})).sort((a,b)=>a.key.localeCompare(b.key,'zh-Hant'));
