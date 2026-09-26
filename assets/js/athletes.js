@@ -7,6 +7,7 @@ let athletes = [];
 function render() {
   const query = search.value.trim().toLocaleLowerCase();
   const matches = athletes.filter(athlete => `${athlete.full_name} ${athlete.english_name || ''}`.toLocaleLowerCase().includes(query));
+  document.querySelector('#athleteCount').textContent = query ? `找到 ${matches.length} 位選手` : `共 ${matches.length} 位選手`;
   host.replaceChildren();
   if (!matches.length) {
     const empty = document.createElement('p'); empty.className = 'empty';

@@ -45,12 +45,22 @@ function fillFilters(groups) {
   $('#poolFilter').value = selectedPool;
 }
 
+function renderHeroBest(groups) {
+  const rows = groups.get(`${selectedEvent}\u0001${selectedPool}`) || [];
+  if (!rows.length) return;
+  const best = rows.reduce((fastest, row) => Number(row.time_milliseconds) < Number(fastest.time_milliseconds) ? row : fastest);
+  $('#bestEvent').textContent = `${selectedEvent} · ${selectedPool}`;
+  $('#bestTime').textContent = best.time_text || timeText(Number(best.time_milliseconds));
+  $('#bestLabel').textContent = '所選項目個人最佳';
+}
+
 function formatMeet(row) { return row.meets?.name || row.meet_name || '賽事名稱未列'; }
 
 function renderTrend(groups) {
   const key = `${selectedEvent}\u0001${selectedPool}`;
   const rows = groups.get(key) || [];
   const chart = $('#trendChart'); chart.replaceChildren();
+  $('#trendHint').hidden = true;
   if (!rows.length) { chart.textContent = '目前沒有可繪製的計時成績。'; $('#progressSummary').replaceChildren(); return; }
   if (rows.length === 1) {
     const value = document.createElement('p'); value.className = 'single-point'; value.textContent = `${rows[0].time_text} · ${rows[0].competition_date || ''}`; chart.append(value);
@@ -70,6 +80,7 @@ function renderTrend(groups) {
     const path=document.createElementNS(ns,'path'); path.setAttribute('class','athlete-trend-line'); path.setAttribute('d',rows.map((row,i)=>`${i?'L':'M'} ${x(i)} ${y(Number(row.time_milliseconds))}`).join(' ')); svg.append(path);
     rows.forEach((row,i)=>{ const circle=document.createElementNS(ns,'circle'); circle.setAttribute('cx',x(i)); circle.setAttribute('cy',y(Number(row.time_milliseconds))); circle.setAttribute('r',mobile?'5':'6'); circle.setAttribute('class','athlete-point'); const title=document.createElementNS(ns,'title'); title.textContent=`${row.competition_date || ''} · ${formatMeet(row)} · ${row.time_text}`; circle.append(title); svg.append(circle); const date=document.createElementNS(ns,'text'); date.setAttribute('x',x(i)); date.setAttribute('y',height-12); date.setAttribute('text-anchor','middle'); date.setAttribute('class','athlete-chart-label'); date.textContent=String(row.competition_date || '').slice(5).replace('-','/'); svg.append(date); });
     chart.append(svg);
+    $('#trendHint').hidden = !mobile || width <= chart.clientWidth;
   }
   const bestByYear = new Map();
   rows.forEach(row => { const year = String(row.competition_date || '').slice(0,4); if (!year) return; const old = bestByYear.get(year); if (!old || Number(row.time_milliseconds) < Number(old.time_milliseconds)) bestByYear.set(year,row); });
@@ -133,17 +144,21 @@ async function start() {
   }
   if(!athlete){setState('找不到選手資料','此選手尚無可查閱的公開成績。');return;}
   if(!resultRows.length){setState('目前沒有公開成績','之後同步到的公開紀錄會顯示在這裡。');return;}
+  resultRows = resultRows.filter(row => Number(row.time_milliseconds) > 0);
+  if(!resultRows.length){setState('目前沒有可用的計時成績','目前紀錄中沒有有效計時資料，暫時無法製作項目最佳或趨勢圖。');return;}
   $('#athleteState').hidden=true; $('#athleteContent').hidden=false;
   $('#athleteName').textContent=athlete.full_name;
   $('#athleteMeta').textContent=[athlete.english_name,athlete.gender,athlete.birth_year?`${athlete.birth_year} 年生`:null,'TMSC'].filter(Boolean).join(' / ');
   $('#resultCount').textContent=`${resultRows.length} 筆有效紀錄`;
   const groups=eventGroups(resultRows);
-  const bestRows=[...groups.entries()].map(([key,list])=>({key,row:list.reduce((best,row)=>Number(row.time_milliseconds)<Number(best.time_milliseconds)?row:best),list})).sort((a,b)=>Number(a.row.time_milliseconds)-Number(b.row.time_milliseconds));
-  if(bestRows.length){const overall=bestRows[0].row;$('#bestEvent').textContent=`${overall.event_name} · ${overall.pool_type||'池別未列'}`;$('#bestTime').textContent=overall.time_text||timeText(Number(overall.time_milliseconds));}
-  const host=$('#eventBests');host.replaceChildren();bestRows.forEach(({key,row})=>{const item=document.createElement('button');item.type='button';item.className='event-best';const parts=key.split('\u0001');const label=document.createElement('span');label.textContent=parts.join(' · ');const time=document.createElement('strong');time.textContent=row.time_text||timeText(Number(row.time_milliseconds));item.append(label,time);item.addEventListener('click',()=>{selectedEvent=parts[0];selectedPool=parts[1];fillFilters(groups);renderTrend(groups);});host.append(item);});
-  fillFilters(groups);renderTrend(groups);renderRecent(resultRows);
-  $('#eventFilter').addEventListener('change',()=>{selectedEvent=$('#eventFilter').value;selectedPool='';fillFilters(groups);renderTrend(groups);});
-  $('#poolFilter').addEventListener('change',()=>{selectedPool=$('#poolFilter').value;renderTrend(groups);});
+  const bestRows=[...groups.entries()].map(([key,list])=>({key,row:list.reduce((best,row)=>Number(row.time_milliseconds)<Number(best.time_milliseconds)?row:best)})).sort((a,b)=>a.key.localeCompare(b.key,'zh-Hant'));
+  const latest = [...resultRows].sort((a,b)=>byDate(b,a))[0];
+  selectedEvent = latest.event_name;
+  selectedPool = latest.pool_type || '池別未列';
+  const host=$('#eventBests');host.replaceChildren();bestRows.forEach(({key,row})=>{const item=document.createElement('button');item.type='button';item.className='event-best';const parts=key.split('\u0001');const label=document.createElement('span');label.textContent=parts.join(' · ');const time=document.createElement('strong');time.textContent=row.time_text||timeText(Number(row.time_milliseconds));item.setAttribute('aria-label',`查看 ${parts.join('、')} 趨勢，項目最佳 ${time.textContent}`);item.append(label,time);item.addEventListener('click',()=>{selectedEvent=parts[0];selectedPool=parts[1];fillFilters(groups);renderHeroBest(groups);renderTrend(groups);});host.append(item);});
+  fillFilters(groups);renderHeroBest(groups);renderTrend(groups);renderRecent(resultRows);
+  $('#eventFilter').addEventListener('change',()=>{selectedEvent=$('#eventFilter').value;selectedPool='';fillFilters(groups);renderHeroBest(groups);renderTrend(groups);});
+  $('#poolFilter').addEventListener('change',()=>{selectedPool=$('#poolFilter').value;renderHeroBest(groups);renderTrend(groups);});
   const ids=resultRows.map(row=>row.id);
   if(supabase){
     const splitResults=await supabase.from('splits').select('id,result_id,distance_m,split_milliseconds').in('result_id',ids);

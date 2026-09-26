@@ -7,25 +7,25 @@
   <meta name="theme-color" content="#06182b">
   <title>選手資料｜東美游泳隊</title>
   <link rel="stylesheet" href="assets/css/results.css">
-  <link rel="stylesheet" href="assets/css/athlete.css?v=tmsc-brand-1">
+  <link rel="stylesheet" href="assets/css/athlete.css?v=tmsc-brand-2">
 </head>
 <body class="athlete-page">
   <header class="topbar athlete-topbar">
     <a class="brand" href="index.html">TMSC東<span>美</span>游泳隊</a>
-    <a class="back-link" href="athletes.html">← 選手資料</a>
+    <a class="back-link" href="athletes.html">← 選手名單</a>
   </header>
   <main class="athlete-main">
     <section id="athleteState" class="athlete-state"><p class="eyebrow">選手資料 / PERFORMANCE</p><h1>正在整理選手紀錄</h1><p>載入公開成績資料…</p></section>
     <div id="athleteContent" hidden>
       <section class="athlete-hero"><div class="athlete-ident"><p class="eyebrow">SWIMMER / TMSC</p><h1 id="athleteName"></h1><p id="athleteMeta" class="athlete-meta"></p></div><div class="athlete-best"><p class="eyebrow">BEST PERFORMANCE</p><p class="best-event" id="bestEvent"></p><strong id="bestTime"></strong><p id="bestLabel" class="small-label">PERSONAL BEST</p></div></section>
       <section class="athlete-section"><div class="athlete-section-heading"><div><p class="eyebrow">PERSONAL BEST</p><h2>各項目最佳</h2></div><span id="resultCount" class="small-label"></span></div><div id="eventBests" class="event-bests"></div></section>
-      <section class="athlete-section performance-section"><div class="athlete-section-heading"><div><p class="eyebrow">PERFORMANCE TREND</p><h2>每一次進步，都看得見。</h2></div><div class="trend-filters"><select id="eventFilter" aria-label="選擇游泳項目"></select><select id="poolFilter" aria-label="選擇池別"></select></div></div><div id="trendChart" class="athlete-chart"></div><div id="progressSummary" class="progress-summary"></div></section>
+      <section class="athlete-section performance-section"><div class="athlete-section-heading"><div><p class="eyebrow">PERFORMANCE TREND</p><h2>成績趨勢</h2><p class="section-note">選擇項目與池別，查看每次比賽的真實成績。</p></div><div class="trend-filters"><label><span class="sr-only">游泳項目</span><select id="eventFilter" aria-label="選擇游泳項目"></select></label><label><span class="sr-only">池別</span><select id="poolFilter" aria-label="選擇池別"></select></label></div></div><p id="trendHint" class="trend-hint" hidden>圖表可左右滑動查看不同場次。</p><div id="trendChart" class="athlete-chart"></div><div id="progressSummary" class="progress-summary"></div></section>
       <section class="athlete-section"><div class="athlete-section-heading"><div><p class="eyebrow">RECENT PERFORMANCE</p><h2>近期表現</h2></div><span id="recentAverage" class="recent-average"></span></div><div id="recentResults" class="recent-list"></div></section>
       <section class="athlete-section"><div class="athlete-section-heading"><div><p class="eyebrow">MEET HISTORY</p><h2>比賽紀錄</h2></div></div><div id="meetHistory" class="recent-list"></div></section>
       <section id="splitSection" class="athlete-section" hidden><div class="athlete-section-heading"><div><p class="eyebrow">SPLIT ANALYSIS</p><h2>分段紀錄</h2></div></div><div id="splitChart" class="split-list"></div></section>
     </div>
   </main>
   <script src="assets/js/runtime-config.js"></script>
-  <script type="module" src="assets/js/athlete.js"></script>
+  <script type="module" src="assets/js/athlete.js?v=20260926-2"></script>
 </body>
 </html>
