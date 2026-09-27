@@ -51,11 +51,14 @@ a { color: inherit; }
 .lane-rule::before, .lane-rule::after { position: absolute; top: -1px; bottom: -1px; width: 1px; background: var(--tmsc-lane); content: ""; }
 .lane-rule::before { left: 32%; } .lane-rule::after { left: 68%; }
 .login-form { display: grid; gap: .65rem; padding: clamp(1.4rem, 3vw, 2.4rem); border-top: 1px solid var(--tmsc-aqua); border-bottom: 1px solid var(--tmsc-line); background: linear-gradient(135deg, rgba(255,255,255,.035), transparent 66%); }
+.admin-v2 .login-form { border: 1px solid var(--tmsc-line); border-top: 2px solid var(--tmsc-aqua); border-radius: 1.5rem; box-shadow: 0 20px 60px rgba(0,0,0,.16); }
 .login-form label, .article-editor label { margin-top: .6rem; color: #b6c5c0; font-size: .75rem; }
 .login-form input, .article-editor input:not([type="checkbox"]), .article-editor textarea, .invite-form input, .search-field input { width: 100%; padding: .9rem .85rem; border: 1px solid var(--tmsc-line); border-radius: 0; outline: 0; background: rgba(255,255,255,.035); color: var(--tmsc-white); }
+.admin-v2 .login-form input { padding-inline: 1.1rem; border-radius: 999px; }
 .login-form input:focus, .article-editor input:focus, .article-editor textarea:focus, .invite-form input:focus, .search-field input:focus { border-color: var(--tmsc-aqua); }
 .button-primary, .button-secondary { min-height: 46px; padding: .75rem 1rem; border: 1px solid var(--tmsc-aqua); cursor: pointer; font-size: .8rem; font-weight: 700; }
 .button-primary { margin-top: 1rem; background: var(--tmsc-aqua); color: var(--tmsc-ink); }
+.admin-v2 .login-form .button-primary { border-radius: 999px; }
 .button-primary:hover { background: #bfeaf4; }
 .button-secondary { background: transparent; color: var(--tmsc-aqua); }
 .button-secondary:hover { background: rgba(36,195,223,.08); }
