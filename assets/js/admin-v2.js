@@ -415,7 +415,7 @@ async function activate(session) {
     const admin = await verifyAdmin(session);
     if (!admin) { showLogin('此帳號沒有管理員權限。'); return; }
     $('#loginPanel').hidden = true; $('#adminApp').hidden = false; $('#signOutButton').hidden = false;
-    $('#memberLabel').textContent = 'ADMIN MODE'; $('#adminName').textContent = admin.display_name ? `· ${admin.display_name}` : '';
+    $('#memberLabel').textContent = '管理員'; $('#adminName').textContent = admin.display_name ? `· ${admin.display_name}` : '';
     switchTab('home');
     await Promise.all([loadSyncJobs(), loadArticles(), loadMembers()]);
   } catch (error) { console.error(error); showLogin('管理資料載入失敗，請重新登入。'); }

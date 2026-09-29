@@ -6,13 +6,13 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#071318">
   <title>教練管理台｜東美游泳隊</title>
-  <link rel="stylesheet" href="assets/css/v2.css?v=tmsc-admin-4">
+  <link rel="stylesheet" href="assets/css/v2.css?v=tmsc-admin-5">
 </head>
 <body class="member-shell admin-v2">
   <header class="v2-header">
-    <a class="v2-wordmark" href="index.html"><span class="wordmark-t">TMSC</span><span class="wordmark-name">東美游泳隊</span></a>
-    <nav class="v2-nav"><a href="index.html">首頁</a><a href="results.html">公開成績</a><a href="athletes.html">選手資料</a><a href="education.html?view=member">會員專區</a></nav>
-    <div class="account-nav"><span id="memberLabel">ADMIN ACCESS</span><button class="text-button" id="signOutButton" type="button" hidden>登出</button></div>
+    <a class="v2-wordmark" href="admin-v2.html" aria-label="教練工作台首頁"><span class="wordmark-t">TMSC</span><span class="wordmark-name">東美游泳隊</span></a>
+    <nav class="v2-nav admin-top-nav" aria-label="管理台快捷操作"><a href="index.html">開啟公開官網 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 3h8v8M13 3 4 12"></path></svg></a></nav>
+    <div class="account-nav"><span id="memberLabel">管理員</span><button class="text-button" id="signOutButton" type="button" hidden>登出</button></div>
   </header>
   <main class="admin-main">
     <section id="configNotice" class="notice" hidden><p class="eyebrow">SETUP REQUIRED</p><h1>管理台準備中</h1><p>接上 Supabase 後，教練即可使用會員管理、升學內容管理與成績同步。</p></section>
@@ -21,18 +21,18 @@
       <form id="loginForm" class="login-form"><label for="email">管理員電子郵件</label><input id="email" type="email" autocomplete="username" required><label for="password">密碼</label><input id="password" type="password" autocomplete="current-password" required><button class="button-primary" type="submit">登入管理台 ↗</button><p id="loginError" class="form-error" role="alert"></p><p class="small-note">帳號由系統管理員建立。</p></form>
     </section>
     <section id="adminApp" hidden>
-      <div class="member-kicker"><span class="status-dot"></span> TMSC ADMIN MODE <span id="adminName"></span></div>
-      <div class="admin-heading" id="adminHeading"><div><p class="eyebrow">COACH WORKSPACE</p><h1>教練工作台</h1><p>選一項工作開始。每張卡片都會說明資料會出現在哪裡。</p></div></div>
+      <div class="member-kicker"><span class="status-dot"></span> 管理員工作區 <span id="adminName"></span></div>
+      <div class="admin-heading" id="adminHeading"><div><h1>教練工作台</h1><p>選擇要處理的工作。隊內資料僅供會員閱讀；官網內容會公開給所有訪客。</p></div></div>
       <section id="adminHome" class="admin-home" aria-label="管理工作選單">
-        <section class="admin-home-group"><div class="admin-group-heading"><p class="eyebrow">TEAM ONLY</p><h2>隊內管理</h2><p>只供已登入的東美會員使用。</p></div><div class="admin-action-grid">
+        <section class="admin-home-group"><div class="admin-group-heading"><p class="eyebrow">東美會員限定</p><h2>隊內管理</h2><p>教練團管理隊內資料；已發布內容僅供會員查閱。</p></div><div class="admin-action-grid">
           <article class="admin-action-card is-paused"><div class="admin-action-top"><span class="admin-scope">成績資料</span><span class="admin-status">目前暫停</span></div><h3>同步選手成績</h3><p>原本用來向外部來源更新選手比賽成績。來源尚未核准自動擷取，因此現在不能同步。</p><button class="admin-action-link" type="button" data-tab="sync">查看同步狀態 <span aria-hidden="true">→</span></button></article>
-          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">隊內閱讀</span><span class="admin-status is-ready">可管理</span></div><h3>升學文章與附件</h3><p>新增或編輯文章、招生簡章、圖片與 PDF。發布後只有啟用中的會員看得到。</p><button class="admin-action-link" type="button" data-tab="articles">管理隊內文章 <span aria-hidden="true">→</span></button></article>
-          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">登入帳號</span><span class="admin-status is-ready">可管理</span></div><h3>邀請或停用會員</h3><p>寄送會員邀請或暫停一般會員登入；不會建立管理員，也不開放自行註冊。</p><button class="admin-action-link" type="button" data-tab="members">管理會員帳號 <span aria-hidden="true">→</span></button></article>
+          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">升學資料庫</span></div><h3>升學文章與附件</h3><p>新增或編輯文章、招生簡章、圖片與 PDF。發布後只有啟用中的會員看得到。</p><button class="admin-action-link" type="button" data-tab="articles">管理隊內文章 <span aria-hidden="true">→</span></button></article>
+          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">會員帳號</span></div><h3>邀請或停用會員</h3><p>寄送會員邀請或暫停一般會員登入；不會建立管理員，也不開放自行註冊。</p><button class="admin-action-link" type="button" data-tab="members">管理會員帳號 <span aria-hidden="true">→</span></button></article>
         </div></section>
-        <section class="admin-home-group"><div class="admin-group-heading"><p class="eyebrow">PUBLIC WEBSITE</p><h2>官網內容</h2><p>以下資料會顯示在東美公開網站，所有訪客都看得到。</p></div><div class="admin-action-grid">
-          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">首頁消息</span><span class="admin-status is-ready">可管理</span></div><h3>最新動態</h3><p>新增或修改首頁消息，例如隊上公告、活動與重要通知。</p><button class="admin-action-link" type="button" data-tab="news">編輯首頁動態 <span aria-hidden="true">→</span></button></article>
-          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">比賽成就</span><span class="admin-status is-ready">可管理</span></div><h3>榮譽紀錄</h3><p>整理賽事名稱、選手、年份、項目與名次，更新官網榮譽殿堂。</p><button class="admin-action-link" type="button" data-tab="honours">編輯榮譽紀錄 <span aria-hidden="true">→</span></button></article>
-          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">訓練班別</span><span class="admin-status is-ready">可管理</span></div><h3>招生班別</h3><p>更新班別名稱、適合年齡、費用與說明，內容會顯示在官網招生區。</p><button class="admin-action-link" type="button" data-tab="recruit">編輯招生班別 <span aria-hidden="true">→</span></button></article>
+        <section class="admin-home-group"><div class="admin-group-heading"><p class="eyebrow">公開官網</p><h2>官網內容</h2><p>發布後會顯示於官網，所有訪客都看得到。</p></div><div class="admin-action-grid">
+          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">首頁消息</span></div><h3>最新動態</h3><p>新增或修改首頁消息，例如隊上公告、活動與重要通知。</p><button class="admin-action-link" type="button" data-tab="news">編輯首頁動態 <span aria-hidden="true">→</span></button></article>
+          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">比賽成就</span></div><h3>榮譽紀錄</h3><p>整理賽事名稱、選手、年份、項目與名次，更新官網榮譽殿堂。</p><button class="admin-action-link" type="button" data-tab="honours">編輯榮譽紀錄 <span aria-hidden="true">→</span></button></article>
+          <article class="admin-action-card"><div class="admin-action-top"><span class="admin-scope">訓練班別</span></div><h3>招生班別</h3><p>更新班別名稱、適合年齡、費用與說明，內容會顯示在官網招生區。</p><button class="admin-action-link" type="button" data-tab="recruit">編輯招生班別 <span aria-hidden="true">→</span></button></article>
         </div></section>
       </section>
       <section id="adminTaskHeader" class="admin-task-header" hidden><button id="backToAdminHome" class="admin-back-button" type="button">← 回到工作台</button><p id="activeTaskScope" class="eyebrow"></p><h1 id="activeTaskTitle"></h1><p id="activeTaskDescription"></p></section>
