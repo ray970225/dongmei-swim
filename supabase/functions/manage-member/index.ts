@@ -10,7 +10,17 @@ Deno.serve(async request => {
       const email = String(body.email || '').trim().toLowerCase();
       const displayName = String(body.displayName || '').trim().slice(0, 80);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: '請輸入有效的電子郵件地址。' }, 400);
-      const redirectTo = Deno.env.get('PUBLIC_SITE_URL') || 'https://ray970225.github.io/dongmei-swim/education.html';
+      // PUBLIC_SITE_URL may be configured as the home page (or the site's base
+      // path). Always send invitees to the member portal's password setup flow.
+      const siteUrl = new URL(Deno.env.get('PUBLIC_SITE_URL') || 'https://ray970225.github.io/dongmei-swim/');
+      if (/\.html$/i.test(siteUrl.pathname)) {
+        siteUrl.pathname = siteUrl.pathname.replace(/[^/]+$/, 'education.html');
+      } else {
+        siteUrl.pathname = `${siteUrl.pathname.replace(/\/+$/, '')}/education.html`;
+      }
+      siteUrl.search = '?setup=password';
+      siteUrl.hash = '';
+      const redirectTo = siteUrl.toString();
       const { error: allowError } = await serviceClient.from('member_invites').upsert({ email, display_name: displayName }, { onConflict: 'email' });
       if (allowError) return json({ error: '會員邀請資料建立失敗。' }, 500);
       const { error } = await serviceClient.auth.admin.inviteUserByEmail(email, { data: { display_name: displayName }, redirectTo });

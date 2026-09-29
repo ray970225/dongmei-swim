@@ -18,20 +18,6 @@
 }
 * { box-sizing: border-box; }
 body.member-shell { margin: 0; min-height: 100vh; background: var(--tmsc-ink); color: var(--tmsc-white); }
-body.education-page {
-  color-scheme: light;
-  --tmsc-ink: #f2f7f9;
-  --tmsc-deep: #e8f1f5;
-  --tmsc-paper: #fbfaf6;
-  --tmsc-white: #132d40;
-  --tmsc-muted: #526a79;
-  --tmsc-line: rgba(19, 57, 79, .17);
-  --tmsc-aqua: #087c96;
-  --tmsc-aqua-dark: #08677f;
-  --tmsc-lane: rgba(8, 124, 150, .2);
-  background: var(--tmsc-ink);
-  color: var(--tmsc-white);
-}
 button, input, textarea { font: inherit; }
 button { color: inherit; }
 a { color: inherit; }
@@ -357,22 +343,6 @@ button:disabled { opacity: .55; cursor: wait; }
 
 /* Education library: bring member tasks into the first viewport. */
 .education-main { width: min(1280px, calc(100% - 3rem)); padding-top: 1.25rem; }
-.education-page .v2-header { background: rgba(255,255,255,.88); }
-.education-page .v2-nav a { color: #294b60; }
-.education-page .v2-nav a:hover, .education-page .v2-nav a.active { color: var(--tmsc-aqua); }
-.education-page .login-copy > p:not(.eyebrow), .education-page .education-hero > div > p:not(.eyebrow) { color: var(--tmsc-muted); }
-.education-page .deadline-item span { color: var(--tmsc-muted); }
-.education-page .category-chip { color: var(--tmsc-muted); }
-.education-page .category-chip.active, .education-page .category-chip:hover { color: var(--tmsc-aqua); }
-.education-page .reader-summary, .education-page .reader-body { color: var(--tmsc-white); }
-.education-page .reader-body h3 { color: var(--tmsc-aqua); }
-.education-page .login-form { background: #fff; }
-.education-page .login-form input, .education-page .search-field input { background: #fff; color: var(--tmsc-white); }
-.education-page .login-form label { color: var(--tmsc-muted); }
-.education-page .button-primary:hover { background: #b8e9f1; color: #102d40; }
-.education-page .search-field input::placeholder { color: #607887; opacity: 1; }
-.education-page .small-note { color: var(--tmsc-muted); }
-.education-page ::selection { background: #b8e9f1; color: #102d40; }
 .member-home-heading { padding: .4rem 0 .85rem; border-bottom: 1px solid var(--tmsc-line); }
 .member-home-heading h1 { margin: .15rem 0; font-size: 1.8rem; letter-spacing: -.03em; }
 .member-home-heading p { color: var(--tmsc-muted); font-size: .82rem; }
@@ -382,7 +352,7 @@ button:disabled { opacity: .55; cursor: wait; }
 .education-main .small-note a { color: var(--tmsc-aqua); text-underline-offset: .2em; }
 .education-main .small-note a:hover { color: var(--tmsc-white); }
 .education-main .login-copy .lane-rule, .education-main .login-copy .small-label { display: none; }
-.education-main .login-form { border: 1px solid var(--tmsc-line); border-radius: 1.25rem; background: #fff; }
+.education-main .login-form { border: 1px solid var(--tmsc-line); border-radius: 1.25rem; background: rgba(11,63,104,.42); }
 .education-main .login-form input { min-height: 46px; padding-inline: 1rem; border-radius: 999px; }
 .education-main .login-form .button-primary { min-height: 48px; border-radius: 12px; }
 .education-main .education-hero { display: block; min-height: 0; padding: .9rem 0 .35rem; border: 0; }
@@ -395,7 +365,7 @@ button:disabled { opacity: .55; cursor: wait; }
 .education-main .search-field { width: min(440px, 46%); min-height: 46px; padding: 0 .45rem 0 .25rem; border: 1px solid var(--tmsc-line); border-radius: 999px; }
 .education-main .search-field:focus-within { border-color: var(--tmsc-aqua); }
 .education-main .search-field input { min-height: 42px; padding: .65rem .9rem; border: 0; border-radius: 999px; background: transparent; color: var(--tmsc-white); caret-color: var(--tmsc-aqua); }
-.education-main .search-field input::placeholder { color: #607887; opacity: 1; }
+.education-main .search-field input::placeholder { color: #bfeaf4; opacity: .9; }
 .education-main .search-field svg { width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: var(--tmsc-aqua); stroke-width: 1.8; stroke-linecap: round; }
 .education-main .deadline-strip { padding: .15rem 0 .65rem; border: 0; }
 .education-main .deadline-strip h3 { margin: 0 0 .45rem; color: var(--tmsc-muted); font-size: .78rem; font-weight: 600; }
@@ -458,12 +428,12 @@ button:disabled { opacity: .55; cursor: wait; }
     overflow: hidden;
     border: 1px solid var(--tmsc-line);
     border-radius: 14px;
-    border-color: #d3e2e8;
-    background: #fff;
+    border-color: var(--tmsc-line);
+    background: linear-gradient(145deg, rgba(11,63,104,.42), rgba(7,31,50,.9));
     text-align: left;
     transition: border-color .18s ease, transform .18s ease;
   }
-  .education-main .article-row:hover { border-color: var(--tmsc-aqua); background: #f8fcfd; transform: translateY(-2px); }
+  .education-main .article-row:hover { border-color: var(--tmsc-aqua); background: linear-gradient(145deg, rgba(11,63,104,.52), rgba(7,31,50,.95)); transform: translateY(-2px); }
   .education-main .article-row .article-index { display: none; }
   .education-main .article-row .article-cover {
     position: relative;
@@ -472,18 +442,47 @@ button:disabled { opacity: .55; cursor: wait; }
     aspect-ratio: 16 / 9;
     place-items: center;
     overflow: hidden;
-    background: #dceef2;
+    background: #0c2940;
   }
   .education-main .article-cover::after { position: absolute; inset: auto 0 0; height: 3px; background: var(--tmsc-aqua); content: ''; opacity: .75; }
   .education-main .article-cover img { width: 100%; height: 100%; object-fit: cover; }
   .education-main .article-cover-label { display: none; }
   .education-main .article-cover.is-fallback {
-    background: radial-gradient(ellipse at 76% 22%, rgba(8,124,150,.13), transparent 42%), linear-gradient(135deg, #edf7f8, #e4eff1 72%);
+    background: radial-gradient(ellipse at 76% 22%, rgba(36,195,223,.24), transparent 42%), linear-gradient(135deg, #103b59, #071a2b 72%);
   }
-  .education-main .article-cover.is-fallback .article-cover-label { display: block; color: #315969; font-size: .82rem; font-weight: 700; letter-spacing: .08em; }
+  .education-main .article-cover.is-fallback .article-cover-label { display: block; color: #b9e9f3; font-size: .82rem; font-weight: 700; letter-spacing: .08em; }
   .education-main .article-row .article-copy { display: flex; flex-direction: column; grid-column: 1; grid-row: 2; gap: .4rem; padding: .9rem .95rem .55rem; }
   .education-main .article-copy .article-category { width: fit-content; padding: .18rem .5rem; border: 1px solid rgba(36,195,223,.35); border-radius: 999px; color: var(--tmsc-aqua); font-size: .68rem; font-weight: 700; }
   .education-main .article-copy strong { font-size: 1.05rem; line-height: 1.45; }
   .education-main .article-summary { display: -webkit-box; overflow: hidden; color: var(--tmsc-muted); font-size: .8rem; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   .education-main .article-row .article-date { display: block; grid-column: 1; grid-row: 3; padding: 0 .95rem .85rem; color: var(--tmsc-muted); font-size: .72rem; text-align: left; }
+}
+
+/* Password recovery: keep the task focused and make the primary action easy to tap. */
+.forgot-password-page .recovery-main { width: min(1160px, calc(100% - 2.5rem)); }
+.forgot-password-page .recovery-layout { grid-template-columns: 1.12fr .88fr; gap: clamp(2.5rem, 8vw, 7rem); min-height: min(68vh, 720px); }
+.forgot-password-page .recovery-layout .login-copy h1 { max-width: 10ch; font-size: clamp(3rem, 6.1vw, 5.3rem); letter-spacing: -.045em; line-height: 1.03; }
+.forgot-password-page .recovery-layout .login-copy > p:not(.eyebrow) { max-width: 38rem; }
+.forgot-password-page .recovery-layout .lane-rule { width: min(100%, 28rem); margin: 2.6rem 0 1rem; }
+.forgot-password-page .recovery-layout .small-label { display: inline-block; }
+.forgot-password-page .recovery-layout .login-form { gap: .55rem; padding: clamp(1.5rem, 3vw, 2.25rem); border: 1px solid var(--tmsc-line); border-top: 2px solid var(--tmsc-aqua); border-radius: 24px; background: linear-gradient(145deg, rgba(11,63,104,.48), rgba(7,31,50,.78)); }
+.forgot-password-page .recovery-layout .login-form label { margin-top: .6rem; color: var(--tmsc-muted); font-size: .78rem; }
+.forgot-password-page .recovery-layout .login-form input { min-height: 54px; padding: .8rem 1rem; border-radius: 14px; transition: border-color .18s ease, box-shadow .18s ease; }
+.forgot-password-page .recovery-layout .login-form input:focus-visible { border-color: var(--tmsc-aqua); box-shadow: 0 0 0 3px rgba(36,195,223,.14); }
+.forgot-password-page .recovery-layout .button-primary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 58px; margin-top: .65rem; padding: .6rem .7rem .6rem 1.25rem; border-radius: 999px; transition: background-color .18s ease, color .18s ease, transform .18s ease; }
+.forgot-password-page .recovery-layout .button-primary span { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border: 1px solid rgba(7,29,51,.28); border-radius: 50%; font-size: 1rem; line-height: 1; }
+.forgot-password-page .recovery-layout .button-primary:hover { background: #bfeaf4; color: var(--tmsc-ink); transform: translateY(-1px); }
+.forgot-password-page .recovery-layout .button-primary:active { transform: scale(.99); }
+.forgot-password-page .recovery-layout .button-primary:focus-visible, .forgot-password-page .recovery-layout .text-button:focus-visible { outline: 2px solid var(--tmsc-aqua); outline-offset: 3px; }
+.forgot-password-page .recovery-layout .small-note { margin-top: .15rem; font-size: .76rem; }
+.forgot-password-page .recovery-layout .text-button { display: inline-flex; min-height: 44px; align-items: center; justify-self: start; margin-top: .15rem; text-underline-offset: .22em; }
+
+@media (max-width: 760px) {
+  .forgot-password-page .recovery-main { width: min(calc(100% - 2rem), 560px); padding-top: 1.6rem; padding-bottom: 3.5rem; }
+  .forgot-password-page .recovery-layout { gap: 1.35rem; min-height: 0; align-items: start; }
+  .forgot-password-page .recovery-layout .login-copy h1 { max-width: 12ch; margin: .7rem 0; font-size: clamp(2.65rem, 11vw, 4rem); }
+  .forgot-password-page .recovery-layout .login-copy > p:not(.eyebrow) { font-size: .88rem; line-height: 1.75; }
+  .forgot-password-page .recovery-layout .lane-rule { height: 20px; margin: 1.25rem 0 .75rem; }
+  .forgot-password-page .recovery-layout .login-form { gap: .5rem; padding: 1.2rem; border-radius: 20px; }
+  .forgot-password-page .recovery-layout .button-primary { width: 100%; min-height: 56px; }
 }

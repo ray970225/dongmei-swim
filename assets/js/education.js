@@ -2,6 +2,9 @@ import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=202609
 
 const $ = selector => document.querySelector(selector);
 let authLinkType = new URLSearchParams(location.hash.slice(1)).get('type') || '';
+const initialQuery = new URLSearchParams(location.search);
+let inviteSetupRequested = initialQuery.get('setup') === 'password';
+const passwordWasUpdated = initialQuery.get('password') === 'updated';
 const configNotice = $('#configNotice');
 const loginPanel = $('#loginPanel');
 const appPanel = $('#educationApp');
@@ -226,7 +229,7 @@ async function loadMemberData() {
 async function activate(session) {
   if (session?.user?.id && session.user.id === activeUserId && !appPanel.hidden) return;
   activeUserId = session?.user?.id || '';
-  if (session && ['invite', 'recovery'].includes(authLinkType)) {
+  if (session && (['invite', 'recovery'].includes(authLinkType) || inviteSetupRequested)) {
     loginPanel.hidden = false; appPanel.hidden = true;
     togglePasswordSetup(true);
     $('#signOutButton').hidden = false;
@@ -288,9 +291,9 @@ if (!isSupabaseConfigured()) {
     button.disabled = false;
     if (error) { loginError.textContent = '密碼設定失敗，請稍後再試。'; return; }
     authLinkType = '';
-    history.replaceState(null, '', location.pathname);
+    inviteSetupRequested = false;
     await supabase.auth.signOut();
-    showLogin('密碼已更新，請使用新密碼登入。');
+    location.replace('education.html?password=updated');
   });
   $('#signOutButton').addEventListener('click', async () => {
     await supabase.auth.signOut();
@@ -306,11 +309,17 @@ if (!isSupabaseConfigured()) {
   const authHash = new URLSearchParams(location.hash.slice(1));
   const authError = authHash.get('error_description') || authHash.get('error');
   if (session) await activate(session);
-  else if (authError) {
+  else if (passwordWasUpdated) {
+    showLogin('密碼已設定，請使用邀請信中的電子郵件和新密碼登入。');
+    history.replaceState(null, '', location.pathname);
+  }
+  else if (inviteSetupRequested) {
+    showLogin('邀請驗證尚未完成或連結已失效。請從邀請信重新點擊連結；若仍無法設定，請聯絡教練團重新寄送邀請。');
+  } else if (authError) {
     showLogin('重設連結無效或已過期，請重新寄送密碼重設郵件。');
   }
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session) setTimeout(() => void activate(session), 0);
-    else showLogin();
+    else showLogin(inviteSetupRequested ? '邀請驗證尚未完成或連結已失效。請從邀請信重新點擊連結；若仍無法設定，請聯絡教練團重新寄送邀請。' : '');
   });
 }
