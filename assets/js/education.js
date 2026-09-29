@@ -88,6 +88,22 @@ function renderArticles() {
     link.type = 'button';
     link.className = 'article-row';
     const left = document.createElement('span'); left.className = 'article-index'; left.textContent = String(index + 1).padStart(2, '0');
+    const cover = document.createElement('span'); cover.className = 'article-cover';
+    if (article.coverUrl) {
+      const image = document.createElement('img');
+      image.src = article.coverUrl;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      image.addEventListener('error', () => { cover.classList.add('is-fallback'); image.remove(); }, { once: true });
+      cover.append(image);
+    } else {
+      cover.classList.add('is-fallback');
+    }
+    const coverLabel = document.createElement('span');
+    coverLabel.className = 'article-cover-label';
+    coverLabel.textContent = '東美會員升學資料庫';
+    cover.append(coverLabel);
     const copy = document.createElement('span'); copy.className = 'article-copy';
     const category = document.createElement('span'); category.className = 'article-category';
     category.textContent = categories.find(item => item.id === article.category_id)?.name || '升學資訊';
@@ -96,8 +112,8 @@ function renderArticles() {
     copy.append(category, title, summary);
     const date = document.createElement('time'); date.className = 'article-date';
     date.textContent = article.published_at ? new Intl.DateTimeFormat('zh-TW', { dateStyle: 'medium' }).format(new Date(article.published_at)) : '';
-    link.setAttribute('aria-label', `閱讀文章：${article.title}`);
-    link.append(left, copy, date);
+    link.setAttribute('aria-label', `閱讀文章：${article.title}，分類：${category.textContent}`);
+    link.append(left, cover, copy, date);
     link.addEventListener('click', () => openArticle(article));
     host.append(link);
   });
@@ -173,6 +189,35 @@ async function loadMemberData() {
   if (error) throw error;
   categories = categoriesData || [];
   allArticles = articlesData || [];
+  if (allArticles.length) {
+    const { data: attachments, error: attachmentError } = await supabase.from('attachments')
+      .select('article_id,object_path,mime_type,sort_order')
+      .in('article_id', allArticles.map(article => article.id))
+      .order('sort_order');
+    if (attachmentError) {
+      console.warn('文章封面附件載入失敗', attachmentError);
+    } else {
+      const coverByArticle = new Map();
+      (attachments || []).forEach(file => {
+        if (file.mime_type?.startsWith('image/') && !coverByArticle.has(file.article_id)) {
+          coverByArticle.set(file.article_id, file.object_path);
+        }
+      });
+      const paths = [...coverByArticle.values()];
+      if (paths.length) {
+        const { data: signedFiles, error: signedError } = await supabase.storage.from('education').createSignedUrls(paths, 900);
+        if (signedError) {
+          console.warn('文章封面簽名網址建立失敗', signedError);
+        } else {
+          const signedByPath = new Map((signedFiles || []).filter(file => file.signedUrl).map(file => [file.path, file.signedUrl]));
+          allArticles.forEach(article => {
+            const path = coverByArticle.get(article.id);
+            if (path) article.coverUrl = signedByPath.get(path) || '';
+          });
+        }
+      }
+    }
+  }
   renderDeadlines(deadlinesData);
   renderCategories();
   renderArticles();
