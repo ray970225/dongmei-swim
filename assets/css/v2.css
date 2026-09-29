@@ -334,7 +334,7 @@ button:disabled { opacity: .55; cursor: wait; }
 .education-main .login-copy .lane-rule, .education-main .login-copy .small-label { display: none; }
 .education-main .login-form { border: 1px solid var(--tmsc-line); border-radius: 1.25rem; background: rgba(11,63,104,.42); }
 .education-main .login-form input { min-height: 46px; padding-inline: 1rem; border-radius: 999px; }
-.education-main .login-form .button-primary { min-height: 48px; border-radius: 999px; }
+.education-main .login-form .button-primary { min-height: 48px; border-radius: 12px; }
 .education-main .education-hero { display: block; min-height: 0; padding: .9rem 0 .35rem; border: 0; }
 .education-main .education-hero h1 { margin: 0; font-size: clamp(2.4rem, 4.5vw, 3.5rem); letter-spacing: -.045em; line-height: 1.12; }
 .education-main .education-hero > div > p:not(.eyebrow) { max-width: 42rem; margin: .35rem 0 0; font-size: .88rem; line-height: 1.6; }
