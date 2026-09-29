@@ -368,6 +368,8 @@ button:disabled { opacity: .55; cursor: wait; }
 .education-page .reader-body h3 { color: var(--tmsc-aqua); }
 .education-page .login-form { background: #fff; }
 .education-page .login-form input, .education-page .search-field input { background: #fff; color: var(--tmsc-white); }
+.education-page .login-form label { color: var(--tmsc-muted); }
+.education-page .button-primary:hover { background: #b8e9f1; color: #102d40; }
 .education-page .search-field input::placeholder { color: #607887; opacity: 1; }
 .education-page .small-note { color: var(--tmsc-muted); }
 .education-page ::selection { background: #b8e9f1; color: #102d40; }
