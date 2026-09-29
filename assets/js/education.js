@@ -26,7 +26,7 @@ function showLogin(message = '') {
   $('#signOutButton').hidden = true;
   $('#adminLink').hidden = true;
   $('#athleteNavLink').hidden = true;
-  $('#memberLabel').textContent = 'MEMBER ACCESS';
+  $('#memberLabel').textContent = '會員登入';
   loginError.textContent = message;
 }
 
@@ -96,8 +96,8 @@ function renderArticles() {
     copy.append(category, title, summary);
     const date = document.createElement('time'); date.className = 'article-date';
     date.textContent = article.published_at ? new Intl.DateTimeFormat('zh-TW', { dateStyle: 'medium' }).format(new Date(article.published_at)) : '';
-    const arrow = document.createElement('span'); arrow.className = 'article-arrow'; arrow.textContent = '↗';
-    link.append(left, copy, date, arrow);
+    link.setAttribute('aria-label', `閱讀文章：${article.title}`);
+    link.append(left, copy, date);
     link.addEventListener('click', () => openArticle(article));
     host.append(link);
   });
@@ -197,7 +197,7 @@ async function activate(session) {
     loginPanel.hidden = true;
     appPanel.hidden = false;
     $('#memberName').textContent = member.display_name ? `· ${member.display_name}` : '';
-    $('#memberLabel').textContent = member.role === 'admin' ? 'ADMIN MODE' : 'MEMBER MODE';
+    $('#memberLabel').textContent = member.role === 'admin' ? '管理員模式' : '會員模式';
     $('#adminLink').hidden = member.role !== 'admin';
     $('#athleteNavLink').hidden = false;
     $('#signOutButton').hidden = false;
@@ -230,7 +230,7 @@ if (!isSupabaseConfigured()) {
       console.error('Member sign-in failed:', error instanceof Error ? error.name : 'UnknownError');
       loginError.textContent = '登入服務暫時無法連線，請稍後重試。';
     } finally {
-      setBusy(button, false, '登入隊內資料庫 ↗');
+      setBusy(button, false, '登入隊內資料庫');
     }
   });
   $('#savePassword').addEventListener('click', async event => {
