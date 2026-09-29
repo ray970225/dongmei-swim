@@ -328,15 +328,21 @@ button:disabled { opacity: .55; cursor: wait; }
 
 /* Education library: bring member tasks into the first viewport. */
 .education-main { width: min(1280px, calc(100% - 3rem)); padding-top: 1.25rem; }
+.member-home-heading { padding: .4rem 0 .85rem; border-bottom: 1px solid var(--tmsc-line); }
+.member-home-heading h1 { margin: .15rem 0; font-size: 1.8rem; letter-spacing: -.03em; }
+.member-home-heading p { color: var(--tmsc-muted); font-size: .82rem; }
 .education-main .login-layout { min-height: 0; align-items: start; padding: clamp(1.5rem, 4vw, 3.25rem) 0; }
 .education-main .login-copy h1 { margin: .25rem 0 .7rem; font-size: clamp(2.8rem, 5vw, 4.3rem); letter-spacing: -.045em; line-height: 1.08; }
 .education-main .login-copy > p:not(.eyebrow) { max-width: 32rem; margin: 0; font-size: .9rem; line-height: 1.75; }
+.education-main .small-note a { color: var(--tmsc-aqua); text-underline-offset: .2em; }
+.education-main .small-note a:hover { color: var(--tmsc-white); }
 .education-main .login-copy .lane-rule, .education-main .login-copy .small-label { display: none; }
 .education-main .login-form { border: 1px solid var(--tmsc-line); border-radius: 1.25rem; background: rgba(11,63,104,.42); }
 .education-main .login-form input { min-height: 46px; padding-inline: 1rem; border-radius: 999px; }
 .education-main .login-form .button-primary { min-height: 48px; border-radius: 12px; }
 .education-main .education-hero { display: block; min-height: 0; padding: .9rem 0 .35rem; border: 0; }
 .education-main .education-hero h1 { margin: 0; font-size: clamp(2.4rem, 4.5vw, 3.5rem); letter-spacing: -.045em; line-height: 1.12; }
+.education-main .education-hero h2 { margin: 0; font-size: 1.45rem; letter-spacing: -.025em; line-height: 1.35; }
 .education-main .education-hero > div > p:not(.eyebrow) { max-width: 42rem; margin: .35rem 0 0; font-size: .88rem; line-height: 1.6; }
 .education-main .library-section { padding-top: .9rem; }
 .education-main .library-heading { align-items: center; gap: 2rem; margin-bottom: .7rem; }
@@ -381,6 +387,10 @@ button:disabled { opacity: .55; cursor: wait; }
   .education-main .login-form .button-primary { width: 100%; }
   .education-main .education-hero { padding: .45rem 0 .2rem; }
   .education-main .education-hero h1 { font-size: clamp(2.1rem, 9vw, 2.65rem); }
+  .member-home-heading { padding: .25rem 0 .6rem; }
+  .member-home-heading h1 { font-size: 1.4rem; }
+  .member-home-heading p { font-size: .76rem; }
+  .education-main .education-hero h2 { font-size: 1.2rem; }
   .education-main .education-hero > div > p:not(.eyebrow) { margin-top: .3rem; font-size: .82rem; }
   .education-main .library-section { padding-top: .75rem; }
   .education-main .library-heading { display: grid; align-items: start; gap: .55rem; margin-bottom: .55rem; }

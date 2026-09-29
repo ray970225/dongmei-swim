@@ -16,6 +16,7 @@ let trendSeriesByKey = new Map();
 let trendResizeTimer = null;
 let activeTrendKey = '';
 let trendListKey = '';
+let syncedResultCount = 0;
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -260,14 +261,6 @@ const render = (query, requestedPage = 1) => {
   const q = query.trim();
   const competition = competitionSelect.value;
   const event = eventSelect.value;
-  if (!q && !competition && !event) {
-    renderInsights([], '');
-    list.innerHTML = '<div class="empty">請輸入選手姓名，或選擇賽事／項目開始查詢。</div>';
-    pagination.innerHTML = '';
-    meta.textContent = `已同步 ${rows.length} 筆成績`;
-    return;
-  }
-
   const matches = rows
     .filter(row => !q || String(row.swimmer || '').includes(q))
     .filter(row => !competition || row.competition === competition)
@@ -325,7 +318,7 @@ const search = (resetPage = true) => {
 button.addEventListener('click', () => search(true));
 input.addEventListener('keydown', event => { if (event.key === 'Enter') search(); });
 competitionSelect.addEventListener('change', () => { syncEventOptions(); search(); });
-eventSelect.addEventListener('change', search);
+eventSelect.addEventListener('change', () => search());
 clearButton.addEventListener('click', () => {
   input.value = '';
   competitionSelect.value = '';
@@ -350,69 +343,31 @@ window.addEventListener('resize', () => {
 });
 
 async function loadResultSource() {
-  const supabaseModule = await import('./supabase-client.js');
-  if (!supabaseModule.isSupabaseConfigured()) {
-    const [data, metadata] = await Promise.all([
-      fetch('data/swim-results.json').then(response => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      }),
-      fetch('data/swim-results-meta.json').then(response => response.ok ? response.json() : null).catch(() => null)
-    ]);
-    return { rows: Array.isArray(data) ? data : [], metadata };
-  }
-
-  const client = await supabaseModule.getSupabase();
-  const pageSize = 1000;
-  const importedRows = [];
-  for (let offset = 0; ; offset += pageSize) {
-    const { data, error } = await client.from('results')
-      .select('id,event_name,competition_date,team_name,rank,time_text,time_milliseconds,pool_type,round_name,age_group,source_name,source_file,athlete:athletes!inner(source_swimmer_id,full_name,english_name,gender,birth_year),meet:meets(name)')
-      .order('competition_date', { ascending: false }).range(offset, offset + pageSize - 1);
-    if (error) throw error;
-    importedRows.push(...(data || []).map(result => ({
-      id: result.id,
-      swimmer_id: result.athlete?.source_swimmer_id || '',
-      swimmer: result.athlete?.full_name || '',
-      swimmer_en: result.athlete?.english_name || '',
-      gender: result.athlete?.gender || '',
-      birth_year: result.athlete?.birth_year ?? null,
-      team: result.team_name || '',
-      event: result.event_name,
-      competition: result.meet?.name || '',
-      competition_date: result.competition_date || '',
-      rank: result.rank,
-      time: result.time_text || '',
-      time_milliseconds: result.time_milliseconds,
-      pool_type: result.pool_type || '',
-      round: result.round_name || '',
-      age_group: result.age_group || '',
-      source: result.source_name || '',
-      source_file: result.source_file || ''
-    })));
-    if (!data || data.length < pageSize) break;
-  }
-  const { data: metadata, error: metadataError } = await client.from('sync_state')
-    .select('last_success_at').eq('singleton', true).maybeSingle();
-  if (metadataError) throw metadataError;
-  return { rows: importedRows, metadata: { synced_at: metadata?.last_success_at } };
+  const [resultRows, metadata] = await Promise.all([
+    fetch('data/swim-results.json', { cache: 'force-cache' }).then(response => {
+      if (!response.ok) throw new Error(`成績資料 HTTP ${response.status}`);
+      return response.json();
+    }),
+    fetch('data/swim-results-meta.json', { cache: 'force-cache' }).then(response => response.ok ? response.json() : null)
+  ]);
+  return { resultRows, metadata };
 }
 
 loadResultSource()
-  .then(({ rows: resultRows, metadata }) => {
-    rows = resultRows;
-    buildPerformanceIndex(rows);
+  .then(({ resultRows, metadata }) => {
     const params = new URLSearchParams(location.search);
     const initialCompetition = params.get('competition') || '';
     const initialEvent = params.get('event') || '';
+    rows = Array.isArray(resultRows) ? resultRows : [];
+    buildPerformanceIndex(rows);
     setOptions(competitionSelect, newestCompetitionsFirst(rows), '全部賽事', initialCompetition);
-    syncEventOptions();
-    eventSelect.value = [...eventSelect.options].some(option => option.value === initialEvent) ? initialEvent : '';
-    const fallbackTimestamp = rows.map(row => row.synced_at).filter(Boolean).sort().at(-1);
-    updatedAt.textContent = formatUpdatedAt(metadata?.synced_at || fallbackTimestamp);
+    setOptions(eventSelect, uniqueSorted(rows.map(row => row.event)), '全部項目', initialEvent);
+    updatedAt.textContent = formatUpdatedAt(metadata?.synced_at);
+    syncedResultCount = rows.length || Number(metadata?.result_count) || 0;
     input.value = params.get('q') || '';
     clearButton.hidden = !input.value && !competitionSelect.value && !eventSelect.value;
-    render(input.value);
+    meta.textContent = `${syncedResultCount.toLocaleString('zh-TW')} 筆成績已載入，可直接查詢或用賽事／項目篩選`;
+    search();
   })
   .catch(error => {
     meta.textContent = '資料載入失敗';

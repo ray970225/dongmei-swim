@@ -5,9 +5,9 @@ const dataDirectory = process.env.TMSC_DATA_DIR || new URL('../data/', import.me
 const readJson = filename => readFile(typeof dataDirectory === 'string'
   ? join(dataDirectory, filename)
   : new URL(`../data/${filename}`, import.meta.url), 'utf8').then(JSON.parse);
-const [results, metadata, honours, syncStatus] = await Promise.all([
+const [results, metadata, honours, syncStatus, facets] = await Promise.all([
   readJson('swim-results.json'), readJson('swim-results-meta.json'),
-  readJson('swim-honours.json'), readJson('swim-sync-status.json')
+  readJson('swim-honours.json'), readJson('swim-sync-status.json'), readJson('swim-search-facets.json')
 ]);
 
 if (!Array.isArray(results) || (results.length === 0 && metadata.visibility_filtered !== true)) {
@@ -24,5 +24,8 @@ if (metadata.automatic_honours_count != null && metadata.automatic_honours_count
 }
 if (syncStatus.status !== 'success' || syncStatus.last_success_at !== metadata.synced_at) {
   throw new Error('同步狀態與成績資料更新時間不一致。');
+}
+if (!Array.isArray(facets.competitions) || !Array.isArray(facets.events) || !facets.generated_at) {
+  throw new Error('搜尋索引資料格式錯誤。');
 }
 console.log(`資料檢查通過：${results.length} 筆成績、${honours.length} 張前八名榮譽卡，${metadata.synced_at}`);

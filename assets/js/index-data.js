@@ -1,6 +1,15 @@
 import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
 
 let supabasePromise;
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[char]));
+const safeImageUrl = value => {
+  try {
+    const url = new URL(String(value || ''), location.href);
+    return ['https:', 'http:'].includes(url.protocol) ? escapeHtml(url.href) : '';
+  } catch { return ''; }
+};
 
 async function publicSupabase() {
   if (!isSupabaseConfigured()) return null;
@@ -52,17 +61,20 @@ async function loadNews() {
     loadingEl.style.display = 'none';
     const grid = document.getElementById('newsGrid');
     if (!rows.length) { grid.innerHTML = '<p style="color:var(--gray);font-size:.85rem;">目前暫無消息，敬請期待。</p>'; return; }
-    grid.innerHTML = rows.map(r => `
+    grid.innerHTML = rows.map(r => {
+      const imageUrl = safeImageUrl(r.img);
+      return `
       <div class="news-card reveal">
         <div class="news-card-img">
-          ${r.img ? `<img src="${r.img}" alt="${r.title||''}" loading="lazy">` : '🏊‍♂️'}
+          ${imageUrl ? `<img src="${imageUrl}" alt="${escapeHtml(r.title || '')}" loading="lazy">` : '🏊‍♂️'}
         </div>
         <div class="news-card-body">
-          <div class="news-date">${r.date||''}</div>
-          <div class="news-title-text">${r.title||'（無標題）'}</div>
-          <div class="news-desc">${r.desc||''}</div>
+          <div class="news-date">${escapeHtml(r.date || '')}</div>
+          <div class="news-title-text">${escapeHtml(r.title || '（無標題）')}</div>
+          <div class="news-desc">${escapeHtml(r.desc || '')}</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
   } catch(e) {
     loadingEl.style.display = 'none';
@@ -143,8 +155,8 @@ function renderHonours(cat = currentHonoursCat, page = 1) {
     <div class="honour-card reveal">
       <div class="honour-medal ${Number(r.best_rank || rankFromAward(r.award)) > 3 ? 'honour-rank' : ''}">${medalOrRank(r.best_rank, r.award)}</div>
       <div class="honour-info">
-        <div class="honour-event">${r.event||''} · ${r.year||''}</div>
-        <div class="honour-name">${r.name||''}</div>
+        <div class="honour-event">${escapeHtml(r.event || '')} · ${escapeHtml(r.year || '')}</div>
+        <div class="honour-name">${escapeHtml(r.name || '')}</div>
         <div class="honour-items">${
           (r.item_details || (r.items||[]).map(line => {
             const parts = line.trim().split(/\s+/);
@@ -155,9 +167,9 @@ function renderHonours(cat = currentHonoursCat, page = 1) {
             const award = item.award || (item.rank ? `第 ${item.rank} 名` : '');
             const medal = medalForRank(item.rank, award);
             return `<div class="honour-item">
-              <span class="hi-event">${event}</span>
-              ${time ? `<span class="hi-time">${time}</span>` : ''}
-              ${award ? `<span class="hi-award">${medal ? `${medal} ` : ''}${award}</span>` : ''}
+              <span class="hi-event">${escapeHtml(event)}</span>
+              ${time ? `<span class="hi-time">${escapeHtml(time)}</span>` : ''}
+              ${award ? `<span class="hi-award">${medal ? `${medal} ` : ''}${escapeHtml(award)}</span>` : ''}
             </div>`;
           }).join('')
         }</div>

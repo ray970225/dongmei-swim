@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createAutomaticHonours } from './honours.mjs';
+import { createSearchFacets } from './search-facets.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const STATE_FILE = new URL('./.auth/swim-state.json', import.meta.url);
@@ -10,6 +11,7 @@ const DATA_FILE = new URL('./data/swim-results.json', ROOT);
 const META_FILE = new URL('./data/swim-results-meta.json', ROOT);
 const HONOURS_FILE = new URL('./data/swim-honours.json', ROOT);
 const SYNC_STATUS_FILE = new URL('./data/swim-sync-status.json', ROOT);
+const FACETS_FILE = new URL('./data/swim-search-facets.json', ROOT);
 const statePath = fileURLToPath(STATE_FILE);
 const syncStartedAt = new Date();
 
@@ -180,6 +182,7 @@ try {
   await writeJsonAtomically(HONOURS_FILE, automaticHonours);
   await writeJsonAtomically(META_FILE, metadata);
   await writeJsonAtomically(SYNC_STATUS_FILE, syncStatus);
+  await writeJsonAtomically(FACETS_FILE, createSearchFacets(results, syncedAt));
   console.log(`完成：${swimmers.length} 位選手，${results.length} 筆成績，${automaticHonours.length} 張榮譽卡；更新時間 ${syncedAt}`);
 } finally {
   await browser.close();

@@ -1,6 +1,6 @@
 # 東美游泳隊網站 V2：現況、原則與遷移計畫
 
-更新日期：2026-09-25
+更新日期：2026-09-29
 網站程式目錄：`/Users/ray/Documents/GitHub/dongmei-swim`
 
 ## 先確定要解決什麼
@@ -53,6 +53,12 @@ GitHub Pages 保留靜態網站；資料與會員認證由 Supabase 免費方案
 公開 repository 不保存實際部署設定或私密憑證；`.env`、Supabase 本機設定及 `assets/js/runtime-config.js` 已加入忽略清單。靜態頁面載入這個設定檔後，瀏覽器仍看得到其中的 client key；如果要求 client key 也不能對瀏覽器公開，就必須先將資料查詢與登入改由伺服器 API 代理。
 
 ## 分階段遷移與目前狀態
+
+### 最近進度（2026-09-29）
+
+- 依會員登入頁的既有設計調整主按鈕：由膠囊形改為 12px 圓角，保留海軍藍、水藍與原版面；登入與首次設定密碼共用此按鈕樣式。
+- 已更新升學頁 CSS 版本參數，避免瀏覽器快取舊樣式；透過 GitHub Desktop 推送，GitHub Pages 部署成功，並在正式網站確認登入頁與按鈕樣式正常。
+- 此次是介面精修，不代表會員登入、管理台與資料遷移端對端驗收已完成。下方列出的會員登入、管理功能、同步授權與 Firebase 退役條件仍有效。
 
 1. **已完成：**盤點 repository、工作流程和資料；建立資料表、RLS、私有 Storage 規則與可重複執行的快照匯入。
 2. **已完成 Supabase 基礎建置：**免費專案位於首爾；已關閉公開註冊、套用基礎 migration 與 service-role 權限 migration；15 張資料表皆有 RLS，文章與附件資料沒有匿名 SELECT policy，`education` bucket 為 private。

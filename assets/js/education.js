@@ -26,7 +26,7 @@ function showLogin(message = '') {
   $('#signOutButton').hidden = true;
   $('#adminLink').hidden = true;
   $('#athleteNavLink').hidden = true;
-  $('#memberLabel').textContent = '會員登入';
+  $('#memberLabel').textContent = '會員專區登入';
   loginError.textContent = message;
 }
 
@@ -230,7 +230,7 @@ if (!isSupabaseConfigured()) {
       console.error('Member sign-in failed:', error instanceof Error ? error.name : 'UnknownError');
       loginError.textContent = '登入服務暫時無法連線，請稍後重試。';
     } finally {
-      setBusy(button, false, '登入隊內資料庫');
+      setBusy(button, false, '登入會員專區');
     }
   });
   $('#savePassword').addEventListener('click', async event => {

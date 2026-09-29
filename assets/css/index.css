@@ -607,6 +607,26 @@
     line-height: 1.75;
   }
 
+  .member-access {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2.5rem;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 6vw, 5rem);
+    background: linear-gradient(115deg, #0b3f68, #071d33 72%);
+    color: var(--white);
+  }
+  .member-access-copy { max-width: 48rem; }
+  .member-access .section-title { margin: .65rem 0 .8rem; color: var(--white); font-size: clamp(1.8rem, 3.5vw, 3rem); }
+  .member-access-copy > p:last-child { max-width: 46rem; color: rgba(255,255,255,.78); font-size: .92rem; line-height: 1.8; }
+  .member-access-actions { display: grid; justify-items: stretch; gap: .65rem; min-width: 13rem; }
+  .member-join-link, .member-login-link { display: flex; align-items: center; justify-content: center; min-height: 2.9rem; padding: .75rem 1rem; text-align: center; font-size: .82rem; font-weight: 700; }
+  .member-join-link { border-radius: 8px; background: var(--aqua); color: var(--navy); }
+  .member-join-link:hover { background: var(--gold); }
+  .member-login-link { color: var(--foam); text-decoration: underline; text-underline-offset: .25em; }
+  .member-login-link:hover { color: var(--white); }
+  .member-join-link:focus-visible, .member-login-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
   /* ───────────────────────────────────────────
      NEWS — dynamic from Google Sheets
   ─────────────────────────────────────────── */
@@ -821,6 +841,9 @@
     letter-spacing: .08em;
     cursor: pointer;
     transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  @media (pointer: coarse) {
+    .coach-card-action { min-height: 2.75rem; }
   }
   .coach-card-action::after { content: '→'; font-size: .9rem; }
   .coach-card:hover .coach-card-action,
@@ -1332,6 +1355,9 @@
     }
   }
   @media (max-width: 640px) {
+    .member-access { grid-template-columns: 1fr; gap: 1.3rem; padding: 2.25rem 5%; }
+    .member-access .section-title { font-size: clamp(1.7rem, 7vw, 2.2rem); }
+    .member-access-actions { min-width: 0; }
     .nav-links { display: none; }
     .hamburger { display: flex; }
     .nav-links.open {
@@ -1383,7 +1409,7 @@
       letter-spacing: .08em;
       line-height: 1.55;
     }
-    .coach-card-action { grid-area: action; justify-self: start; margin-top: 0; padding: .45rem .8rem; }
+    .coach-card-action { grid-area: action; justify-self: start; min-height: 2.75rem; margin-top: 0; padding: .45rem .8rem; }
     .coach-drawer { width: 100%; }
     .coach-drawer-header { grid-template-columns: 84px minmax(0, 1fr); gap: 1rem; padding: 4.5rem 1.25rem 1.4rem; }
     .coach-drawer-avatar { width: 84px; height: 84px; }
