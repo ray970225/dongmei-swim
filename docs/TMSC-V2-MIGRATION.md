@@ -58,7 +58,8 @@ GitHub Pages 保留靜態網站；資料與會員認證由 Supabase 免費方案
 
 - 會員登入主按鈕已由膠囊形改為 12px 圓角，保留原有配色；先前已透過 GitHub Desktop 推送，GitHub Pages 部署成功。
 - 本次重新設計教練管理台首頁，將六個大型圖卡改成「隊內管理」及「公開官網」兩組簡潔清單；每項保留功能說明、公開範圍與清楚操作入口。桌機並列顯示、窄螢幕及手機直向排列，未改動登入權限及資料 CRUD 行為。
-- 已在桌機與手機預覽版面；此為本機 UI 變更，尚未推送。會員／管理功能端對端驗收、來源授權與 Firebase 退役條件仍未完成。
+- 桌機與手機預覽均已檢查；提交 `5c3ab50` 並由 GitHub Desktop 推送。正式 GitHub Pages 已確認提供新版清單 HTML 與 `tmsc-admin-6` 樣式。
+- 正式管理頁重新載入後顯示登入畫面，因此本次只確認公開頁面資產已部署，沒有重做登入後操作驗收。會員／管理功能端對端驗收、來源授權與 Firebase 退役條件仍未完成。
 
 1. **已完成：**盤點 repository、工作流程和資料；建立資料表、RLS、私有 Storage 規則與可重複執行的快照匯入。
 2. **已完成 Supabase 基礎建置：**免費專案位於首爾；已關閉公開註冊、套用基礎 migration 與 service-role 權限 migration；15 張資料表皆有 RLS，文章與附件資料沒有匿名 SELECT policy，`education` bucket 為 private。
