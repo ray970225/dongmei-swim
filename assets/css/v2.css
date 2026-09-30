@@ -346,6 +346,7 @@ button:disabled { opacity: .55; cursor: wait; }
 .member-home-heading { padding: .4rem 0 .85rem; border-bottom: 1px solid var(--tmsc-line); }
 .member-home-heading h1 { margin: .15rem 0; font-size: 1.8rem; letter-spacing: -.03em; }
 .member-home-heading p { color: var(--tmsc-muted); font-size: .82rem; }
+.member-home-heading #memberName { color: var(--tmsc-aqua); font-weight: 700; }
 .education-main .login-layout { min-height: 0; align-items: start; padding: clamp(1.5rem, 4vw, 3.25rem) 0; }
 .education-main .login-copy h1 { margin: .25rem 0 .7rem; font-size: clamp(2.8rem, 5vw, 4.3rem); letter-spacing: -.045em; line-height: 1.08; }
 .education-main .login-copy > p:not(.eyebrow) { max-width: 32rem; margin: 0; font-size: .9rem; line-height: 1.75; }
