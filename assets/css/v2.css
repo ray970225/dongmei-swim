@@ -127,27 +127,31 @@ button:disabled { opacity: .55; cursor: wait; }
 .admin-main { width: min(1180px, calc(100% - 2.5rem)); margin: auto; padding: 3.5rem 0 7rem; }
 .admin-heading { display: flex; justify-content: space-between; align-items: end; }
 .admin-heading h1 { margin-bottom: 2rem; font-size: clamp(2.7rem, 5vw, 4.5rem); }
-.admin-v2 .admin-main { width: min(1280px, calc(100% - 3rem)); padding: 1.5rem 0 4rem; }
-.admin-v2 .member-kicker { margin-bottom: 1rem; }
-.admin-v2 .admin-heading { margin-bottom: 1.5rem; }
-.admin-v2 .admin-heading h1 { margin: .35rem 0; font-size: clamp(2.3rem, 4vw, 3.4rem); }
-.admin-v2 .admin-heading p:not(.eyebrow) { margin: .5rem 0 0; color: var(--tmsc-muted); font-size: .9rem; }
-.admin-home { display: grid; gap: 2.25rem; }
-.admin-home-group { display: grid; grid-template-columns: 12rem minmax(0,1fr); gap: 1.2rem; align-items: start; }
-.admin-group-heading { padding-top: .6rem; }
-.admin-group-heading h2 { margin: .4rem 0; font-size: 1.5rem; letter-spacing: -.035em; }
-.admin-group-heading > p:last-child { margin: .4rem 0; color: var(--tmsc-muted); font-size: .75rem; line-height: 1.6; }
-.admin-action-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: .8rem; }
-.admin-action-card { min-width: 0; min-height: 205px; display: flex; flex-direction: column; align-items: flex-start; padding: 1.1rem 1.15rem 1rem; border: 1px solid var(--tmsc-line); border-top: 2px solid var(--tmsc-aqua); background: linear-gradient(145deg, rgba(11,63,104,.72), rgba(7,29,51,.86) 70%); }
-.admin-action-card.is-paused { border-top-color: rgba(242,200,75,.8); }
-.admin-action-top { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
-.admin-scope, .admin-status { color: var(--tmsc-muted); font-size: .66rem; }
-.admin-status { padding: .25rem .45rem; border: 1px solid rgba(242,200,75,.45); color: #f2d982; white-space: nowrap; }
-.admin-status.is-ready { border-color: rgba(36,195,223,.3); color: var(--tmsc-aqua); }
-.admin-action-card h3 { margin: .85rem 0 .4rem; font-size: 1.12rem; }
-.admin-action-card > p { flex: 1; margin: 0 0 .9rem; color: #c2dce3; font-size: .76rem; line-height: 1.65; }
-.admin-action-link { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 42px; margin-top: .45rem; padding: .5rem .65rem; border: 1px solid rgba(36,195,223,.32); border-radius: 8px; background: rgba(36,195,223,.045); color: var(--tmsc-aqua); font-size: .77rem; font-weight: 700; text-align: left; cursor: pointer; transition: border-color .18s ease, background-color .18s ease, color .18s ease; }
-.admin-action-link:hover { border-color: var(--tmsc-aqua); background: rgba(36,195,223,.12); color: var(--tmsc-white); }
+.admin-v2 .admin-main { width: min(1360px, calc(100% - 4rem)); padding: 2rem 0 4rem; }
+.admin-v2 .admin-heading { margin-bottom: 1.8rem; }
+.admin-v2 .admin-heading h1 { margin: 0; font-size: 2.4rem; letter-spacing: -.035em; }
+.admin-v2 .admin-heading p:not(.admin-eyebrow) { margin: .45rem 0 0; color: var(--tmsc-muted); font-size: .88rem; }
+.admin-v2 .admin-eyebrow { margin: 0 0 .45rem; color: var(--tmsc-aqua); font-size: .7rem; font-weight: 700; letter-spacing: .1em; }
+.admin-v2 #adminName { margin-left: .5rem; color: var(--tmsc-muted); font-weight: 400; letter-spacing: 0; }
+.admin-home { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 3vw, 3rem); }
+.admin-home-group { min-width: 0; }
+.admin-group-heading { min-height: 88px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: .25rem; border-top: 1px solid var(--tmsc-aqua); }
+.admin-home-group.is-public .admin-group-heading { border-color: var(--tmsc-line); }
+.admin-group-heading h2 { margin: 0; font-size: 1.28rem; letter-spacing: -.025em; }
+.admin-group-scope { color: var(--tmsc-aqua); font-size: .7rem; }
+.admin-home-group.is-public .admin-group-scope { color: var(--tmsc-muted); }
+.admin-group-heading > p { margin: .15rem 0 0; color: var(--tmsc-muted); font-size: .76rem; line-height: 1.5; }
+.admin-action-list { border-top: 1px solid var(--tmsc-line); }
+.admin-action-row { min-height: 102px; display: grid; grid-template-columns: minmax(8.5rem, .82fr) minmax(0, 1.25fr) auto; align-items: center; gap: .85rem; padding: .8rem 0; border-bottom: 1px solid var(--tmsc-line); }
+.admin-action-title { min-width: 0; display: grid; grid-template-columns: max-content max-content; justify-content: start; align-items: center; gap: .25rem .45rem; }
+.admin-scope { grid-column: 1 / -1; color: var(--tmsc-muted); font-size: .66rem; }
+.admin-action-title h3 { grid-column: 1 / -1; margin: 0; font-size: .93rem; line-height: 1.4; }
+.admin-status { color: #f2d982; font-size: .63rem; white-space: nowrap; }
+.admin-action-row > p { margin: 0; color: #c2dce3; font-size: .72rem; line-height: 1.6; }
+.admin-action-link { min-width: 128px; display: inline-flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 40px; padding: .45rem .6rem; border: 1px solid var(--tmsc-line); border-radius: 8px; background: transparent; color: var(--tmsc-aqua); font-size: .7rem; font-weight: 700; text-align: left; white-space: nowrap; cursor: pointer; transition: border-color .18s ease, background-color .18s ease, color .18s ease; }
+.admin-action-link svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.admin-action-link:hover { border-color: var(--tmsc-aqua); background: rgba(36,195,223,.08); color: var(--tmsc-white); }
+.admin-action-link:disabled { border-color: var(--tmsc-line); color: #9bb5bd; cursor: not-allowed; }
 .admin-action-link:focus-visible, .admin-back-button:focus-visible, .admin-top-nav a:focus-visible, .admin-v2 .account-nav .text-button:focus-visible { outline: 2px solid var(--tmsc-gold); outline-offset: 3px; }
 .admin-task-header { padding: .25rem 0 1.3rem; margin-bottom: 1.3rem; border-bottom: 1px solid var(--tmsc-line); }
 .admin-back-button { padding: .45rem 0; border: 0; background: transparent; color: var(--tmsc-aqua); font: inherit; font-size: .76rem; cursor: pointer; }
@@ -256,6 +260,12 @@ button:disabled { opacity: .55; cursor: wait; }
 .athlete-directory-row:hover .directory-name, .athlete-directory-row:hover .article-arrow { color: var(--tmsc-aqua); }
 .directory-name { font-size: 1rem; font-weight: 600; }
 
+@media (max-width: 1050px) {
+  .admin-v2 .admin-main { width: min(900px, calc(100% - 3rem)); }
+  .admin-home { grid-template-columns: 1fr; gap: 1.2rem; }
+  .admin-group-heading { min-height: 76px; }
+}
+
 @media (max-width: 760px) {
   .v2-header { min-height: auto; display: grid; grid-template-columns: 1fr auto; gap: 0; padding: .9rem 1rem 0; }
   .v2-wordmark { padding-bottom: .75rem; }
@@ -270,15 +280,17 @@ button:disabled { opacity: .55; cursor: wait; }
   .admin-v2 .admin-top-nav a:hover { background: transparent; }
   .admin-v2 .account-nav { gap: .5rem; font-size: .69rem; }
   .admin-v2 .account-nav .text-button { min-height: 38px; padding: .4rem .65rem; font-size: .75rem; }
-  .admin-v2 .admin-heading { margin-bottom: 1.1rem; }
-  .admin-v2 .member-kicker { margin-bottom: .7rem; }
-  .admin-home { gap: 1.5rem; }
-  .admin-home-group { grid-template-columns: 1fr; gap: .5rem; }
-  .admin-group-heading { padding-top: 0; }
-  .admin-action-grid { grid-template-columns: 1fr; gap: .6rem; }
-  .admin-action-card { min-height: 0; padding: .95rem; }
-  .admin-action-card h3 { margin: .65rem 0 .3rem; }
-  .admin-action-card > p { margin-bottom: .45rem; }
+  .admin-v2 .admin-heading { margin-bottom: 1rem; }
+  .admin-v2 .admin-heading h1 { font-size: 2rem; }
+  .admin-v2 .admin-heading p:not(.admin-eyebrow) { max-width: 34ch; font-size: .8rem; }
+  .admin-home { gap: 1.15rem; }
+  .admin-group-heading { min-height: 68px; }
+  .admin-group-heading > p { font-size: .72rem; }
+  .admin-action-row { min-height: 0; grid-template-columns: 1fr; gap: .35rem; padding: .8rem 0; }
+  .admin-action-title { grid-template-columns: max-content max-content; }
+  .admin-action-title h3 { font-size: .9rem; }
+  .admin-action-row > p { font-size: .74rem; }
+  .admin-action-link { width: max-content; min-width: 150px; min-height: 42px; margin-top: .2rem; }
   .admin-v2 .admin-task-header { padding-bottom: .7rem; margin-bottom: .65rem; }
   .admin-v2 .admin-task-header h1 { font-size: 1.8rem; }
   .admin-v2 .admin-list-head { align-items: start; gap: .75rem; }
