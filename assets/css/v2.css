@@ -214,6 +214,14 @@ button:disabled { opacity: .55; cursor: wait; }
 .button-danger:hover { border-color: #ffaaa1; background: rgba(255,141,132,.1); color: #ffe0dc; }
 .button-danger:disabled { opacity: .55; cursor: wait; }
 .member-row-actions :focus-visible { outline: 2px solid var(--tmsc-gold); outline-offset: 3px; }
+.admin-v2 #pane-members .invite-form input { border-radius: 12px; }
+.admin-v2 #pane-members .invite-form .button-primary { border-radius: 12px; }
+.admin-v2 #pane-members .compact-list { display: grid; gap: .65rem; border: 0; }
+.admin-v2 #pane-members .member-row { padding: .9rem 1rem; border: 1px solid var(--tmsc-line); border-radius: 14px; background: rgba(255,255,255,.025); }
+.admin-v2 #pane-members .member-row-actions .button-secondary,
+.admin-v2 #pane-members .member-row-actions .button-danger { border-radius: 10px; }
+.admin-v2 #pane-members .invite-form input:focus-visible,
+.admin-v2 #pane-members .invite-form button:focus-visible { outline: 2px solid var(--tmsc-aqua); outline-offset: 3px; }
 .athlete-main { width: min(1160px, calc(100% - 2.5rem)); margin: 0 auto; padding: clamp(2.4rem, 6vw, 5rem) 0 7rem; }
 .athlete-main .notice { margin: 12vh auto; }
 .athlete-hero { display: grid; grid-template-columns: 1.1fr .9fr; align-items: end; gap: 2rem; padding: 1rem 0 clamp(3rem, 7vw, 6rem); border-bottom: 1px solid var(--tmsc-line); }
