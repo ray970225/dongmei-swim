@@ -92,3 +92,16 @@ GitHub Pages 保留靜態網站；資料與會員認證由 Supabase 免費方案
 本機程式不能替使用者建立 Supabase 帳號、核准第三方資料使用或寫入 GitHub／Supabase 密鑰。部署設定不得提交到公開 Git；service-role、GitHub 和資料來源憑證必須在各自的密鑰管理器設定，不能放進程式碼或對話。瀏覽器直接連 Supabase 時，publishable key 本來就不是密碼，但仍會被瀏覽器看到；如需連它也不公開，必須改採伺服器 API 代理後再接線。
 
 Supabase 專案已建立於 `xsmbubwgtkbtsyiskivf`（首爾、Free），專案網址為 `https://xsmbubwgtkbtsyiskivf.supabase.co`。這些識別資訊不含任何 key。首位管理員已完成邀請確認，`tmsc-api` 已部署並通過匿名及拒絕規則檢查；管理函式、有效會員登入和私有附件仍待端對端驗證。
+
+## 前端框架的本機使用方式
+
+先在網站資料夾安裝鎖定版本的相依套件，再開發伺服器會提供多頁網站預覽：
+
+```sh
+npm ci
+npm run dev
+```
+
+完成修改後，可執行 `npm test` 檢查現有資料與代理流程，再用 `npm run build` 產生正式網站；`npm run preview` 可預覽正式建置結果。GitHub Pages 會自動執行測試、建置與部署，不需要教練手動處理。
+
+目前 React 只管理登入後的會員工作區畫面，其他頁面仍沿用原有 HTML、CSS 和 JavaScript。登入身份及文章、附件存取仍由既有 Supabase 流程與資料庫 RLS 判定；前端框架只負責呈現，不是安全邊界。瀏覽器會下載網站程式，所以不可把 service-role、secret key 或其他伺服器密鑰放入前端環境變數或建置設定。
