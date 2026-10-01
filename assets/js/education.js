@@ -1,4 +1,4 @@
-import { renderMemberHome } from '../../src/education-app.jsx';
+import { mountEducationApp, unmountEducationApp, updateEducationApp } from '../../src/education-app.jsx';
 import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-4';
 
 const $ = selector => document.querySelector(selector);
@@ -13,12 +13,12 @@ const loginError = $('#loginError');
 let supabase;
 let allArticles = [];
 let categories = [];
-let activeCategory = '';
+let deadlines = [];
 let activeUserId = '';
+let activeDisplayName = '';
 let libraryLoaded = false;
 let libraryLoading = false;
-const memberHome = $('#memberHome');
-const librarySection = $('#librarySection');
+let libraryError = '';
 const memberViewRequested = new URLSearchParams(location.search).get('view') === 'member';
 
 function setBusy(button, busy, label) {
@@ -28,21 +28,15 @@ function setBusy(button, busy, label) {
 
 function showLogin(message = '') {
   activeUserId = '';
+  activeDisplayName = '';
   allArticles = [];
   categories = [];
-  activeCategory = '';
+  deadlines = [];
   libraryLoaded = false;
   libraryLoading = false;
+  libraryError = '';
+  unmountEducationApp();
   appPanel.hidden = true;
-  memberHome.hidden = true;
-  librarySection.hidden = true;
-  $('#reader').hidden = true;
-  $('#articleList').replaceChildren();
-  $('#categoryList').replaceChildren();
-  $('#deadlineList').replaceChildren();
-  $('#deadlineStrip').hidden = true;
-  $('#readerBody').replaceChildren();
-  $('#readerAttachments').replaceChildren();
   loginPanel.hidden = false;
   togglePasswordSetup(false);
   $('#signOutButton').hidden = true;
@@ -79,126 +73,26 @@ async function currentMember(session) {
   return data;
 }
 
-function renderCategories() {
-  const host = $('#categoryList');
-  host.replaceChildren();
-  [['', '全部資訊'], ...categories.map(category => [category.id, category.name])].forEach(([id, name]) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `category-chip${activeCategory === id ? ' active' : ''}`;
-    button.textContent = name;
-    button.addEventListener('click', () => { activeCategory = id; renderCategories(); renderArticles(); });
-    host.append(button);
-  });
-}
-
-function renderArticles() {
-  const host = $('#articleList');
-  const query = $('#articleSearch').value.trim().toLocaleLowerCase();
-  const rows = allArticles.filter(article => (!activeCategory || article.category_id === activeCategory) &&
-    (!query || `${article.title} ${article.summary} ${(article.body || []).map?.(block => block.text || '').join(' ') || ''}`.toLocaleLowerCase().includes(query)));
-  host.replaceChildren();
-  if (!rows.length) {
-    const empty = document.createElement('p');
-    empty.className = 'empty-state';
-    empty.textContent = '目前沒有符合的文章。';
-    host.append(empty);
-    return;
-  }
-  rows.forEach((article, index) => {
-    const link = document.createElement('button');
-    link.type = 'button';
-    link.className = 'article-row';
-    const left = document.createElement('span'); left.className = 'article-index'; left.textContent = String(index + 1).padStart(2, '0');
-    const cover = document.createElement('span'); cover.className = 'article-cover';
-    if (article.coverUrl) {
-      const image = document.createElement('img');
-      image.src = article.coverUrl;
-      image.alt = '';
-      image.loading = 'lazy';
-      image.decoding = 'async';
-      image.addEventListener('error', () => { cover.classList.add('is-fallback'); image.remove(); }, { once: true });
-      cover.append(image);
-    } else {
-      cover.classList.add('is-fallback');
+function educationActions() {
+  return {
+    onOpenLibrary: () => void enterLibrary(),
+    onRetry: () => { libraryLoaded = false; void enterLibrary(); },
+    onLoadAttachments: async articleId => {
+      const { data, error } = await supabase.from('attachments')
+        .select('id,object_path,file_name,mime_type').eq('article_id', articleId).order('sort_order');
+      if (error) throw error;
+      return data || [];
+    },
+    onSignAttachment: async file => {
+      const { data, error } = await supabase.storage.from('education').createSignedUrl(file.object_path, 300);
+      if (error) throw error;
+      return data.signedUrl;
     }
-    const coverLabel = document.createElement('span');
-    coverLabel.className = 'article-cover-label';
-    coverLabel.textContent = '東美會員升學資料庫';
-    cover.append(coverLabel);
-    const copy = document.createElement('span'); copy.className = 'article-copy';
-    const category = document.createElement('span'); category.className = 'article-category';
-    category.textContent = categories.find(item => item.id === article.category_id)?.name || '升學資訊';
-    const title = document.createElement('strong'); title.textContent = article.title;
-    const summary = document.createElement('span'); summary.className = 'article-summary'; summary.textContent = article.summary;
-    copy.append(category, title, summary);
-    const date = document.createElement('time'); date.className = 'article-date';
-    date.textContent = article.published_at ? new Intl.DateTimeFormat('zh-TW', { dateStyle: 'medium' }).format(new Date(article.published_at)) : '';
-    link.setAttribute('aria-label', `閱讀文章：${article.title}，分類：${category.textContent}`);
-    link.append(left, cover, copy, date);
-    link.addEventListener('click', () => openArticle(article));
-    host.append(link);
-  });
+  };
 }
 
-function renderDeadlines(rows) {
-  const strip = $('#deadlineStrip');
-  const host = $('#deadlineList');
-  host.replaceChildren();
-  strip.hidden = !rows?.length;
-  (rows || []).slice(0, 4).forEach(deadline => {
-    const item = document.createElement('div'); item.className = 'deadline-item';
-    const date = new Date(deadline.due_at);
-    const day = document.createElement('strong'); day.textContent = new Intl.DateTimeFormat('zh-TW', { month: '2-digit', day: '2-digit' }).format(date);
-    const title = document.createElement('span'); title.textContent = deadline.title;
-    item.append(day, title); host.append(item);
-  });
-}
-
-function renderArticleBody(body) {
-  const host = $('#readerBody'); host.replaceChildren();
-  const blocks = Array.isArray(body) ? body : String(body || '').split(/\n{2,}/).map(text => ({ type: 'paragraph', text }));
-  blocks.forEach(block => {
-    if (!block || typeof block.text !== 'string') return;
-    const element = block.type === 'heading' ? document.createElement('h3') : document.createElement('p');
-    element.textContent = block.text;
-    host.append(element);
-  });
-}
-
-async function openArticle(article) {
-  $('#readerCategory').textContent = categories.find(item => item.id === article.category_id)?.name || '升學資訊';
-  $('#readerTitle').textContent = article.title;
-  $('#readerSummary').textContent = article.summary || '';
-  renderArticleBody(article.body);
-  const host = $('#readerAttachments'); host.replaceChildren();
-  const { data: attachments, error } = await supabase.from('attachments').select('id,object_path,file_name,mime_type')
-    .eq('article_id', article.id).order('sort_order');
-  if (error) { host.textContent = '附件載入失敗，請稍後再試。'; }
-  else for (const file of attachments || []) {
-    const row = document.createElement('section'); row.className = 'attachment-row';
-    const name = document.createElement('strong'); name.textContent = file.file_name;
-    const isPdf = file.mime_type === 'application/pdf';
-    const button = document.createElement('button'); button.type = 'button'; button.className = 'text-button'; button.textContent = isPdf ? '開啟隊內 PDF 閱讀器' : '檢視圖片';
-    button.addEventListener('click', async () => {
-      button.disabled = true;
-      const { data, error: urlError } = await supabase.storage.from('education').createSignedUrl(file.object_path, 300);
-      button.disabled = false;
-      if (urlError) { button.textContent = '無法開啟附件'; return; }
-      if (isPdf) {
-        const frame = document.createElement('iframe'); frame.className = 'pdf-frame'; frame.title = file.file_name; frame.src = data.signedUrl;
-        const prior = row.querySelector('iframe'); prior?.remove(); row.append(frame);
-      } else {
-        const image = document.createElement('img'); image.className = 'article-image'; image.alt = file.file_name; image.src = data.signedUrl;
-        const prior = row.querySelector('img'); prior?.remove(); row.append(image);
-      }
-    });
-    row.append(name, button); host.append(row);
-  }
-  $('#reader').hidden = false;
-  librarySection.hidden = true;
-  $('#deadlineStrip').hidden = true;
-  $('#reader').scrollIntoView({ behavior: 'smooth', block: 'start' });
+function updateWorkspace() {
+  updateEducationApp({ data: { categories, articles: allArticles, deadlines, libraryLoading, libraryError } });
 }
 
 async function loadMemberData() {
@@ -211,26 +105,22 @@ async function loadMemberData() {
   if (error) throw error;
   categories = categoriesData || [];
   allArticles = articlesData || [];
+  deadlines = deadlinesData || [];
   if (allArticles.length) {
     const { data: attachments, error: attachmentError } = await supabase.from('attachments')
       .select('article_id,object_path,mime_type,sort_order')
-      .in('article_id', allArticles.map(article => article.id))
-      .order('sort_order');
-    if (attachmentError) {
-      console.warn('文章封面附件載入失敗', attachmentError);
-    } else {
+      .in('article_id', allArticles.map(article => article.id)).order('sort_order');
+    if (attachmentError) console.warn('文章封面附件載入失敗', attachmentError);
+    else {
       const coverByArticle = new Map();
       (attachments || []).forEach(file => {
-        if (file.mime_type?.startsWith('image/') && !coverByArticle.has(file.article_id)) {
-          coverByArticle.set(file.article_id, file.object_path);
-        }
+        if (file.mime_type?.startsWith('image/') && !coverByArticle.has(file.article_id)) coverByArticle.set(file.article_id, file.object_path);
       });
       const paths = [...coverByArticle.values()];
       if (paths.length) {
         const { data: signedFiles, error: signedError } = await supabase.storage.from('education').createSignedUrls(paths, 900);
-        if (signedError) {
-          console.warn('文章封面簽名網址建立失敗', signedError);
-        } else {
+        if (signedError) console.warn('文章封面簽名網址建立失敗', signedError);
+        else {
           const signedByPath = new Map((signedFiles || []).filter(file => file.signedUrl).map(file => [file.path, file.signedUrl]));
           allArticles.forEach(article => {
             const path = coverByArticle.get(article.id);
@@ -240,40 +130,27 @@ async function loadMemberData() {
       }
     }
   }
-  renderDeadlines(deadlinesData);
-  renderCategories();
-  renderArticles();
 }
 
 async function enterLibrary() {
-  if (libraryLoading) return;
-  memberHome.hidden = true;
-  $('#reader').hidden = true;
-  librarySection.hidden = false;
-  librarySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (libraryLoaded) return;
+  if (libraryLoading || !activeUserId) return;
+  if (libraryLoaded) {
+    libraryError = '';
+    updateWorkspace();
+    return;
+  }
   libraryLoading = true;
-  const host = $('#articleList');
-  host.replaceChildren();
-  const loading = document.createElement('p');
-  loading.className = 'empty-state';
-  loading.textContent = '正在載入隊內文章…';
-  host.append(loading);
-  const button = $('#openLibrary');
-  button.disabled = true;
+  libraryError = '';
+  updateWorkspace();
   try {
     await loadMemberData();
     libraryLoaded = true;
   } catch (error) {
     console.error('Education library failed to load:', error);
-    host.replaceChildren();
-    const message = document.createElement('p');
-    message.className = 'empty-state';
-    message.textContent = '升學資料暫時無法載入，請稍後重試。';
-    host.append(message);
+    libraryError = '升學資料暫時無法載入，請稍後重試。';
   } finally {
     libraryLoading = false;
-    button.disabled = false;
+    updateWorkspace();
   }
 }
 
@@ -293,16 +170,18 @@ async function activate(session) {
       location.replace('admin-v2.html');
       return;
     }
+    activeDisplayName = member.display_name || '';
     loginPanel.hidden = true;
     appPanel.hidden = false;
-    renderMemberHome(member.display_name || '');
+    mountEducationApp($('#memberWorkspaceRoot'), {
+      displayName: activeDisplayName,
+      data: { categories, articles: allArticles, deadlines, libraryLoading, libraryError },
+      actions: educationActions()
+    });
     $('#memberLabel').textContent = member.role === 'admin' ? '管理員模式' : '會員模式';
     $('#adminLink').hidden = member.role !== 'admin';
     $('#athleteNavLink').hidden = false;
     $('#signOutButton').hidden = false;
-    memberHome.hidden = false;
-    librarySection.hidden = true;
-    $('#reader').hidden = true;
   } catch (error) {
     console.error(error);
     showLogin('無法載入隊內資料，請確認登入狀態後再試。');
@@ -349,18 +228,6 @@ if (!isSupabaseConfigured()) {
   $('#signOutButton').addEventListener('click', async () => {
     await supabase.auth.signOut();
     showLogin();
-  });
-  document.addEventListener('tmsc:open-library', () => void enterLibrary());
-  $('#backToMemberHome').addEventListener('click', () => {
-    librarySection.hidden = true;
-    $('#reader').hidden = true;
-    memberHome.hidden = false;
-    memberHome.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  $('#articleSearch').addEventListener('input', renderArticles);
-  $('#backToLibrary').addEventListener('click', () => {
-    $('#reader').hidden = true; librarySection.hidden = false;
-    $('#deadlineStrip').hidden = !$('#deadlineList').children.length;
   });
   const { data: { session } } = await supabase.auth.getSession();
   const authHash = new URLSearchParams(location.hash.slice(1));
