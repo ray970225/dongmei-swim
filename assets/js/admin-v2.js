@@ -495,11 +495,21 @@ else {
   $('#siteHonourForm').addEventListener('submit', event => void savePublicContent(event, 'honours'));
   $('#recruitmentForm').addEventListener('submit', event => void savePublicContent(event, 'recruit'));
   $('#inviteForm').addEventListener('submit', async event => {
-    event.preventDefault(); const form = event.currentTarget; const button = form.querySelector('button'); button.disabled = true;
-    const { data, error } = await supabase.functions.invoke('manage-member', { body: { action: 'invite', email: $('#inviteEmail').value, displayName: $('#inviteName').value } });
-    button.disabled = false;
-    if (error || data?.error) message($('#memberMessage'), data?.error || '邀請失敗，請確認邀請服務設定。', true);
-    else { form.reset(); message($('#memberMessage'), '會員邀請已寄出。'); await loadMembers(); }
+    event.preventDefault(); const form = event.currentTarget; const button = form.querySelector('button'); button.disabled = true; button.textContent = '建立中…';
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-member', { body: { action: 'create_member', email: $('#inviteEmail').value, displayName: $('#inviteName').value } });
+      if (error || data?.error) message($('#memberMessage'), data?.error || '會員帳號建立失敗，請稍後重試。', true);
+      else {
+        form.reset();
+        message($('#memberMessage'), `帳號已建立。初始密碼：${data.initialPassword}。請私下提供給選手，首次登入後必須更改。`);
+        await loadMembers();
+      }
+    } catch (error) {
+      console.error('Member account creation failed:', error instanceof Error ? error.name : 'UnknownError');
+      message($('#memberMessage'), '會員帳號建立失敗，請檢查網路後重試。', true);
+    } finally {
+      button.disabled = false; button.textContent = '建立會員帳號';
+    }
   });
   const { data: { session } } = await supabase.auth.getSession(); if (session) await activate(session);
   supabase.auth.onAuthStateChange((_event, session) => { if (session) setTimeout(() => void activate(session), 0); else showLogin(); });

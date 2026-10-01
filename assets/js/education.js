@@ -16,6 +16,7 @@ let categories = [];
 let deadlines = [];
 let activeUserId = '';
 let activeDisplayName = '';
+let mustChangeInitialPassword = false;
 let libraryLoaded = false;
 let libraryLoading = false;
 let libraryError = '';
@@ -29,6 +30,7 @@ function setBusy(button, busy, label) {
 function showLogin(message = '') {
   activeUserId = '';
   activeDisplayName = '';
+  mustChangeInitialPassword = false;
   allArticles = [];
   categories = [];
   deadlines = [];
@@ -68,7 +70,7 @@ function signInErrorMessage(error) {
 async function currentMember(session) {
   if (!session?.user) return null;
   const { data, error } = await supabase.from('profiles')
-    .select('display_name,role,active').eq('id', session.user.id).maybeSingle();
+    .select('display_name,role,active,must_change_password').eq('id', session.user.id).maybeSingle();
   if (error) throw error;
   if (!data?.active || !['member', 'admin'].includes(data.role)) return null;
   return data;
@@ -167,6 +169,18 @@ async function activate(session) {
   try {
     const member = await currentMember(session);
     if (!member) { showLogin('此帳號尚未啟用為東美會員，請聯絡教練團。'); return; }
+    if (member.role === 'member' && member.must_change_password) {
+      mustChangeInitialPassword = true;
+      loginPanel.hidden = false;
+      appPanel.hidden = true;
+      togglePasswordSetup(true);
+      $('#passwordSetupTitle').textContent = '先更改初始密碼';
+      $('#passwordSetupDescription').textContent = '為保護你的帳號，第一次登入必須先設定至少 10 個字元的個人密碼。在完成前無法查看會員內容。';
+      $('#savePassword').textContent = '儲存新密碼並完成登入';
+      $('#signOutButton').hidden = false;
+      $('#loginError').textContent = '';
+      return;
+    }
     if (member.role === 'admin' && !memberViewRequested) {
       location.replace('admin-v2.html');
       return;
@@ -228,9 +242,24 @@ if (!isSupabaseConfigured()) {
     if (password !== $('#confirmPassword').value) { loginError.textContent = '兩次輸入的密碼不一致。'; return; }
     if (password.length < 10) { loginError.textContent = '請設定至少 10 個字元的密碼。'; return; }
     button.disabled = true; loginError.textContent = '';
-    const { error } = await supabase.auth.updateUser({ password });
-    button.disabled = false;
-    if (error) { loginError.textContent = '密碼設定失敗，請稍後再試。'; return; }
+    let error = null;
+    try {
+      if (mustChangeInitialPassword) {
+        const { data, error: functionError } = await supabase.functions.invoke('manage-member', {
+          body: { action: 'complete_password_setup', password }
+        });
+        error = functionError || (data?.error ? new Error(data.error) : null);
+        if (data?.error) loginError.textContent = data.error;
+      } else {
+        ({ error } = await supabase.auth.updateUser({ password }));
+      }
+    } catch (updateError) {
+      console.error('Member password update failed:', updateError instanceof Error ? updateError.name : 'UnknownError');
+      error = updateError;
+    } finally {
+      button.disabled = false;
+    }
+    if (error) { if (!loginError.textContent) loginError.textContent = '密碼設定失敗，請稍後再試。'; return; }
     authLinkType = '';
     inviteSetupRequested = false;
     await supabase.auth.signOut();
@@ -245,7 +274,7 @@ if (!isSupabaseConfigured()) {
     const authError = authHash.get('error_description') || authHash.get('error');
     if (session) await activate(session);
     else if (passwordWasUpdated) {
-    showLogin('密碼已設定，請使用邀請信中的電子郵件和新密碼登入。');
+    showLogin('密碼已更新，請使用電子郵件和新密碼登入。');
     history.replaceState(null, '', location.pathname);
     }
     else if (inviteSetupRequested) {

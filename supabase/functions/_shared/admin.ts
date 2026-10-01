@@ -25,13 +25,18 @@ export function clients(request: Request) {
 }
 
 export async function requireAdmin(request: Request) {
+  const { user, userClient, serviceClient } = await requireAuthenticatedUser(request);
+  const { data: profile, error: profileError } = await serviceClient.from('profiles')
+    .select('role,active').eq('id', user.id).maybeSingle();
+  if (profileError || !profile?.active || profile.role !== 'admin') throw new Error('Administrator access required');
+  return { user, userClient, serviceClient };
+}
+
+export async function requireAuthenticatedUser(request: Request) {
   const { userClient, serviceClient, bearer } = clients(request);
   if (!bearer.startsWith('Bearer ')) throw new Error('Sign in required');
   const accessToken = bearer.slice('Bearer '.length);
   const { data: { user }, error: userError } = await userClient.auth.getUser(accessToken);
   if (userError || !user) throw new Error('Sign in required');
-  const { data: profile, error: profileError } = await serviceClient.from('profiles')
-    .select('role,active').eq('id', user.id).maybeSingle();
-  if (profileError || !profile?.active || profile.role !== 'admin') throw new Error('Administrator access required');
   return { user, userClient, serviceClient };
 }

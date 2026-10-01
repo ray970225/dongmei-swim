@@ -17,7 +17,7 @@
     "supabase:import": "node crawler/import-supabase.mjs",
     "test:proxy": "node scripts/test-supabase-proxy.mjs",
     "test:supabase-config": "node scripts/test-supabase-config.mjs",
-    "test": "node crawler/check-snapshot.mjs && node scripts/test-search-facets.mjs && node scripts/test-supabase-proxy.mjs && node scripts/test-supabase-config.mjs && node scripts/test-member-workspace.mjs && node scripts/test-member-deletion.mjs"
+    "test": "node crawler/check-snapshot.mjs && node scripts/test-search-facets.mjs && node scripts/test-supabase-proxy.mjs && node scripts/test-supabase-config.mjs && node scripts/test-member-workspace.mjs && node scripts/test-member-deletion.mjs && node scripts/test-member-creation.mjs"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.1",

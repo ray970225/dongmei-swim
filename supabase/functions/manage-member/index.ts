@@ -1,35 +1,39 @@
-import { corsHeaders, json, requireAdmin } from '../_shared/admin.ts';
+import { corsHeaders, json, requireAdmin, requireAuthenticatedUser } from '../_shared/admin.ts';
+import { createMemberAccount } from '../_shared/create-member-core.js';
 import { deleteMemberAccount } from '../_shared/manage-member-core.js';
 
 Deno.serve(async request => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   try {
-    const { serviceClient } = await requireAdmin(request);
     const body = await request.json();
-    if (body.action === 'invite') {
-      const email = String(body.email || '').trim().toLowerCase();
-      const displayName = String(body.displayName || '').trim().slice(0, 80);
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: '請輸入有效的電子郵件地址。' }, 400);
-      // PUBLIC_SITE_URL may be configured as the home page (or the site's base
-      // path). Always send invitees to the member portal's password setup flow.
-      const siteUrl = new URL(Deno.env.get('PUBLIC_SITE_URL') || 'https://ray970225.github.io/dongmei-swim/');
-      if (/\.html$/i.test(siteUrl.pathname)) {
-        siteUrl.pathname = siteUrl.pathname.replace(/[^/]+$/, 'education.html');
-      } else {
-        siteUrl.pathname = `${siteUrl.pathname.replace(/\/+$/, '')}/education.html`;
+    if (body.action === 'complete_password_setup') {
+      const { user, serviceClient } = await requireAuthenticatedUser(request);
+      const password = String(body.password || '');
+      if (password.length < 10) return json({ error: '新密碼至少需要 10 個字元。' }, 400);
+      const { data: profile, error: profileError } = await serviceClient.from('profiles')
+        .select('role,active,must_change_password').eq('id', user.id).maybeSingle();
+      if (profileError || profile?.role !== 'member' || !profile.active || !profile.must_change_password) {
+        return json({ error: '此帳號目前不需要初次密碼設定，請重新登入。' }, 403);
       }
-      siteUrl.search = '?setup=password';
-      siteUrl.hash = '';
-      const redirectTo = siteUrl.toString();
-      const { error: allowError } = await serviceClient.from('member_invites').upsert({ email, display_name: displayName }, { onConflict: 'email' });
-      if (allowError) return json({ error: '會員邀請資料建立失敗。' }, 500);
-      const { error } = await serviceClient.auth.admin.inviteUserByEmail(email, { data: { display_name: displayName }, redirectTo });
-      if (error) {
-        await serviceClient.from('member_invites').delete().eq('email', email);
-        return json({ error: '邀請未送出，請確認信件服務設定或會員狀態。' }, 400);
-      }
+      const { error: passwordError } = await serviceClient.auth.admin.updateUserById(user.id, { password });
+      if (passwordError) return json({ error: '密碼更新失敗，請確認密碼規則後重試。' }, 400);
+      const { data: updatedProfile, error: updateError } = await serviceClient.from('profiles')
+        .update({ must_change_password: false }).eq('id', user.id).eq('must_change_password', true)
+        .select('id').maybeSingle();
+      if (updateError || !updatedProfile) return json({ error: '密碼已更新，但帳號權限尚未完成。請重新整理後重試。' }, 500);
       return json({ ok: true });
+    }
+
+    const { serviceClient } = await requireAdmin(request);
+    if (body.action === 'create_member') {
+      const result = await createMemberAccount(serviceClient, {
+        email: body.email,
+        displayName: body.displayName,
+        initialPassword: Deno.env.get('MEMBER_INITIAL_PASSWORD')
+      });
+      if (result.logMessage) console.error('Member account creation notice:', result.logMessage);
+      return json(result.body, result.status);
     }
     if (body.action === 'set_active') {
       const profileId = String(body.profileId || '');
