@@ -2,7 +2,7 @@
 
 ## 已完成：本機程式與介面
 
-- [x] 導入 Vite 多頁建置與 React 會員工作區試點；既有 HTML 網址、會員登入、Supabase 權限和其餘頁面先保留原狀。下一步先驗證正式建置與 GitHub Pages 工作流程，再逐頁遷移。
+- [x] 導入 Vite 多頁建置與 React 會員工作區試點；既有 HTML 網址、會員登入、Supabase 權限和其餘頁面先保留原狀。GitHub Desktop 推送 `af6734c` 後，Pages Actions 建置與部署成功，正式會員頁已載入新建置資產。
 
 - [x] 先檢查網站、成績匯入程式、目前資料、Firebase 管理功能與 Git 狀態，再決定改動範圍。
 - [x] 記錄現況、風險、資料表設計與分階段遷移方式，見 [`docs/TMSC-V2-MIGRATION.md`](docs/TMSC-V2-MIGRATION.md)。
