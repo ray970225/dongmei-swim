@@ -209,6 +209,11 @@ button:disabled { opacity: .55; cursor: wait; }
 .editor-actions { display: flex; justify-content: flex-end; gap: .75rem; margin-top: .75rem; }
 .invite-form { display: grid; grid-template-columns: 1fr 1.3fr auto; gap: .75rem; margin: 1.5rem 0; }
 .member-row div { overflow-wrap: anywhere; }
+.member-row-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; gap: .55rem; }
+.button-danger { min-height: 42px; padding: .65rem .85rem; border: 1px solid rgba(255,141,132,.7); background: transparent; color: #ffaaa1; cursor: pointer; font: inherit; font-size: .75rem; font-weight: 700; transition: background-color .18s ease, border-color .18s ease, color .18s ease; }
+.button-danger:hover { border-color: #ffaaa1; background: rgba(255,141,132,.1); color: #ffe0dc; }
+.button-danger:disabled { opacity: .55; cursor: wait; }
+.member-row-actions :focus-visible { outline: 2px solid var(--tmsc-gold); outline-offset: 3px; }
 .athlete-main { width: min(1160px, calc(100% - 2.5rem)); margin: 0 auto; padding: clamp(2.4rem, 6vw, 5rem) 0 7rem; }
 .athlete-main .notice { margin: 12vh auto; }
 .athlete-hero { display: grid; grid-template-columns: 1.1fr .9fr; align-items: end; gap: 2rem; padding: 1rem 0 clamp(3rem, 7vw, 6rem); border-bottom: 1px solid var(--tmsc-line); }
@@ -295,6 +300,9 @@ button:disabled { opacity: .55; cursor: wait; }
   .admin-v2 .admin-task-header h1 { font-size: 1.8rem; }
   .admin-v2 .admin-list-head { align-items: start; gap: .75rem; }
   .admin-v2 .admin-list-head .button-secondary { min-height: 42px; padding: .55rem .7rem; font-size: .72rem; }
+  .member-row { align-items: flex-start; flex-direction: column; gap: .8rem; }
+  .member-row-actions { width: 100%; justify-content: flex-start; }
+  .member-row-actions .button-secondary, .member-row-actions .button-danger { flex: 1 1 140px; }
   .admin-v2 .admin-empty-state { padding: .9rem; }
   .sync-paused-note { padding: .75rem; }
   .education-main { padding-top: 1rem !important; }

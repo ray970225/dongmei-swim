@@ -19,7 +19,7 @@
 - `data/swim-results.json` 目前有 9,908 筆成績、354 位選手；可辨認出 197 場賽事。資料包含來源識別碼、選手、項目、賽事、日期、名次、時間、池別、回合、組別及來源欄位，也有 CSV 匯入資料。現有資料沒有分段欄位。
 - `crawler/sync-swim.mjs` 使用 Playwright 和已登入的 session 開啟 Swim Insights，呼叫選手及成績 API，依隊名搜尋和過濾後重寫 JSON。舊 GitHub Actions 設有每日排程及手動執行，登入 session 由 `SWIM_STORAGE_STATE_BASE64` 提供。
 - [Swim Insights 服務條款](https://swim.orz.tw/terms) 第 11 節禁止使用自動化工具、爬蟲、機器人或腳本大量存取或擷取服務資料。`robots.txt` 無法透過目前檢查方式讀取。本機新版工作流程已移除排程，且 GitHub Actions 與 crawler 本身都檢查授權旗標，避免直接執行時繞過保護；沒有明確來源授權前，不應設定該旗標。改用核准的官方資料來源或匯出檔較合適。
-- 已按帳戶持有人指示發布網站 V2 前端及手動同步工作流程；GitHub Pages 更新後仍需實際登入測試。`tmsc-api` 已部署；`manage-member` 與 `dispatch-swim-sync` 尚待管理員登入測試後部署。
+- 已按帳戶持有人指示發布網站 V2 前端及手動同步工作流程；GitHub Pages 更新後仍需實際登入測試。`tmsc-api` 與 `manage-member` 已部署；`dispatch-swim-sync` 及完整管理員登入測試仍待處理。
 - 憑證掃描沒有找到 Supabase 專案 key、service-role／secret key、GitHub token 或來源登入 session。Firebase 設定已移出受 Git 追蹤的 JavaScript，改由被忽略的本機 runtime 設定提供；Firebase Web key 是公開專案識別碼，不是資料權限。目前 Firebase API 限制與 Firestore Security Rules 不在 repository，尚未驗證。
 - 舊教練後台使用 Firebase Email／Password 與 Firestore 管理公開消息、榮譽和招生。Firebase 規則不在 repository，無法從本機完整稽核。
 - Firebase 帳戶目前列有兩個專案：`dongmei-swim` 與 `ScoreManager`。網站本機 runtime 設定指向 `dongmei-swim`；其 Firestore `honours` 集合有 7 筆手動榮譽，`news` 集合目前無資料。`ScoreManager` 的 Firestore 尚未建立、Realtime Database 根節點為空、預設 Hosting 網址顯示 Site Not Found，但專案仍註冊「東美成績查詢平台」網頁應用程式；Authentication、Storage、Functions 等用途尚未核對，因此仍不能直接刪除。
@@ -62,6 +62,9 @@ GitHub Pages 保留靜態網站；資料與會員認證由 Supabase 免費方案
 - 建置設定會保留 `data/` 成績與榮譽快照、圖片、驗證頁和 robots.txt；正式輸出會移除僅供本機使用的 runtime 設定載入標籤，不會把本機設定檔打包公開。
 - `npm test`、`npm run build` 與建置預覽檢查通過；預覽中的公開成績頁載入 9,908 筆資料。透過 GitHub Desktop 推送 `af6734c` 後，GitHub Pages Actions 的 build 與 deploy 工作皆成功，正式會員頁回傳新建置資產。
 - 這是技術底座與單一頁面試點，不能視為整站已完成 React 遷移。後續依工作流程逐頁搬移、逐頁驗證；公開成績資料、文章權限和 Supabase RLS 不因導入 React 而改變。
+
+- 會員管理新增「永久刪除帳號」。只有有效管理員可呼叫後端；後端只允許刪除一般會員，管理員帳號會被拒絕。刪除成功後清除邀請紀錄，前端二次確認並更新名單；既有停用／重新啟用仍用於暫停存取。Supabase 會拒絕仍擁有 Storage 檔案的帳號刪除，畫面會顯示處理失敗，不會先清除邀請紀錄。
+- 已部署新版 `manage-member` Edge Function，`verify_jwt` 保持啟用；新增權限測試涵蓋無效 ID、禁止刪除管理員及刪除失敗保留邀請紀錄。`npm test` 與 `npm run build` 通過。尚未對任何正式會員執行實際刪除。
 
 - 會員登入主按鈕已由膠囊形改為 12px 圓角，保留原有配色；先前已透過 GitHub Desktop 推送，GitHub Pages 部署成功。
 - 本次重新設計教練管理台首頁，將六個大型圖卡改成「隊內管理」及「公開官網」兩組簡潔清單；每項保留功能說明、公開範圍與清楚操作入口。桌機並列顯示、窄螢幕及手機直向排列，未改動登入權限及資料 CRUD 行為。

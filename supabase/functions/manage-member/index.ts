@@ -1,4 +1,5 @@
 import { corsHeaders, json, requireAdmin } from '../_shared/admin.ts';
+import { deleteMemberAccount } from '../_shared/manage-member-core.js';
 
 Deno.serve(async request => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -40,6 +41,11 @@ Deno.serve(async request => {
       const { error } = await serviceClient.from('profiles').update({ active }).eq('id', profileId);
       if (error) return json({ error: '會員狀態更新失敗。' }, 500);
       return json({ ok: true });
+    }
+    if (body.action === 'delete_member') {
+      const result = await deleteMemberAccount(serviceClient, String(body.profileId || ''));
+      if (result.logMessage) console.error('Member account deletion notice:', result.logMessage);
+      return json(result.body, result.status);
     }
     return json({ error: '不支援的會員操作。' }, 400);
   } catch (error) {
