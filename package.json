@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "swim:login": "node crawler/login-swim.mjs",
     "swim:discover": "node crawler/discover-swim.mjs",
     "swim:sync": "node crawler/sync-swim.mjs",
@@ -17,6 +20,12 @@
     "test": "node crawler/check-snapshot.mjs && node scripts/test-search-facets.mjs && node scripts/test-supabase-proxy.mjs && node scripts/test-supabase-config.mjs"
   },
   "devDependencies": {
-    "playwright": "^1.56.1"
+    "@vitejs/plugin-react": "^6.1.1",
+    "playwright": "^1.56.1",
+    "vite": "^8.3.1"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

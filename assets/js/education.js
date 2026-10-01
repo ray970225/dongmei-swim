@@ -1,3 +1,4 @@
+import { renderMemberHome } from '../../src/education-app.jsx';
 import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-4';
 
 const $ = selector => document.querySelector(selector);
@@ -294,7 +295,7 @@ async function activate(session) {
     }
     loginPanel.hidden = true;
     appPanel.hidden = false;
-    $('#memberName').textContent = member.display_name ? `${member.display_name}｜` : '';
+    renderMemberHome(member.display_name || '');
     $('#memberLabel').textContent = member.role === 'admin' ? '管理員模式' : '會員模式';
     $('#adminLink').hidden = member.role !== 'admin';
     $('#athleteNavLink').hidden = false;
@@ -349,7 +350,7 @@ if (!isSupabaseConfigured()) {
     await supabase.auth.signOut();
     showLogin();
   });
-  $('#openLibrary').addEventListener('click', () => void enterLibrary());
+  document.addEventListener('tmsc:open-library', () => void enterLibrary());
   $('#backToMemberHome').addEventListener('click', () => {
     librarySection.hidden = true;
     $('#reader').hidden = true;
