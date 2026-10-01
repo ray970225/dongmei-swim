@@ -193,10 +193,19 @@ async function activate(session) {
 if (!isSupabaseConfigured()) {
   configNotice.hidden = false;
 } else {
-  supabase = await getSupabase();
-  togglePasswordSetup(false);
+  // 顯示登入畫面後才初始化外部登入模組，避免網路或 CDN 延遲令整頁空白。
   $('#loginPanel').hidden = false;
-  $('#loginForm').addEventListener('submit', async event => {
+  togglePasswordSetup(false);
+  try {
+    let timeoutId;
+    supabase = await Promise.race([
+      getSupabase(),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Supabase client initialization timed out.')), 15000);
+      })
+    ]);
+    clearTimeout(timeoutId);
+    $('#loginForm').addEventListener('submit', async event => {
     event.preventDefault();
     const button = event.currentTarget.querySelector('button[type="submit"]');
     if (button.disabled) return;
@@ -212,8 +221,8 @@ if (!isSupabaseConfigured()) {
     } finally {
       setBusy(button, false, '登入會員專區');
     }
-  });
-  $('#savePassword').addEventListener('click', async event => {
+    });
+    $('#savePassword').addEventListener('click', async event => {
     const button = event.currentTarget;
     const password = $('#newPassword').value;
     if (password !== $('#confirmPassword').value) { loginError.textContent = '兩次輸入的密碼不一致。'; return; }
@@ -226,26 +235,30 @@ if (!isSupabaseConfigured()) {
     inviteSetupRequested = false;
     await supabase.auth.signOut();
     location.replace('education.html?password=updated');
-  });
-  $('#signOutButton').addEventListener('click', async () => {
+    });
+    $('#signOutButton').addEventListener('click', async () => {
     await supabase.auth.signOut();
     showLogin();
-  });
-  const { data: { session } } = await supabase.auth.getSession();
-  const authHash = new URLSearchParams(location.hash.slice(1));
-  const authError = authHash.get('error_description') || authHash.get('error');
-  if (session) await activate(session);
-  else if (passwordWasUpdated) {
+    });
+    const { data: { session } } = await supabase.auth.getSession();
+    const authHash = new URLSearchParams(location.hash.slice(1));
+    const authError = authHash.get('error_description') || authHash.get('error');
+    if (session) await activate(session);
+    else if (passwordWasUpdated) {
     showLogin('密碼已設定，請使用邀請信中的電子郵件和新密碼登入。');
     history.replaceState(null, '', location.pathname);
-  }
-  else if (inviteSetupRequested) {
+    }
+    else if (inviteSetupRequested) {
     showLogin('邀請驗證尚未完成或連結已失效。請從邀請信重新點擊連結；若仍無法設定，請聯絡教練團重新寄送邀請。');
-  } else if (authError) {
+    } else if (authError) {
     showLogin('重設連結無效或已過期，請重新寄送密碼重設郵件。');
+    }
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) setTimeout(() => void activate(session), 0);
+      else showLogin(inviteSetupRequested ? '邀請驗證尚未完成或連結已失效。請從邀請信重新點擊連結；若仍無法設定，請聯絡教練團重新寄送邀請。' : '');
+    });
+  } catch (error) {
+    console.error('Member sign-in initialization failed:', error instanceof Error ? error.name : 'UnknownError');
+    showLogin('登入服務暫時無法連線，請重新整理頁面或稍後再試。');
   }
-  supabase.auth.onAuthStateChange((_event, session) => {
-    if (session) setTimeout(() => void activate(session), 0);
-    else showLogin(inviteSetupRequested ? '邀請驗證尚未完成或連結已失效。請從邀請信重新點擊連結；若仍無法設定，請聯絡教練團重新寄送邀請。' : '');
-  });
 }
