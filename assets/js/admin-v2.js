@@ -13,7 +13,7 @@ const swimSyncAvailable = false;
 const taskHelp = {
   sync: { scope: '成績管理 · 目前暫停', title: '同步選手成績', description: '目前外部來源尚未授權自動擷取，因此不會執行同步。授權完成後，這裡會顯示同步結果與歷史紀錄。' },
   articles: { scope: '隊內資料 · 會員限定', title: '管理升學文章與附件', description: '新增文章、招生簡章、重要日期、圖片或 PDF。只有登入且啟用中的東美會員能閱讀已發布內容。' },
-  members: { scope: '隊內資料 · 帳號管理', title: '邀請與刪除會員', description: '邀請隊員建立登入帳號；不再需要的會員可永久刪除。刪除無法復原，管理員帳號不可從這裡刪除。' },
+  members: { scope: '隊內資料 · 帳號管理', title: '建立與刪除會員', description: '建立會員登入帳號；不再需要的會員可永久刪除。刪除無法復原，管理員帳號不可從這裡刪除。' },
   news: { scope: '公開官網 · 首頁消息', title: '管理最新動態', description: '新增、修改或移除官網首頁所有訪客都看得到的隊務消息。' },
   honours: { scope: '公開官網 · 榮譽殿堂', title: '管理榮譽紀錄', description: '維護賽事、年份、選手、成績與名次，儲存後會更新官網榮譽殿堂。' },
   recruit: { scope: '公開官網 · 招生區', title: '管理招生班別', description: '更新班別名稱、適合年齡、費用和說明；儲存後會顯示在官網招生區。' }
@@ -389,7 +389,7 @@ async function saveArticle(event) {
 }
 
 async function loadMembers() {
-  const { data, error } = await supabase.from('profiles').select('id,email,display_name,role,active').order('display_name');
+  const { data, error } = await supabase.from('profiles').select('id,email,display_name,role').order('display_name');
   if (error) throw error;
   const host = $('#memberList'); host.replaceChildren();
   (data || []).filter(profile => profile.role === 'member').forEach(profile => {
@@ -397,22 +397,13 @@ async function loadMembers() {
     const copy = document.createElement('div'); const name = document.createElement('strong'); name.textContent = profile.display_name || profile.email;
     const email = document.createElement('span'); email.textContent = profile.email; copy.append(name, email);
     const actions = document.createElement('div'); actions.className = 'member-row-actions';
-    const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = 'button-secondary';
-    toggle.textContent = profile.active ? '停用會員帳號' : '重新啟用帳號';
-    toggle.setAttribute('aria-label', `${toggle.textContent}：${profile.display_name || profile.email}`);
-    toggle.addEventListener('click', async () => {
-      toggle.disabled = true;
-      const { data: result, error: invokeError } = await supabase.functions.invoke('manage-member', { body: { action: 'set_active', profileId: profile.id, active: !profile.active } });
-      if (invokeError || result?.error) message($('#memberMessage'), result?.error || '會員狀態更新失敗。', true);
-      else { message($('#memberMessage'), '會員狀態已更新。'); await loadMembers(); }
-    });
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'button-danger';
     remove.textContent = '永久刪除帳號';
     remove.setAttribute('aria-label', `永久刪除會員帳號：${profile.display_name || profile.email}`);
     remove.addEventListener('click', async () => {
       const identity = profile.email || profile.display_name || '此會員';
       if (!window.confirm(`確定永久刪除「${identity}」的帳號嗎？登入身分與會員關聯資料會一併移除，無法復原。`)) return;
-      toggle.disabled = true; remove.disabled = true;
+      remove.disabled = true;
       message($('#memberMessage'), `正在刪除 ${identity} 的帳號…`);
       let deleted = false;
       try {
@@ -429,7 +420,6 @@ async function loadMembers() {
         console.error('Member account deletion failed:', error instanceof Error ? error.name : 'UnknownError');
         message($('#memberMessage'), '帳號刪除服務暫時無法連線，請稍後重試。', true);
       } finally {
-        toggle.disabled = false;
         remove.disabled = false;
       }
       if (deleted) {
@@ -440,7 +430,7 @@ async function loadMembers() {
         }
       }
     });
-    actions.append(toggle, remove);
+    actions.append(remove);
     row.append(copy, actions); host.append(row);
   });
 }

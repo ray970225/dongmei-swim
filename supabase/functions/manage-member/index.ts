@@ -35,17 +35,6 @@ Deno.serve(async request => {
       if (result.logMessage) console.error('Member account creation notice:', result.logMessage);
       return json(result.body, result.status);
     }
-    if (body.action === 'set_active') {
-      const profileId = String(body.profileId || '');
-      const active = Boolean(body.active);
-      if (!/^[0-9a-f-]{36}$/i.test(profileId)) return json({ error: '會員資料無效。' }, 400);
-      const { data: target, error: lookupError } = await serviceClient.from('profiles')
-        .select('role').eq('id', profileId).maybeSingle();
-      if (lookupError || !target || target.role !== 'member') return json({ error: '只能停用或啟用一般會員帳號。' }, 404);
-      const { error } = await serviceClient.from('profiles').update({ active }).eq('id', profileId);
-      if (error) return json({ error: '會員狀態更新失敗。' }, 500);
-      return json({ ok: true });
-    }
     if (body.action === 'delete_member') {
       const result = await deleteMemberAccount(serviceClient, String(body.profileId || ''));
       if (result.logMessage) console.error('Member account deletion notice:', result.logMessage);
