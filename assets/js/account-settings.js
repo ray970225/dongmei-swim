@@ -7,6 +7,7 @@ let activeUserId = '';
 function setMessage(element, text, isError = false) {
   element.textContent = text;
   element.classList.toggle('is-error', isError);
+  if (element.id === 'passwordMessage') element.classList.toggle('is-success', !isError && Boolean(text));
 }
 
 function returnToLogin() {
@@ -74,7 +75,7 @@ if (!isSupabaseConfigured()) {
     const confirmation = $('#confirmPassword').value;
     const message = $('#passwordMessage');
     message.textContent = '';
-    message.classList.remove('is-error');
+    message.classList.remove('is-error', 'is-success');
 
     if (password.length < 10) { setMessage(message, '新密碼至少需要 10 個字元。', true); return; }
     if (password !== confirmation) { setMessage(message, '兩次輸入的新密碼不一致。', true); return; }
@@ -87,6 +88,7 @@ if (!isSupabaseConfigured()) {
       if (error) { setMessage(message, passwordErrorMessage(error), true); return; }
       form.reset();
       setMessage(message, '密碼已更新。下次登入請使用新密碼。');
+      message.focus();
     } catch (error) {
       console.error('Password update failed:', error instanceof Error ? error.name : 'UnknownError');
       setMessage(message, '密碼更新時發生系統錯誤，請稍後重試。', true);

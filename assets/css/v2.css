@@ -450,24 +450,31 @@ button:disabled { opacity: .55; cursor: wait; }
 .library-view .library-section { padding-top: 1.15rem; }
 .library-view .empty-state { color: var(--tmsc-muted); }
 
-/* Self-service password change for authenticated members and administrators. */
-.account-settings-main { max-width: 900px; padding-top: clamp(2rem, 6vw, 4rem); }
-.account-back-link { display: inline-flex; min-height: 42px; align-items: center; margin-bottom: 2.2rem; color: var(--tmsc-aqua); font-size: .82rem; font-weight: 700; text-decoration: none; }
-.account-back-link:hover { color: var(--tmsc-white); }
-.account-settings-intro { padding-bottom: 1.6rem; border-bottom: 1px solid var(--tmsc-line); }
-.account-settings-intro h1 { margin: .55rem 0; font-size: clamp(2.1rem, 5vw, 3.5rem); letter-spacing: -.055em; }
-.account-settings-intro > p:last-child { max-width: 42rem; margin: .5rem 0 0; color: var(--tmsc-muted); font-size: .9rem; line-height: 1.7; }
-.account-settings-panel { display: grid; grid-template-columns: minmax(12rem, .8fr) minmax(0, 1.2fr); gap: clamp(1.5rem, 5vw, 4rem); padding: 2rem 0; border-bottom: 1px solid var(--tmsc-line); }
-.account-settings-copy h2 { margin: .5rem 0; font-size: 1.25rem; }
-.account-settings-copy > p:last-child { max-width: 32rem; color: var(--tmsc-muted); font-size: .8rem; line-height: 1.7; }
-.account-settings-email { color: var(--tmsc-aqua); font-size: .78rem; overflow-wrap: anywhere; }
-.account-password-form { display: grid; gap: .55rem; }
-.account-password-form label { margin-top: .35rem; color: var(--tmsc-muted); font-size: .78rem; }
-.account-password-form input { width: 100%; min-height: 48px; padding: .8rem 1rem; border: 1px solid var(--tmsc-line); border-radius: 12px; outline: 0; background: rgba(255,255,255,.035); color: var(--tmsc-white); }
-.account-password-form input:focus { border-color: var(--tmsc-aqua); box-shadow: 0 0 0 3px rgba(36,195,223,.12); }
-.account-password-form .button-primary { justify-self: start; min-width: 180px; border-radius: 999px; }
-.account-password-message { min-height: 1.25em; margin: .15rem 0 0; color: var(--tmsc-aqua); font-size: .82rem; line-height: 1.6; }
-.account-password-message.is-error { color: #ffab9a; }
+/* Self-service password change: a calm, rounded settings surface with clear feedback. */
+.account-settings-main { max-width: 1040px; padding-top: clamp(2rem, 5vw, 3.5rem); }
+.account-back-link { display: inline-flex; min-height: 42px; align-items: center; margin-bottom: 1.7rem; padding: .55rem .9rem; border: 1px solid var(--tmsc-line); border-radius: 999px; color: var(--tmsc-aqua); font-size: .82rem; font-weight: 700; text-decoration: none; transition: background-color .18s ease, border-color .18s ease, color .18s ease; }
+.account-back-link:hover { border-color: var(--tmsc-aqua); background: rgba(36,195,223,.08); color: var(--tmsc-white); }
+.account-settings-intro { padding: 0 0 1.4rem; border-bottom: 1px solid var(--tmsc-line); }
+.account-settings-intro h1 { margin: 0; font-size: clamp(2.1rem, 4vw, 3.2rem); letter-spacing: -.04em; }
+.account-settings-intro > p:last-child { max-width: 42rem; margin: .65rem 0 0; color: var(--tmsc-muted); font-size: .9rem; line-height: 1.7; }
+.account-settings-panel { display: grid; grid-template-columns: minmax(13rem, .75fr) minmax(0, 1.25fr); gap: clamp(1.75rem, 5vw, 4rem); align-items: start; margin-top: 1.5rem; padding: clamp(1.4rem, 4vw, 2.5rem); border: 1px solid var(--tmsc-line); border-radius: 22px; background: linear-gradient(145deg, rgba(17,49,73,.92), rgba(9,31,51,.96)); }
+.account-settings-copy { padding-top: .2rem; }
+.account-settings-copy h2 { margin: 1.1rem 0 .5rem; font-size: 1.35rem; letter-spacing: -.02em; }
+.account-settings-copy > p:last-child { max-width: 32rem; color: var(--tmsc-muted); font-size: .84rem; line-height: 1.75; }
+.account-settings-email { display: inline-flex; max-width: 100%; margin: 0; padding: .5rem .75rem; border: 1px solid rgba(36,195,223,.28); border-radius: 999px; background: rgba(36,195,223,.07); color: #73d9e9; font-size: .78rem; overflow-wrap: anywhere; }
+.account-password-form { display: grid; gap: .6rem; }
+.account-password-form label { margin-top: .3rem; color: #d1e5ec; font-size: .8rem; font-weight: 650; }
+.account-password-form input { width: 100%; min-height: 52px; padding: .8rem 1rem; border: 1px solid #31536a; border-radius: 14px; outline: 0; background: rgba(3,19,33,.48); color: var(--tmsc-white); transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.account-password-form input:hover { border-color: #54738a; }
+.account-password-form input:focus { border-color: var(--tmsc-aqua); background: rgba(3,19,33,.72); box-shadow: 0 0 0 3px rgba(36,195,223,.14); }
+.account-password-form .button-primary { justify-self: start; min-width: 190px; min-height: 50px; margin-top: .8rem; border-radius: 14px; transition: background-color .18s ease, transform .18s ease; }
+.account-password-form .button-primary:hover { transform: translateY(-1px); }
+.account-password-form .button-primary:focus-visible, .account-password-form input:focus-visible, .account-back-link:focus-visible { outline: 2px solid var(--tmsc-aqua); outline-offset: 3px; }
+.account-password-message { display: none; margin: .5rem 0 0; color: var(--tmsc-aqua); font-size: .84rem; line-height: 1.6; }
+.account-password-message.is-success, .account-password-message.is-error { display: flex; align-items: center; gap: .85rem; min-height: 76px; padding: 1rem 1.15rem; border: 1px solid rgba(65,218,180,.48); border-radius: 16px; background: rgba(28,145,119,.15); color: #bcffe9; font-size: .95rem; font-weight: 700; }
+.account-password-message.is-success::before { width: 22px; height: 12px; flex: 0 0 22px; margin: -5px 0 0 2px; border: solid #79f0c7; border-width: 0 0 3px 3px; border-radius: 1px; content: ""; transform: rotate(-45deg); }
+.account-password-message.is-error { border-color: rgba(255,157,142,.5); background: rgba(158,49,42,.16); color: #ffd1c9; }
+.account-password-message:focus { outline: 2px solid #79f0c7; outline-offset: 3px; }
 .account-settings-page .account-nav { gap: .75rem; letter-spacing: .03em; }
 .account-settings-page .account-nav .text-button { min-height: 40px; padding: .5rem .8rem; border: 1px solid var(--tmsc-line); border-radius: 999px; }
 .account-settings-page .account-nav .text-button:hover { border-color: var(--tmsc-aqua); background: rgba(36,195,223,.08); }
@@ -475,8 +482,8 @@ button:disabled { opacity: .55; cursor: wait; }
 @media (max-width: 760px) {
   .account-settings-main { width: min(100% - 2rem, 620px); padding-top: 1.6rem; }
   .account-settings-main .account-back-link { margin-bottom: 1.4rem; }
-  .account-settings-panel { grid-template-columns: 1fr; gap: .75rem; padding: 1.3rem 0; }
-  .account-settings-copy > p:last-child { margin-bottom: .25rem; }
+  .account-settings-panel { grid-template-columns: 1fr; gap: .75rem; margin-top: 1rem; padding: 1.25rem; border-radius: 18px; }
+  .account-settings-copy > p:last-child { margin-bottom: .5rem; }
   .account-password-form .button-primary { width: 100%; }
   .account-settings-page .v2-header { grid-template-columns: 1fr auto; }
   .account-settings-page .v2-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; margin: 0; border-top: 1px solid var(--tmsc-line); }
