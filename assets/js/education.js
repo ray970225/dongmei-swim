@@ -14,6 +14,10 @@ let allArticles = [];
 let categories = [];
 let activeCategory = '';
 let activeUserId = '';
+let libraryLoaded = false;
+let libraryLoading = false;
+const memberHome = $('#memberHome');
+const librarySection = $('#librarySection');
 const memberViewRequested = new URLSearchParams(location.search).get('view') === 'member';
 
 function setBusy(button, busy, label) {
@@ -23,7 +27,21 @@ function setBusy(button, busy, label) {
 
 function showLogin(message = '') {
   activeUserId = '';
+  allArticles = [];
+  categories = [];
+  activeCategory = '';
+  libraryLoaded = false;
+  libraryLoading = false;
   appPanel.hidden = true;
+  memberHome.hidden = true;
+  librarySection.hidden = true;
+  $('#reader').hidden = true;
+  $('#articleList').replaceChildren();
+  $('#categoryList').replaceChildren();
+  $('#deadlineList').replaceChildren();
+  $('#deadlineStrip').hidden = true;
+  $('#readerBody').replaceChildren();
+  $('#readerAttachments').replaceChildren();
   loginPanel.hidden = false;
   togglePasswordSetup(false);
   $('#signOutButton').hidden = true;
@@ -177,7 +195,7 @@ async function openArticle(article) {
     row.append(name, button); host.append(row);
   }
   $('#reader').hidden = false;
-  $('.library-section').hidden = true;
+  librarySection.hidden = true;
   $('#deadlineStrip').hidden = true;
   $('#reader').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -226,6 +244,38 @@ async function loadMemberData() {
   renderArticles();
 }
 
+async function enterLibrary() {
+  if (libraryLoading) return;
+  memberHome.hidden = true;
+  $('#reader').hidden = true;
+  librarySection.hidden = false;
+  librarySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (libraryLoaded) return;
+  libraryLoading = true;
+  const host = $('#articleList');
+  host.replaceChildren();
+  const loading = document.createElement('p');
+  loading.className = 'empty-state';
+  loading.textContent = '正在載入隊內文章…';
+  host.append(loading);
+  const button = $('#openLibrary');
+  button.disabled = true;
+  try {
+    await loadMemberData();
+    libraryLoaded = true;
+  } catch (error) {
+    console.error('Education library failed to load:', error);
+    host.replaceChildren();
+    const message = document.createElement('p');
+    message.className = 'empty-state';
+    message.textContent = '升學資料暫時無法載入，請稍後重試。';
+    host.append(message);
+  } finally {
+    libraryLoading = false;
+    button.disabled = false;
+  }
+}
+
 async function activate(session) {
   if (session?.user?.id && session.user.id === activeUserId && !appPanel.hidden) return;
   activeUserId = session?.user?.id || '';
@@ -244,14 +294,14 @@ async function activate(session) {
     }
     loginPanel.hidden = true;
     appPanel.hidden = false;
-    $('#memberName').textContent = member.display_name ? `· ${member.display_name}` : '';
+    $('#memberName').textContent = member.display_name ? `${member.display_name}｜` : '';
     $('#memberLabel').textContent = member.role === 'admin' ? '管理員模式' : '會員模式';
     $('#adminLink').hidden = member.role !== 'admin';
     $('#athleteNavLink').hidden = false;
     $('#signOutButton').hidden = false;
+    memberHome.hidden = false;
+    librarySection.hidden = true;
     $('#reader').hidden = true;
-    $('.library-section').hidden = false;
-    await loadMemberData();
   } catch (error) {
     console.error(error);
     showLogin('無法載入隊內資料，請確認登入狀態後再試。');
@@ -297,12 +347,18 @@ if (!isSupabaseConfigured()) {
   });
   $('#signOutButton').addEventListener('click', async () => {
     await supabase.auth.signOut();
-    allArticles = []; categories = [];
     showLogin();
+  });
+  $('#openLibrary').addEventListener('click', () => void enterLibrary());
+  $('#backToMemberHome').addEventListener('click', () => {
+    librarySection.hidden = true;
+    $('#reader').hidden = true;
+    memberHome.hidden = false;
+    memberHome.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   $('#articleSearch').addEventListener('input', renderArticles);
   $('#backToLibrary').addEventListener('click', () => {
-    $('#reader').hidden = true; $('.library-section').hidden = false;
+    $('#reader').hidden = true; librarySection.hidden = false;
     $('#deadlineStrip').hidden = !$('#deadlineList').children.length;
   });
   const { data: { session } } = await supabase.auth.getSession();
