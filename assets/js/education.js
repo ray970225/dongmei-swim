@@ -40,6 +40,7 @@ function showLogin(message = '') {
   loginPanel.hidden = false;
   togglePasswordSetup(false);
   $('#signOutButton').hidden = true;
+  $('#accountSettingsLink').hidden = true;
   $('#adminLink').hidden = true;
   $('#athleteNavLink').hidden = true;
   $('#memberLabel').textContent = '會員專區登入';
@@ -182,6 +183,7 @@ async function activate(session) {
     $('#adminLink').hidden = member.role !== 'admin';
     $('#athleteNavLink').hidden = false;
     $('#signOutButton').hidden = false;
+    $('#accountSettingsLink').hidden = false;
   } catch (error) {
     console.error(error);
     showLogin('無法載入隊內資料，請確認登入狀態後再試。');

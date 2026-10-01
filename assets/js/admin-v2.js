@@ -36,6 +36,7 @@ function showLogin(text = '') {
   activeUserId = '';
   $('#adminApp').hidden = true; $('#loginPanel').hidden = false;
   $('#signOutButton').hidden = true; $('#loginError').textContent = text;
+  $('#accountSettingsLink').hidden = true;
 }
 
 async function verifyAdmin(session) {
@@ -450,7 +451,7 @@ async function activate(session) {
   try {
     const admin = await verifyAdmin(session);
     if (!admin) { showLogin('此帳號沒有管理員權限。'); return; }
-    $('#loginPanel').hidden = true; $('#adminApp').hidden = false; $('#signOutButton').hidden = false;
+    $('#loginPanel').hidden = true; $('#adminApp').hidden = false; $('#signOutButton').hidden = false; $('#accountSettingsLink').hidden = false;
     $('#memberLabel').textContent = '管理員'; $('#adminName').textContent = admin.display_name ? `· ${admin.display_name}` : '';
     switchTab('home');
     await Promise.all([loadSyncJobs(), loadArticles(), loadMembers()]);

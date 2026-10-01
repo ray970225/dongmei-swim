@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#071d33">
+  <title>帳號設定｜東美游泳隊</title>
+  <link rel="stylesheet" href="assets/css/v2.css?v=tmsc-account-settings-20261001-1">
+</head>
+<body class="member-shell account-settings-page">
+  <header class="v2-header">
+    <a class="v2-wordmark" href="education.html" aria-label="回到東美會員專區"><span class="wordmark-t">TMSC</span><span class="wordmark-name">東美游泳隊</span></a>
+    <nav class="v2-nav" aria-label="帳號導覽"><a href="education.html">會員專區</a><a href="admin-v2.html" id="adminBackLink" hidden>管理台</a></nav>
+    <div class="account-nav"><span id="accountRoleLabel">帳號設定</span><button class="text-button" id="signOutButton" type="button" hidden>登出</button></div>
+  </header>
+  <main class="member-main account-settings-main">
+    <a class="account-back-link" id="accountBackLink" href="education.html">← 回到會員工作台</a>
+    <section class="account-settings-intro">
+      <p class="eyebrow">ACCOUNT / SECURITY</p>
+      <h1>修改登入密碼</h1>
+      <p>輸入目前密碼並設定新密碼。修改會立即生效，不會寄送 Gmail 驗證信。</p>
+    </section>
+    <section class="account-settings-panel" aria-labelledby="passwordFormTitle">
+      <div class="account-settings-copy">
+        <p class="account-settings-email" id="accountEmail"></p>
+        <h2 id="passwordFormTitle">更新密碼</h2>
+        <p>新密碼至少 10 個字元。系統會先驗證目前密碼，避免他人使用已開啟的裝置修改帳號。</p>
+      </div>
+      <form id="passwordForm" class="account-password-form" hidden>
+        <label for="currentPassword">目前密碼</label>
+        <input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required>
+        <label for="newPassword">新密碼</label>
+        <input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="10" required>
+        <label for="confirmPassword">再次輸入新密碼</label>
+        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required>
+        <button class="button-primary" id="savePasswordButton" type="submit">更新密碼</button>
+        <p id="passwordMessage" class="account-password-message" role="status" aria-live="polite"></p>
+      </form>
+      <p id="accountNotice" class="account-password-message" role="status" aria-live="polite">正在確認登入狀態…</p>
+    </section>
+  </main>
+  <script src="assets/js/runtime-config.js"></script>
+  <script type="module" src="assets/js/account-settings.js?v=20261001-current-password"></script>
+</body>
+</html>
