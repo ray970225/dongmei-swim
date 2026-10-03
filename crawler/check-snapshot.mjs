@@ -13,6 +13,13 @@ const [results, metadata, honours, syncStatus, facets] = await Promise.all([
 if (!Array.isArray(results) || (results.length === 0 && metadata.visibility_filtered !== true)) {
   throw new Error('同步結果為空，停止發布。');
 }
+const privateResultFields = ['swimmer_en', 'gender', 'birth_year', 'source', 'source_file', 'synced_at'];
+const leakedFields = new Set(results.flatMap(row => privateResultFields.filter(field => Object.hasOwn(row, field))));
+if (leakedFields.size) throw new Error(`公開成績快照包含不必要欄位：${[...leakedFields].join(', ')}`);
+const requiredResultFields = ['id', 'swimmer_id', 'swimmer', 'event', 'competition', 'competition_date', 'rank', 'time', 'time_milliseconds'];
+if (results.some(row => requiredResultFields.some(field => !Object.hasOwn(row, field)))) {
+  throw new Error('公開成績快照缺少查詢或圖表所需欄位。');
+}
 if (!metadata.synced_at || Number.isNaN(Date.parse(metadata.synced_at))) throw new Error('缺少有效的同步時間。');
 if (metadata.result_count !== results.length) throw new Error(`筆數不一致：metadata=${metadata.result_count}，data=${results.length}`);
 if (!Array.isArray(honours)) throw new Error('榮譽殿堂資料格式錯誤。');

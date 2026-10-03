@@ -133,12 +133,14 @@ try {
       if (!includesAny(result.team, config.teamKeywords)) continue;
       const id = result.id || `${swimmer.id}-${result.competition_date}-${result.event?.name || result.event_name}-${result.time}`;
       resultsById.set(id, {
-        id, swimmer_id: swimmer.id, swimmer: swimmer.name, swimmer_en: swimmer.name_en || '',
-        gender: swimmer.gender || '', birth_year: swimmer.birth_year || null, team: result.team || '',
+        // Keep the public snapshot to fields required for result search, PBs,
+        // trend charts and athlete-history linking. Personal/profile metadata
+        // and crawler provenance stay out of the static public JSON.
+        id, swimmer_id: swimmer.id, swimmer: swimmer.name, team: result.team || '',
         event: result.event?.name || result.event_name || '', competition: result.competition_name || '',
         competition_date: result.competition_date || '', rank: result.rank ?? null, time: result.time || '',
         time_milliseconds: result.time_milliseconds ?? null, pool_type: result.pool_type || '', round: result.round || '',
-        age_group: result.age_group?.name || '', source: result.source || 'Swim Insights', source_file: result.source_file || ''
+        age_group: result.age_group?.name || ''
       });
     }
     await sleep(config.requestDelayMs);
@@ -147,7 +149,7 @@ try {
   const syncedAt = new Date().toISOString();
   const previousResults = await readJsonIfExists(DATA_FILE, []);
   const previousIds = new Set(Array.isArray(previousResults) ? previousResults.map(result => result.id) : []);
-  const results = [...resultsById.values()].map(result => ({ ...result, synced_at: syncedAt }))
+  const results = [...resultsById.values()]
     .sort((a, b) => String(b.competition_date).localeCompare(String(a.competition_date)));
   const automaticHonours = createAutomaticHonours(results, syncedAt);
   const metadata = {

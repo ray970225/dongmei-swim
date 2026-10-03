@@ -35,23 +35,29 @@ jobs:
       - name: 安裝 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: 安裝專案套件
         run: npm ci
 
       - name: 檢查資料庫同步設定
+        env:
+          SWIM_STORAGE_STATE_BASE64: ${{ secrets.SWIM_STORAGE_STATE_BASE64 }}
         run: |
-          if { [ -n "$SUPABASE_URL" ] && [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; } || { [ -z "$SUPABASE_URL" ] && [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; }; then
-            echo "Supabase 同步僅設定了一半；為避免公開快照包含會員資料，停止同步。"
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "缺少 Supabase 工作流程設定，無法安全匯入或回報同步狀態。"
+            exit 1
+          fi
+          if [ -z "$SWIM_STORAGE_STATE_BASE64" ]; then
+            echo "缺少游泳成績通登入工作階段，無法執行同步。"
             exit 1
           fi
 
       - name: 檢查成績來源授權
         run: |
           if [ "$SWIM_SOURCE_AUTOMATION_AUTHORIZED" != "true" ]; then
-            echo "尚未確認 Swim Insights 對東美自動擷取的授權，停止 crawler。"
+            echo "GitHub Actions 尚未啟用已核准的成績來源授權設定，停止 crawler。"
             exit 1
           fi
 
@@ -97,7 +103,7 @@ jobs:
           fi
           git config user.name "dongmei-swim-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/swim-results.json data/swim-results-meta.json data/swim-honours.json data/swim-sync-status.json
+          git add data/swim-results.json data/swim-results-meta.json data/swim-honours.json data/swim-sync-status.json data/swim-search-facets.json
           git commit -m "自動同步游泳成績"
           git push
 

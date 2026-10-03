@@ -6,7 +6,7 @@ Deno.serve(async request => {
   try {
     const { userClient, serviceClient, user } = await requireAdmin(request);
     if (Deno.env.get('SWIM_SOURCE_AUTOMATION_AUTHORIZED') !== 'true') {
-      return json({ error: '成績來源尚未授權自動同步，請改用核准的匯入方式。' }, 503);
+      return json({ error: '後台尚未完成成績來源授權設定，請聯絡系統管理員確認同步設定。' }, 503);
     }
     const token = Deno.env.get('GITHUB_DISPATCH_TOKEN');
     if (!token) return json({ error: '同步服務尚未完成設定。' }, 503);

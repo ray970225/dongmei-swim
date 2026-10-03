@@ -17,17 +17,8 @@ function mergeAthletes(rows) {
     groups.get(key).push(athlete);
   });
   return [...groups.values()].map(group => {
-    const distinct = field => [...new Set(group.map(athlete => String(athlete[field] || '').trim()).filter(Boolean))];
-    const years = distinct('birth_year');
-    const englishNames = distinct('english_name');
-    const genders = distinct('gender');
     return {
       full_name: group[0].full_name.trim(),
-      english_name: englishNames.length === 1 ? englishNames[0] : '',
-      gender: genders.length === 1 ? genders[0] : '',
-      birth_year: years.length === 1 ? years[0] : '',
-      birth_year_conflict: years.length > 1,
-      source_swimmer_ids: group.map(athlete => athlete.source_swimmer_id),
       athlete_ids: group.map(athlete => athlete.id).filter(Boolean)
     };
   }).sort((a, b) => String(a.full_name).localeCompare(String(b.full_name), 'zh-Hant'));
@@ -35,7 +26,7 @@ function mergeAthletes(rows) {
 
 function render() {
   const query = search.value.trim().toLocaleLowerCase();
-  const matches = athletes.filter(athlete => `${athlete.full_name} ${athlete.english_name || ''}`.toLocaleLowerCase().includes(query));
+  const matches = athletes.filter(athlete => athlete.full_name.toLocaleLowerCase().includes(query));
   document.querySelector('#athleteCount').textContent = query ? `找到 ${matches.length} 位選手` : `共 ${matches.length} 位選手`;
   host.replaceChildren();
   if (!matches.length) {
@@ -48,7 +39,7 @@ function render() {
     const number = document.createElement('span'); number.className = 'directory-index'; number.textContent = String(index + 1).padStart(2, '0');
     const name = document.createElement('span'); name.className = 'directory-name'; name.textContent = athlete.full_name;
     const meta = document.createElement('span'); meta.className = 'directory-meta';
-    meta.textContent = [athlete.english_name, athlete.gender, athlete.birth_year_conflict ? '出生年份來源不一致' : (athlete.birth_year ? `${athlete.birth_year} 年生` : '')].filter(Boolean).join(' · ');
+    meta.textContent = '公開成績與個人趨勢';
     const arrow = document.createElement('span'); arrow.className = 'directory-arrow'; arrow.textContent = '↗';
     link.append(number, name, meta, arrow); host.append(link);
   });
@@ -58,7 +49,7 @@ async function load() {
   if (isSupabaseConfigured()) {
     const supabase = await getSupabase();
     const { data, error } = await supabase.from('athletes')
-      .select('id,source_swimmer_id,full_name,english_name,gender,birth_year').eq('active', true).order('full_name');
+      .select('id,source_swimmer_id,full_name,active').eq('active', true).order('full_name');
     if (error) throw error;
     athletes = mergeAthletes(data || []);
   } else {
@@ -71,10 +62,7 @@ async function load() {
       unique.set(row.swimmer_id, {
         id: row.swimmer_id,
         source_swimmer_id: row.swimmer_id,
-        full_name: row.swimmer,
-        english_name: row.swimmer_en,
-        gender: row.gender,
-        birth_year: row.birth_year
+        full_name: row.swimmer
       });
     });
     athletes = mergeAthletes([...unique.values()]);

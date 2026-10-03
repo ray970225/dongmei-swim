@@ -10,16 +10,8 @@ let selectedPool = '';
 
 function normalizeName(value) { return String(value || '').normalize('NFKC').replace(/[\s　]+/g, '').trim(); }
 function athleteSummary(rows) {
-  const values = key => [...new Set(rows.map(row => String(row[key] || '').trim()).filter(Boolean))];
-  const years = values('birth_year');
-  const englishNames = values('english_name');
-  const genders = values('gender');
   return {
     full_name: rows[0].full_name,
-    english_name: englishNames.length === 1 ? englishNames[0] : '',
-    gender: genders.length === 1 ? genders[0] : (genders.length > 1 ? '性別來源不一致' : ''),
-    birth_year: years.length === 1 ? years[0] : '',
-    birth_year_conflict: years.length > 1,
     source_count: rows.length
   };
 }
@@ -141,7 +133,7 @@ async function start() {
   let athlete;
   if (isSupabaseConfigured()) {
     supabase=await getSupabase();
-    const {data,error}=await supabase.from('athletes').select('id,source_swimmer_id,full_name,english_name,gender,birth_year,visibility').eq('active',true).order('full_name');
+    const {data,error}=await supabase.from('athletes').select('id,source_swimmer_id,full_name,active').eq('active',true).order('full_name');
     if(error||!data){setState('找不到公開選手資料','此選手資料目前不可公開查閱，或尚未完成資料庫匯入。');return;}
     const sourceAthlete = data.find(row => row.source_swimmer_id === sourceSwimmerId);
     const targetName = requestedName || sourceAthlete?.full_name || '';
@@ -164,8 +156,7 @@ async function start() {
       pool_type:row.pool_type||'池別未列',meets:{name:row.competition||'賽事名稱未列'}
     }));
     const people = [...new Map(matchedRows.map(row => [row.swimmer_id, {
-      source_swimmer_id: row.swimmer_id, full_name: row.swimmer, english_name: row.swimmer_en,
-      gender: row.gender, birth_year: row.birth_year
+      source_swimmer_id: row.swimmer_id, full_name: row.swimmer
     }])).values()];
     athlete=people.length?athleteSummary(people):null;
   }
@@ -175,9 +166,8 @@ async function start() {
   if(!resultRows.length){setState('目前沒有可用的計時成績','目前紀錄中沒有有效計時資料，暫時無法製作項目最佳或趨勢圖。');return;}
   $('#athleteState').hidden=true; $('#athleteContent').hidden=false;
   $('#athleteName').textContent=athlete.full_name;
-  const birthLabel=athlete.birth_year_conflict?'出生年份來源不一致':(athlete.birth_year?`${athlete.birth_year} 年生`:null);
   const sourceLabel=athlete.source_count>1?`已整合 ${athlete.source_count} 筆同名來源資料`:null;
-  $('#athleteMeta').textContent=[athlete.english_name,athlete.gender,birthLabel,sourceLabel,'TMSC'].filter(Boolean).join(' / ');
+  $('#athleteMeta').textContent=[sourceLabel,'TMSC'].filter(Boolean).join(' / ');
   $('#resultCount').textContent=`${resultRows.length} 筆有效紀錄`;
   const groups=eventGroups(resultRows);
   const bestRows=[...groups.entries()].map(([key,list])=>({key,row:list.reduce((best,row)=>Number(row.time_milliseconds)<Number(best.time_milliseconds)?row:best)})).sort((a,b)=>a.key.localeCompare(b.key,'zh-Hant'));
