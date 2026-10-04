@@ -148,7 +148,7 @@ button:disabled { opacity: .55; cursor: wait; }
 .admin-action-title h3 { grid-column: 1 / -1; margin: 0; font-size: .93rem; line-height: 1.4; }
 .admin-status { color: #f2d982; font-size: .72rem; white-space: nowrap; }
 .admin-action-row > p { margin: 0; color: #c2dce3; font-size: .78rem; line-height: 1.6; }
-.admin-action-link { min-width: 128px; display: inline-flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 40px; padding: .45rem .6rem; border: 1px solid var(--tmsc-line); border-radius: 8px; background: transparent; color: var(--tmsc-aqua); font-size: .7rem; font-weight: 700; text-align: left; white-space: nowrap; cursor: pointer; transition: border-color .18s ease, background-color .18s ease, color .18s ease; }
+.admin-action-link { min-width: 128px; display: inline-flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 40px; padding: .45rem .6rem; border: 1px solid var(--tmsc-line); border-radius: 8px; background: transparent; color: var(--tmsc-aqua); font-size: .7rem; font-weight: 700; text-align: left; text-decoration: none; white-space: nowrap; cursor: pointer; transition: border-color .18s ease, background-color .18s ease, color .18s ease; }
 .admin-action-link svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .admin-action-link:hover { border-color: var(--tmsc-aqua); background: rgba(36,195,223,.08); color: var(--tmsc-white); }
 .admin-action-link:disabled { border-color: var(--tmsc-line); color: #9bb5bd; cursor: not-allowed; }

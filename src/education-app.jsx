@@ -71,6 +71,14 @@ export function MemberWorkspace({ displayName, data, actions }) {
               </span>
               <span className="member-service-action"><span>查看選手資料</span><span aria-hidden="true">→</span></span>
             </a>
+            <a className="member-service-row member-service-link" href="account-settings.html">
+              <span className="member-service-copy">
+                <span className="member-service-label">帳號安全</span>
+                <h3>修改登入密碼</h3>
+                <p>更新你目前登入帳號的密碼；不會影響其他會員。</p>
+              </span>
+              <span className="member-service-action"><span>修改我的密碼</span><span aria-hidden="true">→</span></span>
+            </a>
           </div>
         </section>
       </>}
