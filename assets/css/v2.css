@@ -426,6 +426,20 @@ button:disabled { opacity: .55; cursor: wait; }
 .education-main .article-copy strong { font-size: .98rem; line-height: 1.5; }
 .education-main .article-summary { font-size: .77rem; }
 .education-page .account-nav { font-size: .8rem; }
+.education-page .account-nav .text-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: .5rem .8rem;
+  border: 1px solid var(--tmsc-line);
+  border-radius: 8px;
+  color: var(--tmsc-aqua);
+  text-decoration: none;
+  transition: border-color .18s ease, background-color .18s ease;
+}
+.education-page .account-nav .text-button:hover { border-color: var(--tmsc-aqua); background: rgba(36,195,223,.08); }
+.education-page .account-nav .text-button:focus-visible { outline: 2px solid var(--tmsc-gold); outline-offset: 3px; }
 .education-page .small-note { font-size: .78rem; }
 .education-main .article-row:focus-visible, .education-main .category-chip:focus-visible, .education-main .search-field:focus-within { outline: 2px solid var(--tmsc-aqua); outline-offset: 3px; }
 
@@ -502,7 +516,8 @@ button:disabled { opacity: .55; cursor: wait; }
   .education-main { width: min(calc(100% - 2rem), 620px); padding-top: .75rem; padding-bottom: 4rem; }
   .education-page .v2-nav { width: 100%; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0 1.25rem; }
   .education-page .v2-nav a { flex: 0 0 auto; padding-inline: 0; white-space: nowrap; font-size: .68rem; }
-  .education-page .account-nav { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-self: end; gap: .45rem; font-size: .65rem; letter-spacing: .06em; }
+  .education-page .account-nav { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-self: end; gap: .4rem; font-size: .65rem; letter-spacing: .06em; }
+  .education-page .account-nav .text-button { min-height: 36px; padding: .35rem .55rem; font-size: .69rem; }
   .education-page .account-nav #memberLabel { display: none; }
   .education-main .login-layout { grid-template-columns: 1fr; gap: 1.1rem; padding: .4rem 0 1.5rem; }
   .education-main .login-copy h1 { margin: .1rem 0 .5rem; font-size: clamp(2rem, 8vw, 2.6rem); }
