@@ -1280,6 +1280,47 @@
   }
 
   /* ───────────────────────────────────────────
+     WEBSITE CHANGELOG
+  ─────────────────────────────────────────── */
+  #changelog {
+    padding-top: clamp(3.5rem, 7vw, 5.5rem);
+    padding-bottom: clamp(3.5rem, 7vw, 5.5rem);
+    background: #06182b;
+    border-top: 1px solid rgba(36,195,223,0.12);
+    color: var(--white);
+  }
+  .changelog-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, .9fr);
+    align-items: end;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    width: min(1200px, 100%);
+    margin: 0 auto;
+  }
+  .changelog-heading .section-title {
+    margin-bottom: .8rem;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+  }
+  .changelog-heading .section-title .aqua { color: var(--aqua); }
+  .changelog-heading > p,
+  .changelog-empty > p {
+    max-width: 54ch;
+    color: rgba(255,255,255,.72);
+    font-size: .9rem;
+    line-height: 1.85;
+  }
+  .changelog-empty {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(36,195,223,.25);
+  }
+  .changelog-empty strong {
+    display: block;
+    margin-bottom: .35rem;
+    color: var(--foam);
+    font-size: .95rem;
+  }
+
+  /* ───────────────────────────────────────────
      FOOTER
   ─────────────────────────────────────────── */
    footer {
@@ -1316,6 +1357,7 @@
   ─────────────────────────────────────────── */
   @media (max-width: 900px) {
     .about-grid, .recruit-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .changelog-inner { grid-template-columns: 1fr; gap: 1.5rem; }
     .pathway-track {
       grid-template-columns: 1fr;
       max-width: 34rem;
