@@ -23,8 +23,13 @@ const adminClient = fakeClient({ id, email: 'admin@example.com', role: 'admin' }
 assert.equal((await deleteMemberAccount(adminClient, id)).status, 404);
 assert.equal(adminClient.calls.some(([method]) => method === 'deleteUser'), false, 'admins must never be deletable through member management');
 
-const memberClient = fakeClient({ id, email: 'member@example.com', role: 'member' });
-assert.deepEqual(await deleteMemberAccount(memberClient, id), { status: 200, body: { ok: true, deleted: true }, logMessage: undefined });
+const memberClient = fakeClient({ id, email: 'member@example.com', display_name: '選手 A', role: 'member' });
+assert.deepEqual(await deleteMemberAccount(memberClient, id), {
+  status: 200,
+  body: { ok: true, deleted: true },
+  logMessage: undefined,
+  audit: { action: 'delete', entityId: id, entityLabel: '選手 A · member@example.com' }
+});
 assert.deepEqual(memberClient.calls, [['lookup', id], ['deleteUser', id], ['removeInvite', 'email', 'member@example.com']]);
 
 const failedClient = fakeClient({ id, email: 'member@example.com', role: 'member' }, { message: 'storage object ownership' });

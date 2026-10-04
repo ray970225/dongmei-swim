@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#071318">
   <title>教練管理台｜東美游泳隊</title>
-  <link rel="stylesheet" href="assets/css/v2.css?v=tmsc-admin-workspace-account-settings-20261004">
+  <link rel="stylesheet" href="assets/css/v2.css?v=tmsc-admin-operation-audit-20261004">
 </head>
 <body class="member-shell admin-v2">
   <header class="v2-header">
@@ -29,6 +29,7 @@
             <article class="admin-action-row"><div class="admin-action-title"><span class="admin-scope">成績資料</span><h3>手動更新成績</h3><span class="admin-status">管理員操作</span></div><p>由管理員按下按鈕後，從已授權來源擷取最新成績並更新網站。</p><button class="admin-action-link" type="button" data-tab="sync">前往更新成績 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg></button></article>
             <article class="admin-action-row"><div class="admin-action-title"><span class="admin-scope">升學資料庫</span><h3>升學文章與附件</h3></div><p>編輯隊內文章、招生簡章、圖片與 PDF；發布後會員可閱讀。</p><button class="admin-action-link" type="button" data-tab="articles">管理隊內文章 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg></button></article>
             <article class="admin-action-row"><div class="admin-action-title"><span class="admin-scope">會員帳號</span><h3>建立與刪除會員</h3></div><p>建立會員登入帳號，或永久刪除不再需要的帳號；管理員不可從這裡刪除。</p><button class="admin-action-link" type="button" data-tab="members">管理會員帳號 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg></button></article>
+            <article class="admin-action-row"><div class="admin-action-title"><span class="admin-scope">管理紀錄</span><h3>後台操作紀錄</h3></div><p>查詢管理員何時新增、修改或刪除文章、公告、榮譽、招生班別與會員帳號。</p><button class="admin-action-link" type="button" data-tab="audit">查看操作紀錄 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg></button></article>
             <article class="admin-action-row"><div class="admin-action-title"><span class="admin-scope">帳號安全</span><h3>修改登入密碼</h3></div><p>更新你目前使用的管理員密碼，不會更改其他會員的帳號。</p><a class="admin-action-link" href="account-settings.html">修改我的密碼 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg></a></article>
           </div>
         </section>
@@ -48,9 +49,34 @@
       <section class="admin-pane" id="pane-news"><div class="admin-list-head"><div><p class="eyebrow">PUBLIC / NEWS</p><h2>首頁最新動態</h2></div><button id="newNewsButton" class="button-secondary" type="button">＋ 發布首頁消息</button></div><p id="siteNewsMessage" class="admin-message" role="status"></p><div id="siteNewsList" class="compact-list"></div><form id="siteNewsForm" class="article-editor" hidden><input id="siteNewsId" type="hidden"><label>日期<input id="siteNewsDate" type="date" required></label><label>消息標題<input id="siteNewsTitle" maxlength="180" required></label><label>簡短內容說明<textarea id="siteNewsDesc" rows="4"></textarea></label><label>圖片網址（選填）<input id="siteNewsImg" type="url" placeholder="https://…"></label><label>或從裝置選取圖片<input id="siteNewsImageFile" type="file" accept="image/jpeg,image/png,image/webp"></label><div class="editor-actions"><button class="button-secondary" id="cancelSiteNews" type="button">取消編輯</button><button class="button-primary" type="submit">儲存首頁消息</button></div></form></section>
       <section class="admin-pane" id="pane-honours"><div class="admin-list-head"><div><p class="eyebrow">PUBLIC / HONOURS</p><h2>官網榮譽殿堂</h2></div><button id="newHonourButton" class="button-secondary" type="button">＋ 新增比賽獎項</button></div><p id="siteHonourMessage" class="admin-message" role="status"></p><div id="siteHonoursList" class="compact-list"></div><form id="siteHonourForm" class="article-editor" hidden><input id="siteHonourId" type="hidden"><label>類別<select id="siteHonourCat"><option>全國</option><option>縣市</option><option>分齡</option><option>其他</option></select></label><label>賽事名稱<input id="siteHonourEvent" maxlength="180" required></label><label>選手姓名<input id="siteHonourName" maxlength="100" required></label><label>年份<input id="siteHonourYear" type="number" min="2000" max="2099" required></label><label>成績明細（每行一筆：項目 成績 獎項）<textarea id="siteHonourItems" rows="5" placeholder="50自 50.12 第一名"></textarea></label><div class="editor-actions"><button class="button-secondary" id="cancelSiteHonour" type="button">取消編輯</button><button class="button-primary" type="submit">儲存比賽獎項</button></div></form></section>
       <section class="admin-pane" id="pane-recruit"><div class="admin-list-head"><div><p class="eyebrow">PUBLIC / RECRUIT</p><h2>官網招生班別</h2></div><button id="newRecruitButton" class="button-secondary" type="button">＋ 新增招生班別</button></div><p id="recruitmentMessage" class="admin-message" role="status"></p><div id="recruitmentList" class="compact-list"></div><form id="recruitmentForm" class="article-editor" hidden><input id="recruitmentId" type="hidden"><label>班別名稱<input id="recruitmentName" maxlength="140" required></label><label>適合年齡<input id="recruitmentAge" maxlength="80"></label><label>費用<input id="recruitmentFee" maxlength="100"></label><label>班別說明<textarea id="recruitmentDesc" rows="4"></textarea></label><div class="editor-actions"><button class="button-secondary" id="cancelRecruitment" type="button">取消編輯</button><button class="button-primary" type="submit">儲存招生班別</button></div></form></section>
+      <section class="admin-pane" id="pane-audit">
+        <div class="admin-list-head audit-list-head">
+          <div><h2>後台操作紀錄</h2><p class="admin-help">僅管理員可查看。系統會記錄內容及會員帳號的新增、修改與刪除，不保存密碼或文章全文。</p></div>
+          <button id="refreshAuditButton" class="button-secondary" type="button">重新整理</button>
+        </div>
+        <div class="audit-filters">
+          <label for="auditEntityFilter">操作項目
+            <select id="auditEntityFilter">
+              <option value="all">全部項目</option>
+              <option value="news">首頁公告</option>
+              <option value="article">隊內文章</option>
+              <option value="honour">榮譽紀錄</option>
+              <option value="recruitment">招生班別</option>
+              <option value="member">會員帳號</option>
+            </select>
+          </label>
+          <label for="auditSearch">搜尋紀錄
+            <input id="auditSearch" type="search" autocomplete="off" placeholder="搜尋管理員、項目名稱或會員信箱">
+          </label>
+        </div>
+        <p id="auditMessage" class="admin-message" role="status" aria-live="polite"></p>
+        <p id="auditCount" class="audit-count" role="status" aria-live="polite"></p>
+        <div id="adminAuditList" class="compact-list audit-list" aria-live="polite"></div>
+        <p class="audit-retention-note">此頁顯示最近 200 筆紀錄；管理員無法從網站編輯或刪除紀錄。</p>
+      </section>
     </section>
   </main>
   <script src="assets/js/runtime-config.js"></script>
-  <script type="module" src="assets/js/admin-v2.js?v=20261004-workspace-account-settings"></script>
+  <script type="module" src="assets/js/admin-v2.js?v=20261004-admin-operation-audit"></script>
 </body>
 </html>

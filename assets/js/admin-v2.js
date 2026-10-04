@@ -4,6 +4,7 @@ const $ = selector => document.querySelector(selector);
 let supabase;
 let articles = [];
 let categories = [];
+let auditRows = [];
 let syncTimer;
 let activeUserId = '';
 const loadedContent = new Set();
@@ -14,7 +15,8 @@ const taskHelp = {
   members: { scope: '隊內資料 · 帳號管理', title: '建立與刪除會員', description: '建立會員登入帳號；不再需要的會員可永久刪除。刪除無法復原，管理員帳號不可從這裡刪除。' },
   news: { scope: '公開官網 · 首頁消息', title: '管理最新動態', description: '新增、修改或移除官網首頁所有訪客都看得到的隊務消息。' },
   honours: { scope: '公開官網 · 榮譽殿堂', title: '管理榮譽紀錄', description: '維護賽事、年份、選手、成績與名次，儲存後會更新官網榮譽殿堂。' },
-  recruit: { scope: '公開官網 · 招生區', title: '管理招生班別', description: '更新班別名稱、適合年齡、費用和說明；儲存後會顯示在官網招生區。' }
+  recruit: { scope: '公開官網 · 招生區', title: '管理招生班別', description: '更新班別名稱、適合年齡、費用和說明；儲存後會顯示在官網招生區。' },
+  audit: { scope: '管理紀錄 · 管理員限定', title: '後台操作紀錄', description: '查看管理員對隊內文章、官網消息、榮譽紀錄、招生班別及會員帳號的操作。' }
 };
 
 async function uploadWithSignedUrl(bucketName, path, file) {
@@ -56,11 +58,88 @@ function switchTab(tab) {
     $('#activeTaskDescription').textContent = help.description;
   }
   if (tab === 'sync') void loadSyncJobs();
+  if (tab === 'audit') void loadAuditLogs();
   if (['news', 'honours', 'recruit'].includes(tab) && !loadedContent.has(tab)) {
     void loadPublicContent(tab).catch(error => {
       const messageId = { news: 'siteNewsMessage', honours: 'siteHonourMessage', recruit: 'recruitmentMessage' }[tab];
       message($(`#${messageId}`), error.message || '資料載入失敗；請確認已套用公開內容資料表設定。', true);
     });
+  }
+}
+
+const auditEntityNames = {
+  article: '隊內文章', news: '首頁公告', honour: '榮譽紀錄', recruitment: '招生班別', member: '會員帳號'
+};
+const auditActionNames = { create: '新增', update: '修改', delete: '刪除' };
+const auditStatusNames = { draft: '草稿', published: '已發布', archived: '已封存' };
+
+function formatAuditTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '時間無法讀取' : new Intl.DateTimeFormat('zh-TW', {
+    dateStyle: 'medium', timeStyle: 'short', hour12: false
+  }).format(date);
+}
+
+function renderAuditLogs() {
+  const host = $('#adminAuditList');
+  const entity = $('#auditEntityFilter').value;
+  const search = $('#auditSearch').value.trim().toLocaleLowerCase('zh-TW');
+  const filtered = auditRows.filter(row => {
+    if (entity !== 'all' && row.entity_type !== entity) return false;
+    if (!search) return true;
+    return [row.actor_email, row.entity_label, row.entity_id, auditEntityNames[row.entity_type], auditActionNames[row.action]]
+      .filter(Boolean).join(' ').toLocaleLowerCase('zh-TW').includes(search);
+  });
+  host.replaceChildren();
+  $('#auditCount').textContent = `顯示 ${filtered.length} 筆${auditRows.length === 200 ? ' · 最近 200 筆' : ''}`;
+  if (!filtered.length) {
+    const empty = document.createElement('div'); empty.className = 'admin-empty-state'; empty.setAttribute('role', 'status');
+    const title = document.createElement('strong');
+    title.textContent = auditRows.length ? '沒有符合條件的紀錄' : '目前還沒有操作紀錄';
+    const detail = document.createElement('span');
+    detail.textContent = auditRows.length
+      ? '請調整項目篩選或搜尋文字。'
+      : '新增或修改網站內容、會員帳號後，系統會自動記下管理員與操作項目。';
+    empty.append(title, detail); host.append(empty); return;
+  }
+  filtered.forEach(row => {
+    const item = document.createElement('article'); item.className = 'compact-row audit-log-row';
+    const copy = document.createElement('div'); copy.className = 'audit-log-copy';
+    const title = document.createElement('strong');
+    title.textContent = `${auditActionNames[row.action] || '操作'}${auditEntityNames[row.entity_type] || '資料'}`;
+    const label = document.createElement('span'); label.className = 'audit-log-label'; label.textContent = row.entity_label || '未命名項目';
+    const meta = document.createElement('span'); meta.className = 'audit-log-meta';
+    meta.textContent = `${row.actor_email || '系統作業'} · ${formatAuditTime(row.created_at)}`;
+    copy.append(title, label, meta);
+    if (row.details?.from_status || row.details?.to_status) {
+      const status = document.createElement('span'); status.className = 'audit-log-status';
+      const from = auditStatusNames[row.details.from_status] || row.details.from_status || '—';
+      const to = auditStatusNames[row.details.to_status] || row.details.to_status || '—';
+      status.textContent = `文章狀態：${from} → ${to}`; copy.append(status);
+    }
+    item.append(copy); host.append(item);
+  });
+}
+
+async function loadAuditLogs() {
+  const button = $('#refreshAuditButton');
+  button.disabled = true; button.setAttribute('aria-busy', 'true'); button.textContent = '載入中…';
+  message($('#auditMessage'), '');
+  $('#adminAuditList').textContent = '正在載入操作紀錄…';
+  try {
+    const { data, error } = await supabase.from('admin_audit_logs')
+      .select('id,actor_email,action,entity_type,entity_id,entity_label,details,created_at')
+      .order('created_at', { ascending: false }).limit(200);
+    if (error) throw error;
+    auditRows = data || [];
+    renderAuditLogs();
+  } catch (error) {
+    console.error('Admin audit history could not be loaded:', error instanceof Error ? error.name : 'UnknownError');
+    $('#adminAuditList').replaceChildren();
+    message($('#auditMessage'), '操作紀錄載入失敗。請確認資料庫更新已部署，再重新整理。', true);
+    $('#auditCount').textContent = '';
+  } finally {
+    button.disabled = false; button.removeAttribute('aria-busy'); button.textContent = '重新整理';
   }
 }
 
@@ -459,7 +538,9 @@ async function loadMembers() {
           return;
         }
         deleted = true;
-        message($('#memberMessage'), '會員帳號已永久刪除。');
+        message($('#memberMessage'), result.auditWarning
+          ? '會員帳號已刪除，但操作紀錄未能寫入；請聯絡系統管理員。'
+          : '會員帳號已永久刪除。', Boolean(result.auditWarning));
       } catch (error) {
         console.error('Member account deletion failed:', error instanceof Error ? error.name : 'UnknownError');
         message($('#memberMessage'), '帳號刪除服務暫時無法連線，請稍後重試。', true);
@@ -513,6 +594,9 @@ else {
   $('#signOutButton').addEventListener('click', async () => { await supabase.auth.signOut(); showLogin(); });
   document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));
   $('#backToAdminHome').addEventListener('click', () => switchTab('home'));
+  $('#refreshAuditButton').addEventListener('click', () => void loadAuditLogs());
+  $('#auditEntityFilter').addEventListener('change', renderAuditLogs);
+  $('#auditSearch').addEventListener('input', renderAuditLogs);
   $('#syncButton').addEventListener('click', triggerSync);
   $('#newArticleButton').addEventListener('click', () => {
     void editArticle().catch(error => message($('#articleMessage'), error.message || '文章載入失敗。', true));
@@ -535,7 +619,8 @@ else {
       if (error || data?.error) message($('#memberMessage'), data?.error || '會員帳號建立失敗，請稍後重試。', true);
       else {
         form.reset();
-        message($('#memberMessage'), `帳號已建立。初始密碼：${data.initialPassword}。請私下提供給選手，首次登入後必須更改。`);
+        const auditWarning = data.auditWarning ? '操作紀錄未能寫入，請聯絡系統管理員。' : '';
+        message($('#memberMessage'), `帳號已建立。初始密碼：${data.initialPassword}。請私下提供給選手，首次登入後必須更改。${auditWarning ? ` ${auditWarning}` : ''}`, Boolean(auditWarning));
         await loadMembers();
       }
     } catch (error) {

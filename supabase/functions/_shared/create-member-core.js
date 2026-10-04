@@ -69,5 +69,13 @@ export async function createMemberAccount(serviceClient, { email, displayName, i
     };
   }
 
-  return { status: 200, body: { ok: true, initialPassword } };
+  return {
+    status: 200,
+    body: { ok: true, initialPassword },
+    audit: {
+      action: 'create',
+      entityId: created.user.id,
+      entityLabel: `${normalizedName} · ${normalizedEmail}`
+    }
+  };
 }

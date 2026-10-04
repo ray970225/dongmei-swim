@@ -4,7 +4,7 @@ export async function deleteMemberAccount(serviceClient, profileId) {
   }
 
   const { data: target, error: lookupError } = await serviceClient.from('profiles')
-    .select('id,email,role').eq('id', profileId).maybeSingle();
+    .select('id,email,display_name,role').eq('id', profileId).maybeSingle();
   if (lookupError || !target || target.role !== 'member') {
     return { status: 404, body: { error: '只能刪除一般會員帳號。' } };
   }
@@ -22,6 +22,11 @@ export async function deleteMemberAccount(serviceClient, profileId) {
   return {
     status: 200,
     body: { ok: true, deleted: true },
-    logMessage: inviteError?.message
+    logMessage: inviteError?.message,
+    audit: {
+      action: 'delete',
+      entityId: target.id,
+      entityLabel: `${target.display_name || '會員'} · ${target.email}`
+    }
   };
 }

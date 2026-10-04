@@ -37,7 +37,11 @@ assert.equal(duplicateClient.calls.some(([method]) => method === 'createUser'), 
 
 const memberClient = fakeClient({ createdProfile: { id, role: 'member', active: true, must_change_password: true } });
 const result = await createMemberAccount(memberClient, { email: ' Member@Example.com ', displayName: ' 選手 A ', initialPassword: 'test-initial-password' });
-assert.deepEqual(result, { status: 200, body: { ok: true, initialPassword: 'test-initial-password' } });
+assert.deepEqual(result, {
+  status: 200,
+  body: { ok: true, initialPassword: 'test-initial-password' },
+  audit: { action: 'create', entityId: id, entityLabel: '選手 A · member@example.com' }
+});
 const createCall = memberClient.calls.find(([method]) => method === 'createUser');
 assert.equal(createCall[1].email, 'member@example.com');
 assert.equal(createCall[1].password, 'test-initial-password');

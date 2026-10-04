@@ -2,6 +2,28 @@ import { corsHeaders, json, requireAdmin, requireAuthenticatedUser } from '../_s
 import { createMemberAccount } from '../_shared/create-member-core.js';
 import { deleteMemberAccount } from '../_shared/manage-member-core.js';
 
+async function recordMemberOperation(serviceClient, user, audit) {
+  let error;
+  try {
+    ({ error } = await serviceClient.from('admin_audit_logs').insert({
+      actor_id: user.id,
+      actor_email: user.email || '管理員',
+      action: audit.action,
+      entity_type: 'member',
+      entity_id: audit.entityId,
+      entity_label: audit.entityLabel
+    }));
+  } catch (cause) {
+    console.error('Admin operation audit write failed:', cause instanceof Error ? cause.message : 'Unknown error');
+    return false;
+  }
+  if (error) {
+    console.error('Admin operation audit write failed:', error.message);
+    return false;
+  }
+  return true;
+}
+
 Deno.serve(async request => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
@@ -25,7 +47,7 @@ Deno.serve(async request => {
       return json({ ok: true });
     }
 
-    const { serviceClient } = await requireAdmin(request);
+    const { user, serviceClient } = await requireAdmin(request);
     if (body.action === 'create_member') {
       const result = await createMemberAccount(serviceClient, {
         email: body.email,
@@ -33,12 +55,18 @@ Deno.serve(async request => {
         initialPassword: Deno.env.get('MEMBER_INITIAL_PASSWORD')
       });
       if (result.logMessage) console.error('Member account creation notice:', result.logMessage);
-      return json(result.body, result.status);
+      const auditRecorded = result.status !== 200 || !result.audit
+        ? true
+        : await recordMemberOperation(serviceClient, user, result.audit);
+      return json(auditRecorded ? result.body : { ...result.body, auditWarning: true }, result.status);
     }
     if (body.action === 'delete_member') {
       const result = await deleteMemberAccount(serviceClient, String(body.profileId || ''));
       if (result.logMessage) console.error('Member account deletion notice:', result.logMessage);
-      return json(result.body, result.status);
+      const auditRecorded = result.status !== 200 || !result.audit
+        ? true
+        : await recordMemberOperation(serviceClient, user, result.audit);
+      return json(auditRecorded ? result.body : { ...result.body, auditWarning: true }, result.status);
     }
     return json({ error: '不支援的會員操作。' }, 400);
   } catch (error) {
