@@ -49,6 +49,8 @@ const formatDifference = milliseconds => {
   return seconds < 60 ? `${seconds.toFixed(2)} 秒` : formatTime(Math.abs(milliseconds));
 };
 const swimmerKey = row => row.swimmer_id || row.swimmer || '';
+const swimmerNameKey = row => String(row.swimmer || '').trim();
+const swimmerNames = sourceRows => uniqueSorted(sourceRows.map(swimmerNameKey));
 const performanceKey = row => [swimmerKey(row), row.event || '', row.pool_type || '未列池別'].join('|');
 const trendKey = (event, poolType) => [event || '未列項目', poolType || '未列池別'].join('\u0001');
 const trendKeyParts = key => String(key).split('\u0001');
@@ -302,13 +304,16 @@ const activateTrend = key => {
 };
 
 const renderInsights = (matches, query) => {
-  const swimmerIds = uniqueSorted(matches.map(swimmerKey));
-  if (!query || swimmerIds.length !== 1) {
+  const names = swimmerNames(matches);
+  if (!query || names.length !== 1) {
     insightsPanel.hidden = true;
     insightsPanel.innerHTML = '';
     return;
   }
-  const swimmerRows = rows.filter(row => swimmerKey(row) === swimmerIds[0]);
+  // A source may assign multiple IDs to the same displayed swimmer across seasons or pools.
+  // The name search is only treated as one swimmer when its visible result name is unambiguous.
+  const swimmerName = names[0];
+  const swimmerRows = rows.filter(row => swimmerNameKey(row) === swimmerName);
   buildTrendSeries(swimmerRows);
   const options = [...trendSeriesByKey.entries()]
     .filter(([, series]) => series.length > 0)
@@ -321,8 +326,9 @@ const renderInsights = (matches, query) => {
     ? activeTrendKey
     : options.find(([key]) => trendKeyParts(key)[0] === eventSelect.value)?.[0] || options[0][0];
   activeTrendKey = selectedKey;
+  trendListKey = selectedKey;
   insightsPanel.hidden = false;
-  renderTrendControls(swimmerIds[0], swimmerRows[0]?.swimmer || '', selectedKey);
+  renderTrendControls(swimmerName, swimmerName, selectedKey);
   renderTrendChart(selectedKey);
 };
 
@@ -371,12 +377,12 @@ const render = (query, requestedPage = 1) => {
   }
 
   renderInsights(matches, q);
-  const trendRows = trendListKey && q && uniqueSorted(matches.map(swimmerKey)).length === 1
+  const trendRows = trendListKey && q && swimmerNames(matches).length === 1
     ? trendDisplayRows(trendSeriesByKey.get(trendListKey) || [])
-    : [];
-  const displayRows = trendRows.length ? [...trendRows].reverse() : matches;
+    : null;
+  const displayRows = trendRows?.length ? [...trendRows].reverse() : matches;
   const summary = selectionSummary(competitionSelect.value, eventSelect.value);
-  const trendSummary = trendRows.length ? `｜趨勢：${trendKeyParts(trendListKey).join(' · ')}` : '';
+  const trendSummary = trendRows?.length ? `｜趨勢：${trendKeyParts(trendListKey).join(' · ')}` : '';
   meta.textContent = `找到 ${displayRows.length} 筆成績${summary}${trendSummary}`;
   const totalPages = Math.ceil(displayRows.length / RESULTS_PER_PAGE);
   const page = Math.min(Math.max(requestedPage, 1), totalPages);
