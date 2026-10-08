@@ -173,9 +173,52 @@
     }
     .insight-title { font-weight: 950; }
     .insight-sub { color: rgba(255,255,255,.6); font-size: .82rem; margin-top: .22rem; }
-    .trend-select { min-width: min(100%, 18rem); min-height: 2.65rem; font-size: .88rem; }
+    .insight-copy { min-width: min(100%, 17rem); }
+    .trend-controls {
+      display: grid;
+      grid-template-columns: minmax(13rem, 1.5fr) minmax(11rem, 1fr);
+      gap: .65rem;
+      flex: 0 1 30rem;
+    }
+    .trend-control {
+      display: grid;
+      gap: .32rem;
+      min-width: 0;
+      color: rgba(255,255,255,.72);
+      font-size: .75rem;
+      font-weight: 850;
+      letter-spacing: .04em;
+    }
+    .trend-control select {
+      height: 2.8rem;
+      min-width: 0;
+      min-height: 2.8rem;
+      align-self: start;
+      padding: 0 .85rem;
+      border-radius: 13px;
+      font-size: .86rem;
+      letter-spacing: 0;
+    }
+    .trend-control select:disabled { cursor: not-allowed; opacity: .55; }
+    .trend-selection {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .4rem .75rem;
+      margin: 0 0 .7rem;
+      color: rgba(255,255,255,.58);
+      font-size: .78rem;
+    }
+    .trend-selection strong {
+      color: var(--aqua);
+      font-weight: 850;
+    }
+    .trend-selection strong:last-child { color: var(--gold); }
     #trendChart { overflow-x: auto; overscroll-behavior-inline: contain; padding: .1rem 0 .35rem; }
     .trend-scroll-hint { color: rgba(255,255,255,.58); font-size: .75rem; margin: 0 0 .45rem; }
+    .trend-empty { display: grid; gap: .35rem; padding: 1.6rem .8rem; }
+    .trend-empty strong { color: var(--white); }
+    .trend-empty span { color: var(--muted); font-size: .86rem; }
     .trend-chart { display: block; min-width: 100%; height: auto; overflow: visible; }
     .trend-axis { stroke: rgba(255,255,255,.24); stroke-width: 1; }
     .trend-grid { stroke: rgba(255,255,255,.1); stroke-width: 1; }
@@ -278,12 +321,13 @@
       .meta { display: grid; gap: .45rem; padding: .85rem 1rem; font-size: .78rem; }
       .source { display: none; }
       .insights { padding: .85rem; }
-      .insight-head { align-items: stretch; }
+      .insight-head { align-items: stretch; flex-direction: column; }
+      .trend-controls { width: 100%; flex: none; grid-template-columns: minmax(0, 1.3fr) minmax(0, .9fr); }
+      .trend-control select { padding: 0 .65rem; font-size: .78rem; }
       .trend-chart { min-width: 100%; width: auto; }
       #trendChart { overflow-x: auto; padding: .1rem 0 .3rem; -webkit-overflow-scrolling: touch; }
       .trend-label { font-size: 11px; }
       .trend-value { font-size: 11px; }
-      .trend-select { width: 100%; }
       .list { padding: .75rem; gap: .65rem; }
       .row {
         grid-template-columns: minmax(0, 1fr) auto;
@@ -298,4 +342,7 @@
       .time { grid-area: time; align-self: start; font-size: 1.05rem; }
       .results-pagination { position: sticky; bottom: .5rem; z-index: 3; width: fit-content; max-width: calc(100% - 1rem); margin: 0 auto .5rem; padding: .45rem; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(6,24,43,.9); backdrop-filter: blur(10px); }
       .page-btn { min-width: 2.75rem; min-height: 2.75rem; }
+    }
+    @media (max-width: 380px) {
+      .trend-controls { grid-template-columns: 1fr; }
     }
