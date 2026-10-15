@@ -5,12 +5,10 @@ let supabase;
 let articles = [];
 let categories = [];
 let auditRows = [];
-let syncTimer;
 let activeUserId = '';
 const loadedContent = new Set();
 
 const taskHelp = {
-  sync: { scope: '成績管理 · 管理員操作', title: '手動更新選手成績', description: '按下更新後，系統會從已授權的游泳成績通擷取最新資料並匯入網站。同步通常需要幾分鐘，完成後可在此查看更新筆數。' },
   articles: { scope: '隊內資料 · 會員限定', title: '管理升學文章與附件', description: '新增文章、招生簡章、重要日期、圖片或 PDF。只有登入且啟用中的東美會員能閱讀已發布內容。' },
   members: { scope: '隊內資料 · 帳號管理', title: '建立與刪除會員', description: '建立會員登入帳號；不再需要的會員可永久刪除。刪除無法復原，管理員帳號不可從這裡刪除。' },
   news: { scope: '公開官網 · 首頁消息', title: '管理最新動態', description: '新增、修改或移除官網首頁所有訪客都看得到的隊務消息。' },
@@ -57,7 +55,6 @@ function switchTab(tab) {
     $('#activeTaskTitle').textContent = help.title;
     $('#activeTaskDescription').textContent = help.description;
   }
-  if (tab === 'sync') void loadSyncJobs();
   if (tab === 'audit') void loadAuditLogs();
   if (['news', 'honours', 'recruit'].includes(tab) && !loadedContent.has(tab)) {
     void loadPublicContent(tab).catch(error => {
@@ -140,119 +137,6 @@ async function loadAuditLogs() {
     $('#auditCount').textContent = '';
   } finally {
     button.disabled = false; button.removeAttribute('aria-busy'); button.textContent = '重新整理';
-  }
-}
-
-function formatTime(value) {
-  if (!value) return '尚無同步紀錄';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '同步時間無法讀取' : new Intl.DateTimeFormat('zh-TW', { dateStyle: 'medium', timeStyle: 'short', hour12: false }).format(date);
-}
-
-function renderSync(rows) {
-  const latest = rows[0];
-  const lastSuccess = rows.find(row => row.status === 'success');
-  const lastSuccessCount = lastSuccess?.summary?.uniqueResults ?? (
-    Number(lastSuccess?.inserted_count || 0) + Number(lastSuccess?.updated_count || 0) + Number(lastSuccess?.duplicate_count || 0)
-  );
-  $('#lastSync').textContent = lastSuccess
-    ? `最後成功更新：${formatTime(lastSuccess.finished_at || lastSuccess.requested_at)} · ${Number(lastSuccessCount).toLocaleString()} 筆來源成績`
-    : '尚無成功同步紀錄';
-  const liveStatus = $('#syncLiveStatus');
-  if (latest && ['queued', 'running'].includes(latest.status)) {
-    liveStatus.textContent = latest.status === 'queued'
-      ? `更新工作已排入佇列（${formatTime(latest.requested_at)}）。這項工作會在伺服器背景執行。`
-      : `正在擷取與匯入最新成績（開始於 ${formatTime(latest.started_at || latest.requested_at)}）。完成後會自動更新此狀態。`;
-  } else if (latest?.status === 'failed') {
-    liveStatus.textContent = `最近一次更新失敗（${formatTime(latest.finished_at || latest.requested_at)}）。請查看下方紀錄；確認設定後可再試。`;
-  } else if (latest?.status === 'success') {
-    liveStatus.textContent = `成績已更新完成（${formatTime(latest.finished_at || latest.requested_at)}）。`;
-  } else {
-    liveStatus.textContent = '尚無更新紀錄。按下「手動更新成績」即可查詢並匯入來源網站的最新成績。';
-  }
-  const history = $('#syncHistory'); history.replaceChildren();
-  if (!rows.length) history.textContent = '尚無同步紀錄。完成第一次手動更新後，紀錄會顯示在這裡。';
-  rows.slice(0, 8).forEach(row => {
-    const item = document.createElement('div'); item.className = 'compact-row';
-    const title = document.createElement('strong'); title.textContent = `${statusText(row.status)} · ${formatTime(row.finished_at || row.requested_at)}`;
-    const detail = document.createElement('span'); detail.textContent = row.status === 'success'
-      ? `新增 ${row.inserted_count} 筆 · 更新 ${row.updated_count} 筆 · 重複 ${row.duplicate_count} 筆 · ${row.affected_athlete_count} 位選手`
-      : row.summary?.error || '';
-    item.append(title, detail); history.append(item);
-  });
-  if (lastSuccess) {
-    const result = $('#syncResult'); result.replaceChildren(); result.hidden = false;
-    [['新增', lastSuccess.inserted_count], ['更新', lastSuccess.updated_count], ['重複', lastSuccess.duplicate_count], ['影響選手', lastSuccess.affected_athlete_count], ['錯誤', lastSuccess.error_count]].forEach(([label, value]) => {
-      const stat = document.createElement('div'); stat.className = 'sync-stat';
-      const number = document.createElement('strong'); number.textContent = Number(value || 0).toLocaleString();
-      const caption = document.createElement('span'); caption.textContent = label;
-      stat.append(number, caption); result.append(stat);
-    });
-  } else {
-    $('#syncResult').hidden = true;
-  }
-  const busy = latest && ['queued', 'running'].includes(latest.status);
-  const cooldownUntil = latest ? new Date(latest.requested_at).getTime() + 15 * 60 * 1000 : 0;
-  const cooldown = Date.now() < cooldownUntil;
-  const button = $('#syncButton'); button.disabled = Boolean(busy || cooldown);
-  button.setAttribute('aria-busy', String(Boolean(busy)));
-  button.title = cooldown && !busy ? '為避免重複爬取，同步工作需間隔 15 分鐘' : '';
-  button.innerHTML = busy
-    ? '<span class="spinner" aria-hidden="true"></span>同步處理中…'
-    : cooldown
-      ? '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7.25"></circle><path d="M10 5.5v4.8l3 1.8"></path></svg>15 分鐘內已更新'
-      : '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M16.5 7.5A7 7 0 1 0 17 11"></path><path d="M16.5 3.5v4h-4"></path></svg>手動更新成績';
-  clearTimeout(syncTimer);
-  if (busy) {
-    clearTimeout(syncTimer); syncTimer = setTimeout(() => void loadSyncJobs(), 7000);
-  } else if (cooldown) {
-    clearTimeout(syncTimer); syncTimer = setTimeout(() => void loadSyncJobs(), Math.min(cooldownUntil - Date.now() + 100, 60000));
-  }
-}
-
-function statusText(status) { return ({ queued: '排隊中', running: '同步中', success: '同步完成', failed: '同步失敗' })[status] || status; }
-
-async function loadSyncJobs() {
-  const button = $('#syncButton');
-  button.disabled = true;
-  try {
-    const { data, error } = await supabase.from('sync_jobs').select('*').order('requested_at', { ascending: false }).limit(10);
-    if (error) throw error;
-    renderSync(data || []);
-  } catch (error) {
-    console.error('Swim sync history could not be loaded:', error instanceof Error ? error.name : 'UnknownError');
-    $('#syncLiveStatus').textContent = '目前無法載入同步紀錄。請檢查網路連線或稍後重新整理。';
-    message($('#syncMessage'), '同步紀錄載入失敗；仍可重新整理頁面後再試。', true);
-    button.disabled = false;
-    button.removeAttribute('aria-busy');
-  }
-}
-
-async function triggerSync() {
-  const button = $('#syncButton');
-  if (button.disabled) return;
-  button.disabled = true;
-  button.setAttribute('aria-busy', 'true');
-  message($('#syncMessage'), '正在安全啟動成績更新…');
-  $('#syncResult').hidden = true;
-  try {
-    const { data, error } = await supabase.functions.invoke('dispatch-swim-sync', { body: {} });
-    if (error || data?.error || !data?.jobId) {
-      let detail = data?.error;
-      if (!detail && error?.context instanceof Response) {
-        try { detail = (await error.context.clone().json())?.error; } catch { /* Use the stable fallback below. */ }
-      }
-      message($('#syncMessage'), detail || '無法啟動更新。請確認管理員權限及伺服器同步設定。', true);
-      await loadSyncJobs();
-      return;
-    }
-    message($('#syncMessage'), '更新工作已啟動；即使離開此頁，伺服器仍會繼續處理。');
-    await loadSyncJobs();
-  } catch (error) {
-    console.error('Swim sync dispatch failed:', error instanceof Error ? error.name : 'UnknownError');
-    message($('#syncMessage'), '目前無法連線到同步服務。請檢查網路後重試。', true);
-    button.disabled = false;
-    button.removeAttribute('aria-busy');
   }
 }
 
@@ -569,7 +453,7 @@ async function activate(session) {
     $('#loginPanel').hidden = true; $('#adminApp').hidden = false; $('#signOutButton').hidden = false;
     $('#memberLabel').textContent = '管理員'; $('#adminName').textContent = admin.display_name ? `· ${admin.display_name}` : '';
     switchTab('home');
-    await Promise.all([loadSyncJobs(), loadArticles(), loadMembers()]);
+    await Promise.all([loadArticles(), loadMembers()]);
   } catch (error) { console.error(error); showLogin('管理資料載入失敗，請重新登入。'); }
 }
 
@@ -597,7 +481,6 @@ else {
   $('#refreshAuditButton').addEventListener('click', () => void loadAuditLogs());
   $('#auditEntityFilter').addEventListener('change', renderAuditLogs);
   $('#auditSearch').addEventListener('input', renderAuditLogs);
-  $('#syncButton').addEventListener('click', triggerSync);
   $('#newArticleButton').addEventListener('click', () => {
     void editArticle().catch(error => message($('#articleMessage'), error.message || '文章載入失敗。', true));
   });

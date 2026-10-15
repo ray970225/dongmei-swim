@@ -47,31 +47,30 @@
 
 ## 部署管理函式與設定密鑰
 
-部署 `tmsc-api`、`manage-member` 和 `dispatch-swim-sync` Edge Functions。`tmsc-api` 的 Gateway JWT 檢查關閉，以便接受匿名公開讀取和登入請求；function 自己限制可呼叫的服務路徑與網站來源，固定在伺服器端注入 Supabase publishable key，且不接受匿名註冊。受保護資料仍由 RLS 執行權限檢查。會員附件先經管理員權限檢查取得限時上傳網址，再透過受限代理上傳；瀏覽器不取得 API key。可使用 Supabase CLI，並先登入與連結正確專案：
+部署 `tmsc-api` 和 `manage-member` Edge Functions。`tmsc-api` 的 Gateway JWT 檢查關閉，以便接受匿名公開讀取和登入請求；function 自己限制可呼叫的服務路徑與網站來源，固定在伺服器端注入 Supabase publishable key，且不接受匿名註冊。受保護資料仍由 RLS 執行權限檢查。會員附件先經管理員權限檢查取得限時上傳網址，再透過受限代理上傳；瀏覽器不取得 API key。`dispatch-swim-sync` 已停用，不要重新部署原版同步函式。可使用 Supabase CLI，並先登入與連結正確專案：
 
 ```sh
 supabase functions deploy tmsc-api
 supabase functions deploy manage-member
-supabase functions deploy dispatch-swim-sync
 ```
+
+正式管理台不再觸發成績來源擷取。管理員如具來源授權，可在本機人工整理資料；爬蟲會拒絕未設定來源授權旗標的執行：
+
+```sh
+npm run swim:login
+SWIM_SOURCE_AUTOMATION_AUTHORIZED=true npm run swim:sync
+npm run swim:check
+```
+
+如要將資料匯入 Supabase，需在本機安全提供 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY` 後執行 `npm run supabase:import`。不要將登入 session 或 service-role key 提交到 Git；核對資料後由管理員透過 GitHub Desktop 推送公開快照。
 
 - 會員忘記密碼時，由 `forgot-password.html` 呼叫 `resetPasswordForEmail()`，並指定返回已允許的 `education.html`；重設連結驗證後才可更新密碼。Supabase Auth 的預設 Site URL 仍是首頁，因此從 Dashboard 直接寄送的重設信會回到首頁；會員應從網站登入頁的「忘記密碼？」重新寄送。
 
 Supabase 會為 Edge Functions 提供專案 URL、anon key 與 service-role key。另在 Supabase Edge Function secrets 設定：
 
-- `GITHUB_DISPATCH_TOKEN`：限用於 `ray970225/dongmei-swim` 的 GitHub token，需能派送 Actions workflow。
-- `GITHUB_REPOSITORY`：`ray970225/dongmei-swim`。
 - `PUBLIC_SITE_URL`：`https://ray970225.github.io/dongmei-swim/education.html`。
-- `SWIM_SOURCE_AUTOMATION_AUTHORIZED=true`：只有在 Swim Insights 明確授權本隊自動擷取時才可設定。未獲授權前保持未設定，並先把 workflow 改接核准來源。
 
-GitHub repository Actions secrets 設定：
-
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- 只有經核准來源要求時才設定相應來源憑證。
-- 若使用原爬蟲，還須有 `SWIM_STORAGE_STATE_BASE64`；但目前服務條款不允許大量自動擷取，因此不可因為已有登入 session 就自行啟用。
-
-workflow 僅接受管理台經授權後的手動派送，不設每日自動爬取；來源未獲授權時會停止同步。資料來源授權、GitHub Actions 必要密鑰和管理函式驗證未完成前，不應啟用成績同步。
+已移除只供管理台派送同步的 GitHub Actions workflow；不再需要為此功能設定 GitHub Actions secrets。資料庫保留既有 `sync_jobs` 歷史表，但網站不會建立新同步工作。
 
 ## 上線前要逐一驗證的權限
 
@@ -80,7 +79,7 @@ workflow 僅接受管理台經授權後的手動派送，不設每日自動爬�
 - 未登入者查詢 `articles`、`categories`、`deadlines`、`attachments` 時拿不到任何文章標題、正文或附件中繼資料；直接讀取私有物件也失敗。
 - 透過網站管理台邀請的有效會員只能讀取已發布文章及其附件；不能新增或修改文章、選手、成績、會員或同步工作。
 - 不在邀請名單建立的帳號為停用狀態。停用會員下一次請求就失去文章及檔案存取權。
-- 管理員可編輯文章和附件、邀請或停用一般會員；同步 RPC 拒絕非管理員、重複工作與冷卻時間內的工作。
+- 管理員可編輯文章和附件、邀請或停用一般會員；一般會員不能執行管理操作。
 - 選手或成績設為非公開時，匿名查詢及靜態公開 JSON 都不可取得；會員查詢遵守兩者中較嚴格的權限。
 - 靜態 HTML、JavaScript、JSON 與公開 repository 內沒有會員限定文章標題、正文、附件路徑或 signed URL。
 

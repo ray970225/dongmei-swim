@@ -24,7 +24,7 @@ function isAllowedPath(path) {
   if (/^\/(rest|storage)\/v1(?:\/|$)/.test(route)) return true;
   if (/^\/auth\/v1(?:\/|$)/.test(route) &&
       !/^\/auth\/v1\/(?:admin|signup)(?:\/|$)/.test(route)) return true;
-  return ['/functions/v1/manage-member', '/functions/v1/dispatch-swim-sync'].includes(route);
+  return ['/functions/v1/manage-member'].includes(route);
 }
 
 function validTarget(value) {

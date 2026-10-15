@@ -26,7 +26,7 @@ for (const path of [
   '', 'https://attacker.example/', '//attacker.example/rest/v1/results',
   '/rest/v1/../../auth/v1/admin/users', '/auth/v1/admin/users',
   '/auth/v1/signup',
-  '/functions/v1/tmsc-api', '/realtime/v1/websocket'
+  '/functions/v1/tmsc-api', '/functions/v1/dispatch-swim-sync', '/realtime/v1/websocket'
 ]) assert.equal(proxyPolicy.validTarget(path), false, `must block ${path}`);
 assert.equal(proxyPolicy.validTarget('/rest/v1/%2e%2e/auth/v1/admin/users'), false, 'must block encoded traversal');
 assert.equal(proxyPolicy.validTarget('/rest/v1/results%5C..%5Cauth/v1/admin/users'), false, 'must block encoded backslashes');

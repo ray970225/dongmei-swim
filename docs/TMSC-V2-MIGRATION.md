@@ -9,7 +9,7 @@
 
 成績分析也要從可驗證的資料開始。每個 PB、趨勢和進步幅度都必須能追溯到成績紀錄；來源沒有分段就不做分段分析，沒有可信標準就不自創能力分數。
 
-同步的目標是讓教練少做事，不是讓流程變複雜：核准資料來源後，由管理員按一次同步；系統去重、更新並回報結果。同步失敗時保留最後一份有效資料，不能把前台清空或把會員資料送進公開檔案。
+成績採管理員人工維護：在本機依核准流程取得並檢查資料、匯入資料庫與公開快照，再由管理員審閱和推送。網站管理台不會啟動來源擷取；同步失敗或資料未核對時，保留最後一份有效公開資料。
 
 ## 現有程式與資料：已檢查到的事實
 
@@ -17,9 +17,9 @@
 - 網站使用手寫 HTML、CSS、JavaScript，部署目標是 GitHub Pages，沒有前端框架或正式 build pipeline。
 - 首頁原本已包含隊伍介紹、教練、榮譽、招生與 Firebase 最新消息。依後續修正，首頁與成績查詢的原有 UI 保持不動；新增的選手資料頁才有自己的資料分析版面，並沿用原站海軍藍、水藍、白色與金色。
 - `data/swim-results.json` 目前有 9,908 筆成績、354 位選手；可辨認出 197 場賽事。資料包含來源識別碼、選手、項目、賽事、日期、名次、時間、池別、回合、組別及來源欄位，也有 CSV 匯入資料。現有資料沒有分段欄位。
-- `crawler/sync-swim.mjs` 使用 Playwright 和已登入的 session 開啟 Swim Insights，呼叫選手及成績 API，依隊名搜尋和過濾後重寫 JSON。舊 GitHub Actions 設有每日排程及手動執行，登入 session 由 `SWIM_STORAGE_STATE_BASE64` 提供。
+- `crawler/sync-swim.mjs` 使用 Playwright 和已登入的 session 開啟 Swim Insights，依隊名搜尋和過濾後重寫 JSON。正式管理台不再啟動爬蟲；管理員如具來源授權，可在本機人工執行與檢查資料，再透過 GitHub Desktop 推送。
 - [Swim Insights 服務條款](https://swim.orz.tw/terms) 第 11 節禁止使用自動化工具、爬蟲、機器人或腳本大量存取或擷取服務資料。`robots.txt` 無法透過目前檢查方式讀取。本機新版工作流程已移除排程，且 GitHub Actions 與 crawler 本身都檢查授權旗標，避免直接執行時繞過保護；沒有明確來源授權前，不應設定該旗標。改用核准的官方資料來源或匯出檔較合適。
-- 已按帳戶持有人指示發布網站 V2 前端及手動同步工作流程；GitHub Pages 更新後仍需實際登入測試。`tmsc-api` 與 `manage-member` 已部署；`dispatch-swim-sync` 及完整管理員登入測試仍待處理。
+- 已按帳戶持有人指示發布網站 V2 前端。管理台的同步操作入口、`dispatch-swim-sync` 派送功能與專用 GitHub Actions workflow 已移除／停用；既有成績資料與 `sync_jobs` 歷史保留。手動爬蟲和匯入工具仍在 repository，需先確認來源授權並使用本機登入 session。
 - 憑證掃描沒有找到 Supabase 專案 key、service-role／secret key、GitHub token 或來源登入 session。Firebase 設定已移出受 Git 追蹤的 JavaScript，改由被忽略的本機 runtime 設定提供；Firebase Web key 是公開專案識別碼，不是資料權限。目前 Firebase API 限制與 Firestore Security Rules 不在 repository，尚未驗證。
 - 舊教練後台使用 Firebase Email／Password 與 Firestore 管理公開消息、榮譽和招生。Firebase 規則不在 repository，無法從本機完整稽核。
 - Firebase 帳戶目前列有兩個專案：`dongmei-swim` 與 `ScoreManager`。網站本機 runtime 設定指向 `dongmei-swim`；其 Firestore `honours` 集合有 7 筆手動榮譽，`news` 集合目前無資料。`ScoreManager` 的 Firestore 尚未建立、Realtime Database 根節點為空、預設 Hosting 網址顯示 Site Not Found，但專案仍註冊「東美成績查詢平台」網頁應用程式；Authentication、Storage、Functions 等用途尚未核對，因此仍不能直接刪除。
