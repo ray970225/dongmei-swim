@@ -75,8 +75,13 @@
 .recent-row strong { color: var(--gold); font-size: .88rem; text-align: right; }
 .split-list { border-top: 1px solid var(--line); }
 .split-row { display: grid; gap: .55rem; padding: 1rem .2rem; border-bottom: 1px solid var(--line); }
-.split-row strong { color: var(--white); }
-.split-row span { color: var(--aqua); font-size: .85rem; line-height: 1.8; }
+.split-row summary { width: fit-content; color: var(--aqua); cursor: pointer; font-size: .88rem; font-weight: 800; line-height: 1.6; }
+.split-row summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+.athlete-split-grid { width: min(100%, 28rem); margin-top: .65rem; font-variant-numeric: tabular-nums; }
+.athlete-split-heading, .athlete-split-line { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; padding: .34rem .1rem; font-size: .8rem; border-bottom: 1px solid rgba(255,255,255,.07); }
+.athlete-split-heading { color: var(--muted); }
+.athlete-split-line strong { color: var(--white); }
+.athlete-split-line span { color: var(--aqua); }
 .single-point { color: var(--gold); font-size: 1.2rem; }
 @media (max-width: 700px) {
   .athlete-topbar { min-height: 60px; padding: .8rem 1rem; }

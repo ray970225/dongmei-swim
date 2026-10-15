@@ -1,10 +1,11 @@
 {
   "version": 2,
   "source": "游泳成績通",
-  "synced_at": "2026-10-15T03:45:22.530638Z",
-  "swimmer_count": 331,
-  "result_count": 10626,
-  "automatic_honours_count": 1906,
+  "synced_at": "2026-10-15T08:36:26.820Z",
+  "swimmer_count": 329,
+  "result_count": 10653,
+  "split_result_count": 872,
+  "automatic_honours_count": 1939,
   "search_terms": [
     "高雄市新莊高中",
     "東美泳隊",
@@ -20,6 +21,5 @@
     "東美大仁",
     "大仁國中",
     "高雄市大仁國中"
-  ],
-  "visibility_filtered": true
+  ]
 }

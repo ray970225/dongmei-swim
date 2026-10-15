@@ -60,6 +60,10 @@
         <span id="updatedAt">最後更新時間載入中...</span>
         <span class="source">資料來源：游泳成績通</span>
       </div>
+      <div class="update-note" id="updateNote" role="status" aria-live="polite" hidden>
+        <p id="updateSummary"></p>
+        <a href="index.html#changelog">查看完整更新日誌</a>
+      </div>
       <section id="insightsPanel" class="insights" aria-live="polite" hidden></section>
       <div class="list" id="resultsList">
         <div class="empty">成績資料載入後，可直接瀏覽全部紀錄，或輸入姓名、選擇賽事與項目篩選。</div>
@@ -69,6 +73,6 @@
   </main>
 
 <script src="assets/js/runtime-config.js"></script>
-<script src="assets/js/results.js?v=20261008-trend-identity"></script>
+<script type="module" src="assets/js/results.js?v=20261015-splits"></script>
 </body>
 </html>

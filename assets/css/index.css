@@ -1303,17 +1303,18 @@
   }
   .changelog-heading .section-title .aqua { color: var(--aqua); }
   .changelog-heading > p,
-  .changelog-empty > p {
+  .changelog-entry > p {
     max-width: 54ch;
     color: rgba(255,255,255,.72);
     font-size: .9rem;
     line-height: 1.85;
   }
-  .changelog-empty {
+  .changelog-entries { display: grid; gap: 1.4rem; }
+  .changelog-entry {
     padding-top: 1rem;
     border-top: 1px solid rgba(36,195,223,.25);
   }
-  .changelog-empty strong {
+  .changelog-entry strong {
     display: block;
     margin-bottom: .35rem;
     color: var(--foam);

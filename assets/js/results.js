@@ -1,3 +1,5 @@
+import { splitSegments, formatSplitTime } from './split-times.js';
+
 const input = document.getElementById('searchInput');
 const button = document.getElementById('searchBtn');
 const clearButton = document.getElementById('clearBtn');
@@ -6,6 +8,8 @@ const eventSelect = document.getElementById('eventSelect');
 const list = document.getElementById('resultsList');
 const meta = document.getElementById('metaText');
 const updatedAt = document.getElementById('updatedAt');
+const updateNote = document.getElementById('updateNote');
+const updateSummary = document.getElementById('updateSummary');
 const insightsPanel = document.getElementById('insightsPanel');
 const pagination = document.getElementById('resultsPagination');
 const RESULTS_PER_PAGE = 24;
@@ -102,6 +106,33 @@ const formatUpdatedAt = value => {
     timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', hour12: false
   }).format(date)}（台灣時間）`;
+};
+
+const formatUpdateDate = value => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(date);
+};
+
+const renderUpdateNote = syncStatus => {
+  const latest = Array.isArray(syncStatus?.history)
+    ? syncStatus.history.find(entry => entry.status === 'success')
+    : null;
+  const entry = latest || (syncStatus?.status === 'success' ? syncStatus : null);
+  if (!entry?.synced_at || !updateNote || !updateSummary) return;
+
+  const date = formatUpdateDate(entry.synced_at);
+  const details = [];
+  if (Number(entry.new_result_count) > 0) details.push(`新增 ${Number(entry.new_result_count).toLocaleString('zh-TW')} 筆`);
+  if (Number(entry.updated_result_count) > 0) details.push(`更新 ${Number(entry.updated_result_count).toLocaleString('zh-TW')} 筆`);
+  if (Number(entry.preserved_historical_result_count) > 0) {
+    details.push(`保留 ${Number(entry.preserved_historical_result_count).toLocaleString('zh-TW')} 筆歷史紀錄`);
+  }
+  if (Number(entry.split_result_count) > 0) details.push(`${Number(entry.split_result_count).toLocaleString('zh-TW')} 筆含分段計時`);
+  updateSummary.textContent = `${date ? `${date} · ` : ''}最近成績更新${details.length ? `：${details.join('、')}` : ''}。`;
+  updateNote.hidden = false;
 };
 
 const setOptions = (select, values, defaultLabel, selected = '') => {
@@ -341,6 +372,24 @@ const performanceMarkup = row => {
   return '<br><span class="delta">與前次相同</span>';
 };
 
+const splitMarkup = row => {
+  const segments = splitSegments(row.splits, row.time_milliseconds);
+  if (segments.length < 2) return '';
+  const eventDistance = Number(String(row.event || '').match(/^(\d+)/)?.[1]);
+  const midpoint = segments.at(-1).distance === eventDistance
+    ? segments.find(point => point.distance * 2 === eventDistance) : null;
+  const firstHalf = midpoint?.milliseconds;
+  const secondHalf = midpoint ? segments.at(-1).milliseconds - midpoint.milliseconds : null;
+  const halfDifference = midpoint ? secondHalf - firstHalf : null;
+  const halfText = midpoint && secondHalf > 0
+    ? `<p class="split-halves">前半 ${formatSplitTime(firstHalf)} · 後半 ${formatSplitTime(secondHalf)} · 後半${halfDifference > 0 ? '慢' : halfDifference < 0 ? '快' : '相同'}${halfDifference ? ` ${(Math.abs(halfDifference) / 1000).toFixed(2)} 秒（${(Math.abs(halfDifference) / ((firstHalf + secondHalf) / 2) * 100).toFixed(1)}%）` : ''}</p>` : '';
+  return `<details class="result-splits"><summary>查看分段計時 <span>${segments.length} 段</span></summary>
+    <div class="split-table" role="table" aria-label="${escapeHtml(row.swimmer)} ${escapeHtml(row.event)} 分段計時">
+      <div class="split-table-head" role="row"><span role="columnheader">距離</span><span role="columnheader">累計</span><span role="columnheader">單段</span></div>
+      ${segments.map(point => `<div class="split-table-row" role="row"><span role="cell">${point.distance} 公尺</span><strong role="cell">${formatSplitTime(point.milliseconds)}</strong><span role="cell">${formatSplitTime(point.segmentMilliseconds)}${point.from ? ` <small>(${point.from}–${point.distance}m)</small>` : ''}</span></div>`).join('')}
+    </div>${halfText}<p class="split-source-note">分段為來源提供的累計計時；單段由相鄰紀錄相減。</p></details>`;
+};
+
 const renderPagination = (total, page, query) => {
   const totalPages = Math.ceil(total / RESULTS_PER_PAGE);
   if (totalPages <= 1) {
@@ -398,6 +447,7 @@ const render = (query, requestedPage = 1) => {
           ${performanceMarkup(row)}</div>
       </div>
       <div class="time">${escapeHtml(row.time || '-')}</div>
+      ${splitMarkup(row)}
     </article>
   `).join('');
   renderPagination(displayRows.length, page, q);
@@ -445,18 +495,21 @@ window.addEventListener('resize', () => {
 });
 
 async function loadResultSource() {
-  const [resultRows, metadata] = await Promise.all([
-    fetch('data/swim-results.json', { cache: 'force-cache' }).then(response => {
+  const [resultRows, metadata, syncStatus] = await Promise.all([
+    fetch('data/swim-results.json', { cache: 'no-cache' }).then(response => {
       if (!response.ok) throw new Error(`成績資料 HTTP ${response.status}`);
       return response.json();
     }),
-    fetch('data/swim-results-meta.json', { cache: 'force-cache' }).then(response => response.ok ? response.json() : null)
+    fetch('data/swim-results-meta.json', { cache: 'no-cache' }).then(response => response.ok ? response.json() : null),
+    fetch('data/swim-sync-status.json', { cache: 'no-cache' })
+      .then(response => response.ok ? response.json() : null)
+      .catch(() => null)
   ]);
-  return { resultRows, metadata };
+  return { resultRows, metadata, syncStatus };
 }
 
 loadResultSource()
-  .then(({ resultRows, metadata }) => {
+  .then(({ resultRows, metadata, syncStatus }) => {
     const params = new URLSearchParams(location.search);
     const initialCompetition = params.get('competition') || '';
     const initialEvent = params.get('event') || '';
@@ -465,6 +518,7 @@ loadResultSource()
     setOptions(competitionSelect, newestCompetitionsFirst(rows), '全部賽事', initialCompetition);
     setOptions(eventSelect, uniqueSorted(rows.map(row => row.event)), '全部項目', initialEvent);
     updatedAt.textContent = formatUpdatedAt(metadata?.synced_at);
+    renderUpdateNote(syncStatus);
     syncedResultCount = rows.length || Number(metadata?.result_count) || 0;
     input.value = params.get('q') || '';
     clearButton.hidden = !input.value && !competitionSelect.value && !eventSelect.value;

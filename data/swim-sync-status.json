@@ -1,15 +1,29 @@
 {
   "version": 1,
-  "last_success_at": "2026-10-15T03:45:22.530638Z",
+  "last_success_at": "2026-10-15T08:36:26.820Z",
   "status": "success",
-  "synced_at": "2026-10-15T03:45:22.530638Z",
-  "swimmer_count": 331,
-  "result_count": 10626,
-  "new_result_count": 718,
-  "automatic_honours_count": 1906,
-  "duration_seconds": 354,
+  "synced_at": "2026-10-15T08:36:26.820Z",
+  "swimmer_count": 329,
+  "result_count": 10653,
+  "split_result_count": 872,
+  "new_result_count": 27,
+  "preserved_historical_result_count": 220,
+  "automatic_honours_count": 1939,
+  "duration_seconds": 410,
   "source": "游泳成績通",
   "history": [
+    {
+      "status": "success",
+      "synced_at": "2026-10-15T08:36:26.820Z",
+      "swimmer_count": 329,
+      "result_count": 10653,
+      "split_result_count": 872,
+      "new_result_count": 27,
+      "preserved_historical_result_count": 220,
+      "automatic_honours_count": 1939,
+      "duration_seconds": 410,
+      "source": "游泳成績通"
+    },
     {
       "status": "success",
       "synced_at": "2026-10-15T03:45:22.530638Z",
@@ -32,7 +46,5 @@
       "duration_seconds": 0,
       "source": "游泳成績通"
     }
-  ],
-  "preserved_historical_result_count": 1031,
-  "updated_result_count": 3717
+  ]
 }

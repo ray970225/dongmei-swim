@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createAutomaticHonours } from './honours.mjs';
 import { createSearchFacets } from './search-facets.mjs';
+import { normalizeCumulativeSplits } from '../assets/js/split-times.js';
 
 const ROOT = new URL('../', import.meta.url);
 const STATE_FILE = new URL('./.auth/swim-state.json', import.meta.url);
@@ -85,6 +86,7 @@ async function fetchAllPages(apiGet, path, pageSize, delayMs) {
 }
 
 const config = await loadConfig();
+const previousResults = await readJsonIfExists(DATA_FILE, []);
 await restoreSessionFromEnvironment();
 const browser = await chromium.launch({
   headless: true,
@@ -124,6 +126,15 @@ try {
     await sleep(config.requestDelayMs);
   }
 
+  // Old team associations may disappear from current search results. Revisit
+  // existing public swimmer IDs so their historical records can gain splits.
+  for (const result of Array.isArray(previousResults) ? previousResults : []) {
+    const id = String(result.swimmer_id || '');
+    if (id && !swimmersById.has(id)) {
+      swimmersById.set(id, { id, name: result.swimmer || id, results_count: 0 });
+    }
+  }
+
   const swimmers = [...swimmersById.values()].sort((a, b) => (b.results_count || 0) - (a.results_count || 0));
   const resultsById = new Map();
   for (const [index, swimmer] of swimmers.entries()) {
@@ -140,14 +151,14 @@ try {
         event: result.event?.name || result.event_name || '', competition: result.competition_name || '',
         competition_date: result.competition_date || '', rank: result.rank ?? null, time: result.time || '',
         time_milliseconds: result.time_milliseconds ?? null, pool_type: result.pool_type || '', round: result.round || '',
-        age_group: result.age_group?.name || ''
+        age_group: result.age_group?.name || '',
+        splits: normalizeCumulativeSplits(result.splits, result.time_milliseconds)
       });
     }
     await sleep(config.requestDelayMs);
   }
 
   const syncedAt = new Date().toISOString();
-  const previousResults = await readJsonIfExists(DATA_FILE, []);
   const previousIds = new Set(Array.isArray(previousResults) ? previousResults.map(result => result.id) : []);
   const currentIds = new Set(resultsById.keys());
   const mergedResultsById = new Map(
@@ -157,10 +168,12 @@ try {
   const results = [...mergedResultsById.values()]
     .sort((a, b) => String(b.competition_date).localeCompare(String(a.competition_date)));
   const swimmerCount = new Set(results.map(result => String(result.swimmer_id))).size;
+  const splitResultCount = results.filter(result => Object.keys(result.splits || {}).length > 1).length;
   const automaticHonours = createAutomaticHonours(results, syncedAt);
   const metadata = {
     version: 2, source: '游泳成績通', synced_at: syncedAt,
     swimmer_count: swimmerCount, result_count: results.length,
+    split_result_count: splitResultCount,
     automatic_honours_count: automaticHonours.length,
     search_terms: config.searchTerms, team_keywords: config.teamKeywords
   };
@@ -170,6 +183,7 @@ try {
     synced_at: syncedAt,
     swimmer_count: swimmerCount,
     result_count: results.length,
+    split_result_count: splitResultCount,
     new_result_count: results.filter(result => !previousIds.has(result.id)).length,
     preserved_historical_result_count: results.filter(result => previousIds.has(result.id) && !currentIds.has(String(result.id))).length,
     automatic_honours_count: automaticHonours.length,
@@ -192,7 +206,7 @@ try {
   await writeJsonAtomically(META_FILE, metadata);
   await writeJsonAtomically(SYNC_STATUS_FILE, syncStatus);
   await writeJsonAtomically(FACETS_FILE, createSearchFacets(results, syncedAt));
-  console.log(`完成：${swimmers.length} 位選手，${results.length} 筆成績，${automaticHonours.length} 張榮譽卡；更新時間 ${syncedAt}`);
+  console.log(`完成：${swimmers.length} 位選手，${results.length} 筆成績，${splitResultCount} 筆具多段計時，${automaticHonours.length} 張榮譽卡；更新時間 ${syncedAt}`);
 } finally {
   await browser.close();
 }

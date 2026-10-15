@@ -184,6 +184,7 @@ for (const batch of chunksToArray(resultRows, batchSize)) {
 }
 const publicRows = [...uniqueRows.values()].filter(row => publicResultIds.has(String(row.id)));
 const publicHonours = createAutomaticHonours(publicRows, importedAt);
+const publicSplitResultCount = publicRows.filter(row => Object.keys(row.splits || {}).length > 1).length;
 const [metadata, syncStatus] = await Promise.all([
   readFile(metadataPath, 'utf8').then(JSON.parse),
   readFile(syncStatusPath, 'utf8').then(JSON.parse)
@@ -193,6 +194,7 @@ const publicMetadata = {
   ...metadata,
   synced_at: importedAt,
   result_count: publicRows.length,
+  split_result_count: publicSplitResultCount,
   swimmer_count: publicSwimmerCount,
   automatic_honours_count: publicHonours.length,
   visibility_filtered: true
@@ -202,6 +204,7 @@ const publicSummary = {
   status: 'success',
   synced_at: importedAt,
   result_count: publicRows.length,
+  split_result_count: publicSplitResultCount,
   swimmer_count: publicSwimmerCount,
   automatic_honours_count: publicHonours.length
 };
@@ -210,6 +213,7 @@ const publicSyncStatus = {
   last_success_at: importedAt,
   synced_at: importedAt,
   result_count: publicRows.length,
+  split_result_count: publicSplitResultCount,
   swimmer_count: publicSwimmerCount,
   automatic_honours_count: publicHonours.length,
   history: [publicSummary, ...(Array.isArray(syncStatus.history) ? syncStatus.history.slice(1) : [])]

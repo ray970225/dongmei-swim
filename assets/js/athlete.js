@@ -1,4 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
+import { splitSegments, formatSplitTime } from './split-times.js';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
@@ -118,19 +119,36 @@ function renderRecent(rows) {
   [...meets.entries()].sort((a,b)=>b[0].localeCompare(a[0])).forEach(([key,items])=>{ const item=document.createElement('div'); item.className='recent-row'; const date=document.createElement('time'); date.textContent=key.split('|')[0]; const info=document.createElement('span'); info.textContent=key.split('|')[1]; const time=document.createElement('strong'); time.textContent=`${items.length} 項成績`; item.append(date,info,time); history.append(item); });
 }
 
-function renderSplits(splits, rows) {
-  if (!splits?.length) return;
-  const byResult=new Map(); splits.forEach(split=>{ if(!byResult.has(split.result_id))byResult.set(split.result_id,[]);byResult.get(split.result_id).push(split); });
-  const visible=rows.filter(row=>byResult.has(row.id)); if(!visible.length)return;
+function renderSplits(snapshot, rows) {
+  const visibleIds=new Set(rows.map(row=>String(row.id)));
+  const visible=snapshot.filter(row=>visibleIds.has(String(row.id)) && splitSegments(row.splits,row.time_milliseconds).length>1)
+    .sort((a,b)=>byDate(b,a)).slice(0,12);
+  if(!visible.length)return;
   $('#splitSection').hidden=false;
   const host=$('#splitChart'); host.replaceChildren();
-  visible.slice(0,8).forEach(row=>{ const group=byResult.get(row.id).sort((a,b)=>a.distance_m-b.distance_m); const item=document.createElement('div'); item.className='split-row'; const title=document.createElement('strong');title.textContent=`${row.event_name} · ${row.competition_date||''}`; const values=document.createElement('span');values.textContent=group.map(split=>`${split.distance_m}m ${timeText(Number(split.split_milliseconds))}`).join('   /   ');item.append(title,values);host.append(item); });
+  visible.forEach(row=>{
+    const item=document.createElement('details'); item.className='split-row';
+    const title=document.createElement('summary');title.textContent=`${row.competition_date||''} · ${row.event||''} · ${row.competition||''}`;
+    const grid=document.createElement('div');grid.className='athlete-split-grid';
+    const heading=document.createElement('div');heading.className='athlete-split-heading';
+    ['距離','累計','單段'].forEach(label=>{const cell=document.createElement('span');cell.textContent=label;heading.append(cell);});
+    grid.append(heading);
+    splitSegments(row.splits,row.time_milliseconds).forEach(point=>{
+      const line=document.createElement('div');line.className='athlete-split-line';
+      const distance=document.createElement('span');distance.textContent=`${point.distance}m`;
+      const cumulative=document.createElement('strong');cumulative.textContent=formatSplitTime(point.milliseconds);
+      const segment=document.createElement('span');segment.textContent=formatSplitTime(point.segmentMilliseconds);
+      line.append(distance,cumulative,segment);grid.append(line);
+    });
+    item.append(title,grid);host.append(item);
+  });
 }
 
 async function start() {
   if (!sourceSwimmerId && !requestedName) { setState('請從選手資料名單選擇選手', '此頁僅載入可查閱的真實賽事成績。'); return; }
   let supabase = null;
   let athlete;
+  let snapshot = null;
   if (isSupabaseConfigured()) {
     supabase=await getSupabase();
     const {data,error}=await supabase.from('athletes').select('id,source_swimmer_id,full_name,active').eq('active',true).order('full_name');
@@ -145,9 +163,9 @@ async function start() {
     resultRows=response.data||[];
   } else {
     // Compatibility view over the already-public legacy snapshot until Supabase is configured.
-    const response=await fetch('data/swim-results.json');
+    const response=await fetch('data/swim-results.json',{cache:'no-cache'});
     if(!response.ok)throw new Error(`成績載入失敗：${response.status}`);
-    const snapshot=await response.json();
+    snapshot=await response.json();
     const sourceAthlete = snapshot.find(row => String(row.swimmer_id) === sourceSwimmerId);
     const targetName = requestedName || sourceAthlete?.swimmer || '';
     const matchedRows = snapshot.filter(row => normalizeName(row.swimmer) === normalizeName(targetName));
@@ -178,11 +196,11 @@ async function start() {
   fillFilters(groups);renderHeroBest(groups);renderTrend(groups);renderRecent(resultRows);
   $('#eventFilter').addEventListener('change',()=>{selectedEvent=$('#eventFilter').value;selectedPool='';fillFilters(groups);renderHeroBest(groups);renderTrend(groups);});
   $('#poolFilter').addEventListener('change',()=>{selectedPool=$('#poolFilter').value;renderHeroBest(groups);renderTrend(groups);});
-  const ids=resultRows.map(row=>row.id);
-  if(supabase){
-    const splitResults=await supabase.from('splits').select('id,result_id,distance_m,split_milliseconds').in('result_id',ids);
-    if(!splitResults.error)renderSplits(splitResults.data,resultRows);
+  if(!snapshot){
+    const response=await fetch('data/swim-results.json',{cache:'no-cache'});
+    if(response.ok) snapshot=await response.json();
   }
+  if(Array.isArray(snapshot))renderSplits(snapshot,resultRows);
 }
 
 void start().catch(error=>{console.error(error);setState('選手資料載入失敗','請重新整理後再試。');});

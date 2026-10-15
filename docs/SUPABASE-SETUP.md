@@ -64,6 +64,10 @@ npm run swim:check
 
 如要將資料匯入 Supabase，需在本機安全提供 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY` 後執行 `npm run supabase:import`。不要將登入 session 或 service-role key 提交到 Git；核對資料後由管理員透過 GitHub Desktop 推送公開快照。
 
+### 分段計時的更新方式
+
+`swim:sync` 直接讀取來源成績 API 每筆紀錄的 `splits`（距離 → 累計毫秒），清理無效距離、非正數及倒退的計時後，與同一筆公開成績保存在 `data/swim-results.json`。網站只用相鄰來源累計值計算「單段」，不會從總成績猜測缺少的分段；未提供多段計時的紀錄不顯示分段按鈕。選手頁亦只從這份已套用公開可見性篩選的快照讀取分段，與公開成績列表共用單一資料來源。現有 `public.splits` 表不是前台顯示來源，避免維護兩份可能不同步的分段資料；如執行 Supabase 成績匯入，來源分段仍隨成績保存在 `results.raw_source`。後續更新沿用上面的 `swim:sync` → `swim:check` → 預覽 → GitHub Desktop 推送流程，不需另外人工整理分段表。
+
 - 會員忘記密碼時，由 `forgot-password.html` 呼叫 `resetPasswordForEmail()`，並指定返回已允許的 `education.html`；重設連結驗證後才可更新密碼。Supabase Auth 的預設 Site URL 仍是首頁，因此從 Dashboard 直接寄送的重設信會回到首頁；會員應從網站登入頁的「忘記密碼？」重新寄送。
 
 Supabase 會為 Edge Functions 提供專案 URL、anon key 與 service-role key。另在 Supabase Edge Function secrets 設定：
