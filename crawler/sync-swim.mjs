@@ -149,12 +149,18 @@ try {
   const syncedAt = new Date().toISOString();
   const previousResults = await readJsonIfExists(DATA_FILE, []);
   const previousIds = new Set(Array.isArray(previousResults) ? previousResults.map(result => result.id) : []);
-  const results = [...resultsById.values()]
+  const currentIds = new Set(resultsById.keys());
+  const mergedResultsById = new Map(
+    (Array.isArray(previousResults) ? previousResults : []).map(result => [String(result.id), result])
+  );
+  for (const [id, result] of resultsById) mergedResultsById.set(String(id), result);
+  const results = [...mergedResultsById.values()]
     .sort((a, b) => String(b.competition_date).localeCompare(String(a.competition_date)));
+  const swimmerCount = new Set(results.map(result => String(result.swimmer_id))).size;
   const automaticHonours = createAutomaticHonours(results, syncedAt);
   const metadata = {
     version: 2, source: '游泳成績通', synced_at: syncedAt,
-    swimmer_count: swimmers.length, result_count: results.length,
+    swimmer_count: swimmerCount, result_count: results.length,
     automatic_honours_count: automaticHonours.length,
     search_terms: config.searchTerms, team_keywords: config.teamKeywords
   };
@@ -162,9 +168,10 @@ try {
   const summary = {
     status: 'success',
     synced_at: syncedAt,
-    swimmer_count: swimmers.length,
+    swimmer_count: swimmerCount,
     result_count: results.length,
     new_result_count: results.filter(result => !previousIds.has(result.id)).length,
+    preserved_historical_result_count: results.filter(result => previousIds.has(result.id) && !currentIds.has(String(result.id))).length,
     automatic_honours_count: automaticHonours.length,
     duration_seconds: Math.max(0, Math.round((Date.now() - syncStartedAt.getTime()) / 1000)),
     source: '游泳成績通'
