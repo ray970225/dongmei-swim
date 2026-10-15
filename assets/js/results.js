@@ -209,6 +209,7 @@ const renderTrendChart = key => {
   const [selectedEvent, selectedPool] = trendKeyParts(key);
   const selectionSummary = document.getElementById('trendSelectionSummary');
   if (selectionSummary) {
+    selectionSummary.hidden = false;
     selectionSummary.innerHTML = `<span>目前趨勢</span><strong>${escapeHtml(trendEventInfo(selectedEvent).distanceLabel)} · ${escapeHtml(trendEventInfo(selectedEvent).stroke)}</strong><strong>${escapeHtml(trendPoolLabel(selectedPool))}</strong>`;
   }
   if (series.length < 2) {
@@ -262,35 +263,41 @@ const trendPoolsForEvent = event => [...trendSeriesByKey.keys()]
   .map(([, poolType]) => poolType)
   .sort((a, b) => trendPoolOrder(a) - trendPoolOrder(b) || String(a).localeCompare(String(b), 'zh-Hant'));
 
-const latestPoolForEvent = event => {
-  const latestEntry = [...trendSeriesByKey.entries()]
-    .filter(([key]) => trendKeyParts(key)[0] === event)
-    .sort(([, a], [, b]) => String(b.at(-1)?.competition_date || '').localeCompare(String(a.at(-1)?.competition_date || '')))[0];
-  return latestEntry ? trendKeyParts(latestEntry[0])[1] : '';
-};
-
 const setTrendPoolOptions = (select, event, selectedPool = '') => {
   const pools = trendPoolsForEvent(event);
-  select.innerHTML = pools.map(poolType =>
+  select.innerHTML = [`<option value="">${event ? '請選擇池別' : '先選擇項目'}</option>`, ...pools.map(poolType =>
     `<option value="${escapeHtml(poolType)}">${escapeHtml(trendPoolLabel(poolType))}</option>`
-  ).join('');
-  select.value = pools.includes(selectedPool) ? selectedPool : pools[0] || '';
-  select.disabled = pools.length === 0;
+  )].join('');
+  select.value = pools.includes(selectedPool) ? selectedPool : '';
+  select.disabled = !event || pools.length === 0;
 };
 
-const renderTrendEventOptions = selectedEvent => trendEventGroups([...trendSeriesByKey.keys()].map(key => trendKeyParts(key)[0]))
+const renderTrendEventOptions = selectedEvent => [`<option value="">請選擇項目</option>`, ...trendEventGroups([...trendSeriesByKey.keys()].map(key => trendKeyParts(key)[0]))
   .map(([groupLabel, events]) => `<optgroup label="${escapeHtml(groupLabel)}">${events.map(event =>
     `<option value="${escapeHtml(event)}"${event === selectedEvent ? ' selected' : ''}>${escapeHtml(`${trendEventInfo(event).distanceLabel} · ${trendEventInfo(event).stroke}`)}</option>`
-  ).join('')}</optgroup>`).join('');
+  ).join('')}</optgroup>`)].join('');
+
+const renderTrendPrompt = event => {
+  const selectionSummary = document.getElementById('trendSelectionSummary');
+  const chart = document.getElementById('trendChart');
+  if (selectionSummary) {
+    selectionSummary.hidden = true;
+    selectionSummary.replaceChildren();
+  }
+  if (chart) {
+    chart.innerHTML = `<p class="trend-prompt" role="status">${event ? '項目已選，請再選擇池別以顯示成績趨勢。' : '選擇項目與池別後，這裡會顯示成績趨勢圖。'}</p>`;
+  }
+};
 
 const bindTrendControls = () => {
   const eventSelect = document.getElementById('trendEventSelect');
   const poolSelect = document.getElementById('trendPoolSelect');
   eventSelect.addEventListener('change', () => {
     const event = eventSelect.value;
-    const availablePools = trendPoolsForEvent(event);
-    const poolType = availablePools.includes(poolSelect.value) ? poolSelect.value : latestPoolForEvent(event);
-    if (event && poolType) activateTrend(trendKey(event, poolType));
+    activeTrendKey = '';
+    trendListKey = '';
+    setTrendPoolOptions(poolSelect, event);
+    renderTrendPrompt(event);
   });
   poolSelect.addEventListener('change', () => {
     if (eventSelect.value && poolSelect.value) activateTrend(trendKey(eventSelect.value, poolSelect.value));
@@ -298,12 +305,12 @@ const bindTrendControls = () => {
 };
 
 const renderTrendControls = (swimmerId, swimmerName, selectedKey) => {
-  const [selectedEvent, selectedPool] = trendKeyParts(selectedKey);
+  const [selectedEvent, selectedPool] = selectedKey ? trendKeyParts(selectedKey) : ['', ''];
   const needsMarkup = insightsPanel.dataset.swimmerId !== swimmerId || !document.getElementById('trendEventSelect');
   if (needsMarkup) {
     insightsPanel.innerHTML = `<div class="insight-head">
       <div class="insight-copy"><div class="insight-title">${escapeHtml(swimmerName)}｜成績趨勢</div>
-        <div class="insight-sub">依距離分組選擇項目，再選長池或短池；圖表與下方成績會一起更新。</div></div>
+        <div class="insight-sub">先選項目與池別，才會顯示趨勢；選好後會同步篩選下方成績。</div></div>
       <div class="trend-controls" aria-label="成績趨勢篩選條件">
         <label class="trend-control"><span>項目（距離／泳式）</span><select id="trendEventSelect" aria-label="成績趨勢項目"></select></label>
         <label class="trend-control"><span>池別</span><select id="trendPoolSelect" aria-label="成績趨勢池別"></select></label>
@@ -353,14 +360,13 @@ const renderInsights = (matches, query) => {
     insightsPanel.hidden = true;
     return;
   }
-  const selectedKey = options.some(([key]) => key === activeTrendKey)
-    ? activeTrendKey
-    : options.find(([key]) => trendKeyParts(key)[0] === eventSelect.value)?.[0] || options[0][0];
+  const selectedKey = options.some(([key]) => key === activeTrendKey) ? activeTrendKey : '';
   activeTrendKey = selectedKey;
   trendListKey = selectedKey;
   insightsPanel.hidden = false;
   renderTrendControls(swimmerName, swimmerName, selectedKey);
-  renderTrendChart(selectedKey);
+  if (selectedKey) renderTrendChart(selectedKey);
+  else renderTrendPrompt('');
 };
 
 const performanceMarkup = row => {
