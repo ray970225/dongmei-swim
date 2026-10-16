@@ -119,6 +119,15 @@ function renderHeroBest(groups) {
 }
 
 function formatMeet(row) { return row.meets?.name || row.meet_name || '賽事名稱未列'; }
+function splitMatchKey(row) {
+  return [
+    String(row.source_swimmer_id || row.swimmer_id || ''),
+    normalizeName(row.event_name || row.event),
+    String(row.competition_date || ''),
+    normalizeName(row.meets?.name || row.competition || row.meet_name),
+    Number(row.time_milliseconds) || ''
+  ].join('\u0001');
+}
 
 function renderTrend(groups) {
   const key = `${selectedEvent}\u0001${selectedPool}`;
@@ -174,8 +183,8 @@ function renderRecent(rows) {
 }
 
 function renderSplits(snapshot, rows) {
-  const visibleIds=new Set(rows.map(row=>String(row.id)));
-  const visible=snapshot.filter(row=>visibleIds.has(String(row.id)) && splitSegments(row.splits,row.time_milliseconds).length>1)
+  const visibleKeys=new Set(rows.map(splitMatchKey));
+  const visible=snapshot.filter(row=>visibleKeys.has(splitMatchKey(row)) && splitSegments(row.splits,row.time_milliseconds).length>1)
     .sort((a,b)=>byDate(b,a)).slice(0,12);
   if(!visible.length)return;
   $('#splitSection').hidden=false;
@@ -219,7 +228,11 @@ async function start() {
       const response=await supabase.from('results').select('id,athlete_id,event_name,competition_date,team_name,rank,time_text,time_milliseconds,pool_type,round_name,age_group,meet_id,meets(name)').in('athlete_id',matchedAthletes.map(row=>row.id)).order('competition_date',{ascending:false});
       if(response.error&&isNetworkUnavailable(response.error)) throw response.error;
       if(response.error){setState('成績暫時無法載入','請稍後再試。');return;}
-      resultRows=response.data||[];
+      const athletesById = new Map(matchedAthletes.map(person => [String(person.id), person]));
+      resultRows=(response.data||[]).map(row=>{
+        const person=athletesById.get(String(row.athlete_id));
+        return {...row,source_swimmer_id:person?.source_swimmer_id,swimmer:person?.full_name};
+      });
     } catch (error) {
       // A failed network hop should not hide the public snapshot already shipped with the site.
       // Database authorization/query errors above remain authoritative and do not reach this path.
