@@ -97,7 +97,7 @@ async function loadHonours() {
   const errorEl   = document.getElementById('honoursError');
   const [manualResult, automaticResult] = await Promise.allSettled([
     loadManualHonours(),
-    fetch('data/swim-honours.json', { cache: 'no-store' }).then(async response => {
+    fetch('data/swim-honours-public.json', { cache: 'no-cache' }).then(async response => {
       if (!response.ok) throw new Error(`自動榮譽資料載入失敗：${response.status}`);
       const data = await response.json();
       if (!Array.isArray(data)) throw new Error('自動榮譽資料格式錯誤');
@@ -109,9 +109,12 @@ async function loadHonours() {
     ? manualResult.value
     : [];
   const automaticHonours = automaticResult.status === 'fulfilled' ? automaticResult.value : [];
-  allHonours = [...automaticHonours, ...manualHonours]
-    .filter((row, index, rows) => rows.findIndex(other =>
-      other.event === row.event && other.name === row.name && String(other.year) === String(row.year)) === index)
+  const uniqueHonours = new Map();
+  for (const row of [...automaticHonours, ...manualHonours]) {
+    const key = `${row.event}\u0000${row.name}\u0000${String(row.year)}`;
+    if (!uniqueHonours.has(key)) uniqueHonours.set(key, row);
+  }
+  allHonours = [...uniqueHonours.values()]
     .sort((a, b) => String(b.date || b.year || '').localeCompare(String(a.date || a.year || '')) ||
       Number(a.best_rank || 99) - Number(b.best_rank || 99));
 

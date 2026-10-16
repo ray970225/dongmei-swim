@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createAutomaticHonours } from './honours.mjs';
+import { createAutomaticHonours, createPublicHonours } from './honours.mjs';
 import { createSearchFacets } from './search-facets.mjs';
 import { normalizeCumulativeSplits } from '../assets/js/split-times.js';
 
@@ -11,6 +11,7 @@ const CONFIG_FILE = new URL('./swim-config.json', import.meta.url);
 const DATA_FILE = new URL('./data/swim-results.json', ROOT);
 const META_FILE = new URL('./data/swim-results-meta.json', ROOT);
 const HONOURS_FILE = new URL('./data/swim-honours.json', ROOT);
+const PUBLIC_HONOURS_FILE = new URL('./data/swim-honours-public.json', ROOT);
 const SYNC_STATUS_FILE = new URL('./data/swim-sync-status.json', ROOT);
 const FACETS_FILE = new URL('./data/swim-search-facets.json', ROOT);
 const statePath = fileURLToPath(STATE_FILE);
@@ -46,10 +47,10 @@ async function loadConfig() {
   };
 }
 
-async function writeJsonAtomically(url, value) {
+async function writeJsonAtomically(url, value, compact = false) {
   const target = fileURLToPath(url);
   const temp = `${target}.${process.pid}.tmp`;
-  await writeFile(temp, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  await writeFile(temp, compact ? JSON.stringify(value) : `${JSON.stringify(value, null, 2)}\n`, 'utf8');
   await rename(temp, target);
 }
 
@@ -203,6 +204,7 @@ try {
   await mkdir(new URL('./data/', ROOT), { recursive: true });
   await writeJsonAtomically(DATA_FILE, results);
   await writeJsonAtomically(HONOURS_FILE, automaticHonours);
+  await writeJsonAtomically(PUBLIC_HONOURS_FILE, createPublicHonours(automaticHonours), true);
   await writeJsonAtomically(META_FILE, metadata);
   await writeJsonAtomically(SYNC_STATUS_FILE, syncStatus);
   await writeJsonAtomically(FACETS_FILE, createSearchFacets(results, syncedAt));

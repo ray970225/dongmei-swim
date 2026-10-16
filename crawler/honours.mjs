@@ -64,3 +64,18 @@ export function createAutomaticHonours(results, syncedAt) {
     })
     .sort((a, b) => String(b.date).localeCompare(String(a.date)) || a.best_rank - b.best_rank || a.name.localeCompare(b.name, 'zh-Hant'));
 }
+
+// Keep only fields used by the public homepage card renderer. The full snapshot
+// remains available to the crawler and Supabase import pipeline.
+export function createPublicHonours(honours) {
+  return honours.map(row => ({
+    cat: row.cat,
+    event: row.event,
+    name: row.name,
+    year: row.year,
+    date: row.date,
+    best_rank: row.best_rank,
+    award: row.award,
+    item_details: (row.item_details || []).map(({ event, time, rank }) => ({ event, time, rank }))
+  }));
+}
