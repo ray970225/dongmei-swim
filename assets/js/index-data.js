@@ -97,7 +97,7 @@ async function loadHonours() {
   const errorEl   = document.getElementById('honoursError');
   const [manualResult, automaticResult] = await Promise.allSettled([
     loadManualHonours(),
-    fetch('data/swim-honours-public.json', { cache: 'no-cache' }).then(async response => {
+    fetch('data/swim-honours-public.json').then(async response => {
       if (!response.ok) throw new Error(`自動榮譽資料載入失敗：${response.status}`);
       const data = await response.json();
       if (!Array.isArray(data)) throw new Error('自動榮譽資料格式錯誤');

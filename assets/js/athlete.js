@@ -5,16 +5,70 @@ const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
 const sourceSwimmerId = params.get('swimmer_id') || '';
 const requestedName = params.get('name') || '';
+const RESULT_FIELDS = [
+  'id', 'swimmer_id', 'swimmer', 'team', 'event', 'competition', 'competition_date',
+  'rank', 'time', 'time_milliseconds', 'pool_type', 'round', 'age_group', 'splits'
+];
 let resultRows = [];
 let selectedEvent = '';
 let selectedPool = '';
 
 function normalizeName(value) { return String(value || '').normalize('NFKC').replace(/[\s　]+/g, '').trim(); }
+function isNetworkUnavailable(error) {
+  const detail = [error?.name, error?.message, error?.details, error?.hint].filter(Boolean).join(' ').toLowerCase();
+  return error instanceof TypeError || /typeerror|failed to fetch|fetch failed|networkerror|network error|load failed|timeout/.test(detail);
+}
+function decodeRows(tuples) {
+  return (Array.isArray(tuples) ? tuples : []).map(tuple => Object.fromEntries(
+    RESULT_FIELDS.map((field, index) => [field, tuple[index] ?? null])
+  ));
+}
+async function fetchRowsForSourceIds(sourceIds, roster = null) {
+  const ids = new Set((sourceIds || []).map(String).filter(Boolean));
+  if (!ids.size) return [];
+  let people = roster;
+  if (!people) {
+    const response = await fetch('data/swim-athletes.json');
+    if (!response.ok) throw new Error(`選手索引 HTTP ${response.status}`);
+    people = await response.json();
+  }
+  const shards = [...new Set((Array.isArray(people) ? people : [])
+    .filter(person => ids.has(String(person.id)))
+    .map(person => String(person.shard).padStart(2, '0')))];
+  const payloads = await Promise.all(shards.map(async shard => {
+    const response = await fetch(`data/swim-athlete-shards/${shard}.json`);
+    if (!response.ok) throw new Error(`選手成績分區 HTTP ${response.status}`);
+    return response.json();
+  }));
+  return payloads.flatMap(decodeRows).filter(row => ids.has(String(row.swimmer_id)));
+}
 function athleteSummary(rows) {
   return {
     full_name: rows[0].full_name,
     source_count: rows.length
   };
+}
+
+async function loadPublicSnapshot(sourceSwimmerId, requestedName) {
+  const rosterResponse = await fetch('data/swim-athletes.json');
+  if (!rosterResponse.ok) throw new Error(`選手索引 HTTP ${rosterResponse.status}`);
+  const roster = await rosterResponse.json();
+  const sourceAthlete = roster.find(person => String(person.id) === sourceSwimmerId);
+  const targetName = requestedName || sourceAthlete?.name || '';
+  const people = roster.filter(person => normalizeName(person.name) === normalizeName(targetName));
+  const sourceSwimmerIds = people.map(person => person.id);
+  const snapshot = await fetchRowsForSourceIds(sourceSwimmerIds, roster);
+  const matchedRows = snapshot.filter(row => normalizeName(row.swimmer) === normalizeName(targetName));
+  const resultRows = matchedRows.map(row => ({
+    ...row,
+    event_name: row.event,
+    competition_date: row.competition_date,
+    time_text: row.time,
+    pool_type: row.pool_type || '池別未列',
+    meets: { name: row.competition || '賽事名稱未列' }
+  }));
+  const athlete = people.length ? athleteSummary(people.map(person => ({ full_name: person.name }))) : null;
+  return { snapshot, sourceSwimmerIds, resultRows, athlete };
 }
 
 function timeText(ms) {
@@ -149,34 +203,32 @@ async function start() {
   let supabase = null;
   let athlete;
   let snapshot = null;
+  let sourceSwimmerIds = [];
   if (isSupabaseConfigured()) {
-    supabase=await getSupabase();
-    const {data,error}=await supabase.from('athletes').select('id,source_swimmer_id,full_name,active').eq('active',true).order('full_name');
-    if(error||!data){setState('找不到公開選手資料','此選手資料目前不可公開查閱，或尚未完成資料庫匯入。');return;}
-    const sourceAthlete = data.find(row => row.source_swimmer_id === sourceSwimmerId);
-    const targetName = requestedName || sourceAthlete?.full_name || '';
-    const matchedAthletes = data.filter(row => normalizeName(row.full_name) === normalizeName(targetName));
-    if(!matchedAthletes.length){setState('找不到公開選手資料','此選手資料目前不可公開查閱，或尚未完成資料庫匯入。');return;}
-    athlete=athleteSummary(matchedAthletes);
-    const response=await supabase.from('results').select('id,athlete_id,event_name,competition_date,team_name,rank,time_text,time_milliseconds,pool_type,round_name,age_group,meet_id,meets(name)').in('athlete_id',matchedAthletes.map(row=>row.id)).order('competition_date',{ascending:false});
-    if(response.error){setState('成績暫時無法載入','請稍後再試。');return;}
-    resultRows=response.data||[];
+    try {
+      supabase=await getSupabase();
+      const {data,error}=await supabase.from('athletes').select('id,source_swimmer_id,full_name,active').eq('active',true).order('full_name');
+      if(error&&isNetworkUnavailable(error)) throw error;
+      if(error||!data){setState('找不到公開選手資料','此選手資料目前不可公開查閱，或尚未完成資料庫匯入。');return;}
+      const sourceAthlete = data.find(row => row.source_swimmer_id === sourceSwimmerId);
+      const targetName = requestedName || sourceAthlete?.full_name || '';
+      const matchedAthletes = data.filter(row => normalizeName(row.full_name) === normalizeName(targetName));
+      if(!matchedAthletes.length){setState('找不到公開選手資料','此選手資料目前不可公開查閱，或尚未完成資料庫匯入。');return;}
+      athlete=athleteSummary(matchedAthletes);
+      sourceSwimmerIds = matchedAthletes.map(row => row.source_swimmer_id).filter(Boolean);
+      const response=await supabase.from('results').select('id,athlete_id,event_name,competition_date,team_name,rank,time_text,time_milliseconds,pool_type,round_name,age_group,meet_id,meets(name)').in('athlete_id',matchedAthletes.map(row=>row.id)).order('competition_date',{ascending:false});
+      if(response.error&&isNetworkUnavailable(response.error)) throw response.error;
+      if(response.error){setState('成績暫時無法載入','請稍後再試。');return;}
+      resultRows=response.data||[];
+    } catch (error) {
+      // A failed network hop should not hide the public snapshot already shipped with the site.
+      // Database authorization/query errors above remain authoritative and do not reach this path.
+      if (!isNetworkUnavailable(error)) throw error;
+      console.warn('選手成績使用公開快照：資料庫代理暫時無法連線。');
+      ({ snapshot, sourceSwimmerIds, resultRows, athlete } = await loadPublicSnapshot(sourceSwimmerId, requestedName));
+    }
   } else {
-    // Compatibility view over the already-public legacy snapshot until Supabase is configured.
-    const response=await fetch('data/swim-results.json',{cache:'no-cache'});
-    if(!response.ok)throw new Error(`成績載入失敗：${response.status}`);
-    snapshot=await response.json();
-    const sourceAthlete = snapshot.find(row => String(row.swimmer_id) === sourceSwimmerId);
-    const targetName = requestedName || sourceAthlete?.swimmer || '';
-    const matchedRows = snapshot.filter(row => normalizeName(row.swimmer) === normalizeName(targetName));
-    resultRows=matchedRows.map(row=>({
-      ...row,event_name:row.event,competition_date:row.competition_date,time_text:row.time,
-      pool_type:row.pool_type||'池別未列',meets:{name:row.competition||'賽事名稱未列'}
-    }));
-    const people = [...new Map(matchedRows.map(row => [row.swimmer_id, {
-      source_swimmer_id: row.swimmer_id, full_name: row.swimmer
-    }])).values()];
-    athlete=people.length?athleteSummary(people):null;
+    ({ snapshot, sourceSwimmerIds, resultRows, athlete } = await loadPublicSnapshot(sourceSwimmerId, requestedName));
   }
   if(!athlete){setState('找不到選手資料','此選手尚無可查閱的公開成績。');return;}
   if(!resultRows.length){setState('目前沒有公開成績','之後同步到的公開紀錄會顯示在這裡。');return;}
@@ -196,10 +248,7 @@ async function start() {
   fillFilters(groups);renderHeroBest(groups);renderTrend(groups);renderRecent(resultRows);
   $('#eventFilter').addEventListener('change',()=>{selectedEvent=$('#eventFilter').value;selectedPool='';fillFilters(groups);renderHeroBest(groups);renderTrend(groups);});
   $('#poolFilter').addEventListener('change',()=>{selectedPool=$('#poolFilter').value;renderHeroBest(groups);renderTrend(groups);});
-  if(!snapshot){
-    const response=await fetch('data/swim-results.json',{cache:'no-cache'});
-    if(response.ok) snapshot=await response.json();
-  }
+  if (!snapshot) snapshot = await fetchRowsForSourceIds(sourceSwimmerIds);
   if(Array.isArray(snapshot))renderSplits(snapshot,resultRows);
 }
 

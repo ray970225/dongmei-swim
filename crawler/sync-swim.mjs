@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createAutomaticHonours, createPublicHonours } from './honours.mjs';
 import { createSearchFacets } from './search-facets.mjs';
+import { writePublicResultData } from './build-public-data.mjs';
 import { normalizeCumulativeSplits } from '../assets/js/split-times.js';
 
 const ROOT = new URL('../', import.meta.url);
@@ -203,6 +204,7 @@ try {
   // 僅在所有 API 請求成功後才取代網站資料，避免失敗時把有效資料清空。
   await mkdir(new URL('./data/', ROOT), { recursive: true });
   await writeJsonAtomically(DATA_FILE, results);
+  await writePublicResultData(results);
   await writeJsonAtomically(HONOURS_FILE, automaticHonours);
   await writeJsonAtomically(PUBLIC_HONOURS_FILE, createPublicHonours(automaticHonours), true);
   await writeJsonAtomically(META_FILE, metadata);

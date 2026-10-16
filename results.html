@@ -56,7 +56,7 @@
         </label>
       </div>
       <div class="meta">
-        <strong id="metaText">資料載入中...</strong>
+        <strong id="metaText" role="status" aria-live="polite">資料載入中...</strong>
         <span id="updatedAt">最後更新時間載入中...</span>
         <span class="source">資料來源：游泳成績通</span>
       </div>
@@ -68,11 +68,15 @@
       <div class="list" id="resultsList">
         <div class="empty">成績資料載入後，可直接瀏覽全部紀錄，或輸入姓名、選擇賽事與項目篩選。</div>
       </div>
+      <div class="load-all-row">
+        <p id="loadAllHint" class="load-all-hint">先顯示最新成績；查詢姓名、賽事或項目時會載入完整紀錄。</p>
+        <button id="loadAllResults" class="load-all-button" type="button" hidden>載入全部成績</button>
+      </div>
       <nav class="results-pagination" id="resultsPagination" aria-label="成績列表分頁"></nav>
     </section>
   </main>
 
 <script src="assets/js/runtime-config.js"></script>
-<script type="module" src="assets/js/results.js?v=20261015-splits"></script>
+<script type="module" src="assets/js/results.js?v=20261016-progressive-data"></script>
 </body>
 </html>

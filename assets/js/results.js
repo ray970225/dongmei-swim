@@ -12,9 +12,18 @@ const updateNote = document.getElementById('updateNote');
 const updateSummary = document.getElementById('updateSummary');
 const insightsPanel = document.getElementById('insightsPanel');
 const pagination = document.getElementById('resultsPagination');
+const loadAllButton = document.getElementById('loadAllResults');
+const loadAllHint = document.getElementById('loadAllHint');
 const RESULTS_PER_PAGE = 24;
 const TREND_DISPLAY_LIMIT = 10;
+const RESULT_FIELDS = [
+  'id', 'swimmer_id', 'swimmer', 'team', 'event', 'competition', 'competition_date',
+  'rank', 'time', 'time_milliseconds', 'pool_type', 'round', 'age_group', 'splits'
+];
 let rows = [];
+let fullRowsLoaded = false;
+let fullRowsPromise = null;
+let searchFacets = null;
 let performanceByResult = new Map();
 let trendSeriesByKey = new Map();
 let trendResizeTimer = null;
@@ -27,6 +36,11 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
 }[char]));
 const uniqueSorted = values => [...new Set(values.filter(Boolean))]
   .sort((a, b) => String(a).localeCompare(String(b), 'zh-Hant'));
+const decodeRows = tuples => (Array.isArray(tuples) ? tuples : []).map(tuple => Object.fromEntries(
+  RESULT_FIELDS.map((field, index) => [field, tuple[index] ?? null])
+));
+const newestFirst = (a, b) => String(b.competition_date || '').localeCompare(String(a.competition_date || ''))
+  || String(a.id || '').localeCompare(String(b.id || ''));
 const newestCompetitionsFirst = sourceRows => {
   const latestDateByCompetition = new Map();
   sourceRows.forEach(row => {
@@ -145,6 +159,10 @@ const setOptions = (select, values, defaultLabel, selected = '') => {
 const syncEventOptions = () => {
   const competition = competitionSelect.value;
   const currentEvent = eventSelect.value;
+  if (!fullRowsLoaded) {
+    setOptions(eventSelect, uniqueSorted(searchFacets?.events || []), '全部項目', currentEvent);
+    return;
+  }
   const matchingRows = competition ? rows.filter(row => row.competition === competition) : rows;
   setOptions(eventSelect, uniqueSorted(matchingRows.map(row => row.event)), '全部項目', currentEvent);
 };
@@ -419,15 +437,16 @@ const render = (query, requestedPage = 1) => {
   const q = query.trim();
   const competition = competitionSelect.value;
   const event = eventSelect.value;
-  const matches = rows
-    .filter(row => !q || String(row.swimmer || '').includes(q))
-    .filter(row => !competition || row.competition === competition)
-    .filter(row => !event || row.event === event)
-    .sort((a, b) => String(b.competition_date || '').localeCompare(String(a.competition_date || '')));
+  const matches = rows.filter(row =>
+    (!q || String(row.swimmer || '').includes(q))
+    && (!competition || row.competition === competition)
+    && (!event || row.event === event)
+  );
   if (!matches.length) {
     renderInsights([], '');
     list.innerHTML = '<div class="empty">目前沒有符合的同步資料。可調整姓名、賽事或項目後再試一次。</div>';
     pagination.innerHTML = '';
+    meta.textContent = '找到 0 筆符合的成績';
     return;
   }
 
@@ -438,7 +457,9 @@ const render = (query, requestedPage = 1) => {
   const displayRows = trendRows?.length ? [...trendRows].reverse() : matches;
   const summary = selectionSummary(competitionSelect.value, eventSelect.value);
   const trendSummary = trendRows?.length ? `｜趨勢：${trendKeyParts(trendListKey).join(' · ')}` : '';
-  meta.textContent = `找到 ${displayRows.length} 筆成績${summary}${trendSummary}`;
+  meta.textContent = fullRowsLoaded
+    ? `找到 ${displayRows.length} 筆成績${summary}${trendSummary}`
+    : `最新 ${displayRows.length} 筆成績${syncedResultCount ? `｜完整資料共 ${syncedResultCount.toLocaleString('zh-TW')} 筆` : ''}`;
   const totalPages = Math.ceil(displayRows.length / RESULTS_PER_PAGE);
   const page = Math.min(Math.max(requestedPage, 1), totalPages);
   const pageRows = displayRows.slice((page - 1) * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE);
@@ -474,14 +495,77 @@ const search = (resetPage = true) => {
   render(q, resetPage ? 1 : Number(pagination.dataset.page || 1));
 };
 
-button.addEventListener('click', () => search(true));
-input.addEventListener('keydown', event => { if (event.key === 'Enter') search(); });
-competitionSelect.addEventListener('change', () => { syncEventOptions(); search(); });
-eventSelect.addEventListener('change', () => search());
+async function ensureFullResults() {
+  if (fullRowsLoaded) return rows;
+  if (fullRowsPromise) return fullRowsPromise;
+
+  loadAllButton.disabled = true;
+  loadAllButton.textContent = '正在載入完整成績…';
+  meta.textContent = '正在載入完整成績資料…';
+  fullRowsPromise = fetch('data/swim-results-public.json').then(response => {
+    if (!response.ok) throw new Error(`成績資料 HTTP ${response.status}`);
+    return response.json();
+  }).then(tuples => {
+    rows = decodeRows(tuples).sort(newestFirst);
+    buildPerformanceIndex(rows);
+    fullRowsLoaded = true;
+    setOptions(competitionSelect, newestCompetitionsFirst(rows), '全部賽事', competitionSelect.value);
+    setOptions(eventSelect, uniqueSorted(rows.map(row => row.event)), '全部項目', eventSelect.value);
+    syncEventOptions();
+    loadAllButton.hidden = true;
+    loadAllHint.hidden = true;
+    return rows;
+  }).catch(error => {
+    loadAllButton.disabled = false;
+    loadAllButton.hidden = false;
+    loadAllButton.textContent = `載入全部 ${syncedResultCount.toLocaleString('zh-TW')} 筆成績`;
+    loadAllHint.hidden = true;
+    meta.textContent = `完整成績暫時無法載入：${escapeHtml(error.message)}。請再試一次。`;
+    throw error;
+  }).finally(() => {
+    fullRowsPromise = null;
+  });
+
+  return fullRowsPromise;
+}
+
+const searchFull = async (resetPage = true) => {
+  try {
+    await ensureFullResults();
+    search(resetPage);
+  } catch { /* Error and retry control are already visible in the search panel. */ }
+};
+
+button.addEventListener('click', () => {
+  if (input.value.trim() || competitionSelect.value || eventSelect.value) void searchFull(true);
+  else search(true);
+});
+input.addEventListener('keydown', event => {
+  if (event.key === 'Enter') {
+    if (input.value.trim() || competitionSelect.value || eventSelect.value) void searchFull();
+    else search();
+  }
+});
+competitionSelect.addEventListener('change', () => {
+  if (!fullRowsLoaded) {
+    void ensureFullResults().then(() => {
+      syncEventOptions();
+      search(true);
+    }).catch(() => {});
+  } else {
+    syncEventOptions();
+    search();
+  }
+});
+eventSelect.addEventListener('change', () => {
+  if (!fullRowsLoaded) void searchFull(true);
+  else search();
+});
+loadAllButton.addEventListener('click', () => void searchFull(true));
 clearButton.addEventListener('click', () => {
   input.value = '';
   competitionSelect.value = '';
-  syncEventOptions();
+  if (fullRowsLoaded) syncEventOptions();
   search();
   input.focus();
 });
@@ -491,7 +575,8 @@ pagination.addEventListener('click', event => {
   const page = Number(pageButton.dataset.page);
   pagination.dataset.page = String(page);
   render(input.value, page);
-  list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  list.scrollIntoView({ behavior, block: 'start' });
 });
 window.addEventListener('resize', () => {
   window.clearTimeout(trendResizeTimer);
@@ -501,34 +586,51 @@ window.addEventListener('resize', () => {
 });
 
 async function loadResultSource() {
-  const [resultRows, metadata, syncStatus] = await Promise.all([
-    fetch('data/swim-results.json', { cache: 'no-cache' }).then(response => {
-      if (!response.ok) throw new Error(`成績資料 HTTP ${response.status}`);
+  const [recentResult, metadata, syncStatus, facets] = await Promise.all([
+    fetch('data/swim-results-recent.json').then(response => {
+      if (!response.ok) throw new Error(`最新成績 HTTP ${response.status}`);
       return response.json();
     }),
-    fetch('data/swim-results-meta.json', { cache: 'no-cache' }).then(response => response.ok ? response.json() : null),
-    fetch('data/swim-sync-status.json', { cache: 'no-cache' })
-      .then(response => response.ok ? response.json() : null)
-      .catch(() => null)
+    fetch('data/swim-results-meta.json').then(response => response.ok ? response.json() : null).catch(() => null),
+    fetch('data/swim-sync-status.json').then(response => response.ok ? response.json() : null).catch(() => null),
+    fetch('data/swim-search-facets.json').then(response => response.ok ? response.json() : null).catch(() => null)
   ]);
-  return { resultRows, metadata, syncStatus };
+  return { recentResult, metadata, syncStatus, facets };
 }
 
 loadResultSource()
-  .then(({ resultRows, metadata, syncStatus }) => {
+  .then(async ({ recentResult, metadata, syncStatus, facets }) => {
     const params = new URLSearchParams(location.search);
     const initialCompetition = params.get('competition') || '';
     const initialEvent = params.get('event') || '';
-    rows = Array.isArray(resultRows) ? resultRows : [];
-    buildPerformanceIndex(rows);
-    setOptions(competitionSelect, newestCompetitionsFirst(rows), '全部賽事', initialCompetition);
-    setOptions(eventSelect, uniqueSorted(rows.map(row => row.event)), '全部項目', initialEvent);
+    searchFacets = facets;
+    rows = (Array.isArray(recentResult) ? recentResult : []).map(tuple => {
+      const row = Object.fromEntries(RESULT_FIELDS.map((field, index) => [field, tuple[index] ?? null]));
+      const previousTime = tuple[RESULT_FIELDS.length + 1];
+      performanceByResult.set(row.id, {
+        isPb: Boolean(tuple[RESULT_FIELDS.length]),
+        difference: previousTime === null || previousTime === undefined ? null : previousTime - Number(row.time_milliseconds)
+      });
+      return row;
+    }).sort(newestFirst);
+    const competitionNames = (facets?.competitions || []).map(item => item.name);
+    setOptions(competitionSelect, competitionNames.length ? competitionNames : newestCompetitionsFirst(rows), '全部賽事', initialCompetition);
+    setOptions(eventSelect, uniqueSorted(facets?.events || rows.map(row => row.event)), '全部項目', initialEvent);
     updatedAt.textContent = formatUpdatedAt(metadata?.synced_at);
     renderUpdateNote(syncStatus);
-    syncedResultCount = rows.length || Number(metadata?.result_count) || 0;
+    syncedResultCount = Number(metadata?.result_count) || rows.length;
     input.value = params.get('q') || '';
     clearButton.hidden = !input.value && !competitionSelect.value && !eventSelect.value;
-    meta.textContent = `${syncedResultCount.toLocaleString('zh-TW')} 筆成績已載入，可直接查詢或用賽事／項目篩選`;
+
+    const hasInitialSearch = Boolean(input.value.trim() || competitionSelect.value || eventSelect.value);
+    loadAllButton.hidden = hasInitialSearch || !syncedResultCount;
+    loadAllButton.textContent = `載入全部 ${syncedResultCount.toLocaleString('zh-TW')} 筆成績`;
+    loadAllHint.hidden = hasInitialSearch || !syncedResultCount;
+    if (hasInitialSearch) {
+      await ensureFullResults();
+      setOptions(eventSelect, uniqueSorted(rows.map(row => row.event)), '全部項目', params.get('event') || '');
+      syncEventOptions();
+    }
     search();
   })
   .catch(error => {

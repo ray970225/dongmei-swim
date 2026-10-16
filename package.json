@@ -11,6 +11,7 @@
     "swim:discover": "node crawler/discover-swim.mjs",
     "swim:sync": "node crawler/sync-swim.mjs",
     "swim:honours": "node crawler/rebuild-honours.mjs",
+    "swim:public-data": "node crawler/build-public-data.mjs",
     "swim:facets": "node crawler/build-search-facets.mjs",
     "swim:query": "node crawler/query-local.mjs",
     "swim:check": "node crawler/check-snapshot.mjs",

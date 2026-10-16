@@ -8,17 +8,22 @@ function normalizeName(value) {
   return String(value || '').normalize('NFKC').replace(/[\s　]+/g, '').trim();
 }
 
+function isNetworkUnavailable(error) {
+  const detail = [error?.name, error?.message, error?.details, error?.hint].filter(Boolean).join(' ').toLowerCase();
+  return error instanceof TypeError || /typeerror|failed to fetch|fetch failed|networkerror|network error|load failed|timeout/.test(detail);
+}
+
 function mergeAthletes(rows) {
   const groups = new Map();
-  rows.filter(athlete => athlete.source_swimmer_id).forEach(athlete => {
-    const key = normalizeName(athlete.full_name);
+  rows.filter(athlete => athlete.source_swimmer_id || athlete.id).forEach(athlete => {
+    const key = normalizeName(athlete.full_name || athlete.name);
     if (!key) return;
     if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(athlete);
+    groups.get(key).push({ ...athlete, source_swimmer_id: athlete.source_swimmer_id || athlete.id });
   });
   return [...groups.values()].map(group => {
     return {
-      full_name: group[0].full_name.trim(),
+      full_name: String(group[0].full_name || group[0].name || '').trim(),
       athlete_ids: group.map(athlete => athlete.id).filter(Boolean)
     };
   }).sort((a, b) => String(a.full_name).localeCompare(String(b.full_name), 'zh-Hant'));
@@ -47,26 +52,29 @@ function render() {
 
 async function load() {
   if (isSupabaseConfigured()) {
-    const supabase = await getSupabase();
-    const { data, error } = await supabase.from('athletes')
-      .select('id,source_swimmer_id,full_name,active').eq('active', true).order('full_name');
-    if (error) throw error;
-    athletes = mergeAthletes(data || []);
-  } else {
-    const response = await fetch('data/swim-results.json');
-    if (!response.ok) throw new Error('公開成績資料載入失敗。');
-    const rows = await response.json();
-    const unique = new Map();
-    rows.forEach(row => {
-      if (!row.swimmer_id || unique.has(row.swimmer_id)) return;
-      unique.set(row.swimmer_id, {
-        id: row.swimmer_id,
-        source_swimmer_id: row.swimmer_id,
-        full_name: row.swimmer
-      });
-    });
-    athletes = mergeAthletes([...unique.values()]);
+    try {
+      const supabase = await getSupabase();
+      const { data, error } = await supabase.from('athletes')
+        .select('id,source_swimmer_id,full_name,active').eq('active', true).order('full_name');
+      if (error) throw error;
+      athletes = mergeAthletes(data || []);
+      render();
+      return;
+    } catch (error) {
+      // The static roster contains only the same public records published with the site.
+      // Use it only when the proxy is unreachable; keep authorization and query errors visible.
+      if (!isNetworkUnavailable(error)) throw error;
+      console.warn('選手名單使用公開快照：資料庫代理暫時無法連線。');
+    }
   }
+  const response = await fetch('data/swim-athletes.json');
+  if (!response.ok) throw new Error('公開成績資料載入失敗。');
+  const roster = await response.json();
+  athletes = mergeAthletes((Array.isArray(roster) ? roster : []).map(person => ({
+    id: person.id,
+    source_swimmer_id: person.id,
+    full_name: person.name
+  })));
   render();
 }
 

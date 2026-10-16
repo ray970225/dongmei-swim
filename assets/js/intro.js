@@ -19,6 +19,13 @@
   window.addEventListener('DOMContentLoaded', function () {
     var overlay = document.getElementById('intro-overlay');
     var brandEl = document.getElementById('intro-brand');
+    if (!overlay || !brandEl) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      brandEl.textContent = TARGET;
+      document.body.classList.add('intro-done');
+      return;
+    }
+    document.body.classList.add('intro-running');
     var isMobile = window.matchMedia('(max-width: 640px)').matches;
     var scrambleInterval = isMobile ? 90 : 55;
     var scrambleDelay = isMobile ? 420 : 600;

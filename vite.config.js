@@ -1,4 +1,4 @@
-import { readdirSync, cpSync, copyFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readdirSync, cpSync, copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -25,6 +25,11 @@ export default defineConfig({
         for (const directory of ['data', 'assets/images']) {
           const source = resolve(process.cwd(), directory);
           if (existsSync(source)) cpSync(source, resolve(output, directory), { recursive: true });
+        }
+        // Keep the formatted source snapshots in the repository for sync/import jobs;
+        // browsers use the compact public data generated specifically for the UI.
+        for (const file of ['swim-results.json', 'swim-honours.json']) {
+          rmSync(resolve(output, 'data', file), { force: true });
         }
         mkdirSync(resolve(output, 'assets/js'), { recursive: true });
         for (const file of ['intro.js', 'index.js', 'results.js']) {
