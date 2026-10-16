@@ -36,8 +36,10 @@ export default defineConfig({
           const source = resolve(process.cwd(), 'assets/js', file);
           if (existsSync(source)) copyFileSync(source, resolve(output, 'assets/js', file));
         }
-        const robots = resolve(process.cwd(), 'robots.txt');
-        if (existsSync(robots)) copyFileSync(robots, resolve(output, 'robots.txt'));
+        for (const file of ['robots.txt', 'sitemap.xml']) {
+          const source = resolve(process.cwd(), file);
+          if (existsSync(source)) copyFileSync(source, resolve(output, file));
+        }
       },
     },
   ],
