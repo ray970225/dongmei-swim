@@ -1,4 +1,4 @@
-import { readdirSync, cpSync, copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { readdirSync, cpSync, copyFileSync, existsSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -16,25 +16,28 @@ export default defineConfig({
     {
       name: 'tmsc-static-site-files',
       apply: 'build',
-      transformIndexHtml(html) {
-        // This file is an ignored, local-only override and must never enter the public build.
-        return html.replace(/\s*<script src="assets\/js\/runtime-config\.js"><\/script>/g, '');
+      transformIndexHtml: {
+        order: 'pre',
+        handler(html) {
+          // This ignored local override must never enter the public build.
+          return html.replace(/\s*<script src="assets\/js\/runtime-config\.js"><\/script>/g, '');
+        },
       },
       closeBundle() {
         const output = resolve(process.cwd(), 'dist');
-        for (const directory of ['data', 'assets/images']) {
-          const source = resolve(process.cwd(), directory);
-          if (existsSync(source)) cpSync(source, resolve(output, directory), { recursive: true });
-        }
+        const dataSource = resolve(process.cwd(), 'data');
+        if (existsSync(dataSource)) cpSync(dataSource, resolve(output, 'data'), { recursive: true });
+        const imageSource = resolve(process.cwd(), 'assets/images');
+        // Vite emits the images used by HTML with content hashes. Keep original JPG
+        // URLs for social previews and existing links, but omit unused large PNG masters.
+        if (existsSync(imageSource)) cpSync(imageSource, resolve(output, 'assets/images'), {
+          recursive: true,
+          filter: path => !path.toLowerCase().endsWith('.png'),
+        });
         // Keep the formatted source snapshots in the repository for sync/import jobs;
         // browsers use the compact public data generated specifically for the UI.
         for (const file of ['swim-results.json', 'swim-honours.json']) {
           rmSync(resolve(output, 'data', file), { force: true });
-        }
-        mkdirSync(resolve(output, 'assets/js'), { recursive: true });
-        for (const file of ['intro.js', 'index.js', 'results.js']) {
-          const source = resolve(process.cwd(), 'assets/js', file);
-          if (existsSync(source)) copyFileSync(source, resolve(output, 'assets/js', file));
         }
         for (const file of ['robots.txt', 'sitemap.xml']) {
           const source = resolve(process.cwd(), file);

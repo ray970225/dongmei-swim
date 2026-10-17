@@ -8,6 +8,7 @@
       --line: rgba(255,255,255,.12);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    ::selection { background: var(--aqua); color: var(--navy); }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     html { scroll-behavior: smooth; }
     body {
@@ -20,6 +21,7 @@
         linear-gradient(180deg, #06182b 0%, #073354 52%, #06182b 100%);
     }
     a { color: inherit; text-decoration: none; }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     .topbar {
       position: sticky;
       top: 0;
@@ -106,7 +108,7 @@
       font: inherit;
       outline: none;
     }
-    input::placeholder { color: rgba(255,255,255,.38); }
+    input::placeholder { color: rgba(255,255,255,.75); }
     input:focus, select:focus {
       border-color: var(--aqua);
       box-shadow: 0 0 0 4px rgba(36,195,223,.16);
@@ -359,6 +361,7 @@
       .search-panel { margin-top: 1.3rem; border-radius: 20px; }
       .searchbar { grid-template-columns: 1fr; gap: .65rem; padding: .8rem; }
       .search-actions { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+      #searchBtn { grid-column: 2; }
       .search-actions button { min-height: 3rem; padding: 0 .9rem; }
       .filterbar { grid-template-columns: 1fr; }
       .meta { display: grid; gap: .45rem; padding: .85rem 1rem; font-size: .78rem; }

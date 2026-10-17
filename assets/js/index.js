@@ -1,11 +1,20 @@
 /* ─── NAV ─── */
-function toggleMenu() {
-  document.getElementById('navLinks').classList.toggle('open');
-}
+const navLinks = document.getElementById('navLinks');
+const menuButton = document.getElementById('hamburger');
+const setMenuOpen = open => {
+  navLinks.classList.toggle('open', open);
+  menuButton.setAttribute('aria-expanded', String(open));
+  menuButton.setAttribute('aria-label', open ? '關閉選單' : '開啟選單');
+};
+menuButton.addEventListener('click', () => setMenuOpen(!navLinks.classList.contains('open')));
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && navLinks.classList.contains('open')) {
+    setMenuOpen(false);
+    menuButton.focus();
+  }
+});
 document.querySelectorAll('#navLinks a[href^="#"]').forEach(link => {
-  link.addEventListener('click', () => {
-    document.getElementById('navLinks').classList.remove('open');
-  });
+  link.addEventListener('click', () => setMenuOpen(false));
 });
 
 /* ─── SCROLL REVEAL ─── */

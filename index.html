@@ -58,7 +58,7 @@
   <div id="intro-brand"></div>
 </div>
 
-<script src="assets/js/intro.js" defer></script>
+<script type="module" src="assets/js/intro.js"></script>
 
 <!-- ═══════════════════════════════════════════
      NAV
@@ -75,9 +75,9 @@
     <li><a href="results.html" class="nav-score">成績查詢</a></li>
     <li><a href="#recruit" class="nav-cta">立即報名</a></li>
   </ul>
-  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+  <button class="hamburger" id="hamburger" type="button" aria-label="開啟選單" aria-controls="navLinks" aria-expanded="false">
     <span></span><span></span><span></span>
-  </div>
+  </button>
 </nav>
 
 <!-- ═══════════════════════════════════════════
@@ -571,7 +571,7 @@
 <!-- ═══════════════════════════════════════════
      JAVASCRIPT
 ═══════════════════════════════════════════ -->
-<script src="assets/js/index.js"></script>
+<script type="module" src="assets/js/index.js"></script>
 
 <script type="module" src="assets/js/index-data.js?v=20260925-supabase"></script>
 </body>

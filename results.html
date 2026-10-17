@@ -31,15 +31,14 @@
   </header>
 
   <main>
-    <p class="eyebrow">RESULT SEARCH</p>
     <h1>成績<span>查詢</span></h1>
     <p class="lead">
-      可查詢東美泳隊、高雄市新莊高中與高雄市大仁國中相關公開成績；輸入選手姓名或選擇賽事、項目即可篩選。資料來源為游泳成績通，本頁只顯示已同步到東美網站的資料。
+      查詢東美泳隊、新莊高中與大仁國中的公開游泳成績。輸入姓名或選擇賽事、項目即可篩選；資料同步自游泳成績通。
     </p>
     <section class="search-panel" aria-label="東美選手成績查詢">
       <div class="searchbar">
         <label class="sr-only" for="searchInput">選手姓名</label>
-        <input id="searchInput" type="search" placeholder="輸入選手姓名，例如：李瀚、胡閔惟、郭叡" autocomplete="off" enterkeyhint="search">
+        <input id="searchInput" type="search" placeholder="輸入選手姓名" autocomplete="off" enterkeyhint="search">
         <div class="search-actions">
           <button id="clearBtn" class="clear-btn" type="button" hidden>清除</button>
           <button id="searchBtn" type="button">查詢成績</button>
@@ -69,7 +68,7 @@
         <div class="empty">成績資料載入後，可直接瀏覽全部紀錄，或輸入姓名、選擇賽事與項目篩選。</div>
       </div>
       <div class="load-all-row">
-        <p id="loadAllHint" class="load-all-hint">先顯示最新成績；查詢姓名、賽事或項目時會載入完整紀錄。</p>
+        <p id="loadAllHint" class="load-all-hint">先顯示最新成績；也可以查詢姓名、賽事或項目。</p>
         <button id="loadAllResults" class="load-all-button" type="button" hidden>載入全部成績</button>
       </div>
       <nav class="results-pagination" id="resultsPagination" aria-label="成績列表分頁"></nav>

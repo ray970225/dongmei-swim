@@ -1,4 +1,6 @@
 import { splitSegments, formatSplitTime } from './split-times.js';
+import { RESULT_FIELDS, decodeRows, newestFirst, performanceKey } from './result-data.js';
+import { planNameSearch } from './result-search.js';
 
 const input = document.getElementById('searchInput');
 const button = document.getElementById('searchBtn');
@@ -16,13 +18,18 @@ const loadAllButton = document.getElementById('loadAllResults');
 const loadAllHint = document.getElementById('loadAllHint');
 const RESULTS_PER_PAGE = 24;
 const TREND_DISPLAY_LIMIT = 10;
-const RESULT_FIELDS = [
-  'id', 'swimmer_id', 'swimmer', 'team', 'event', 'competition', 'competition_date',
-  'rank', 'time', 'time_milliseconds', 'pool_type', 'round', 'age_group', 'splits'
-];
 let rows = [];
 let fullRowsLoaded = false;
 let fullRowsPromise = null;
+let fullRows = [];
+let recentRows = [];
+let recentPerformanceByResult = new Map();
+let fullPerformanceByResult = new Map();
+let rosterPromise = null;
+let resultScope = 'recent';
+let searchGeneration = 0;
+let appliedQuery = '';
+const shardPromises = new Map();
 let searchFacets = null;
 let performanceByResult = new Map();
 let trendSeriesByKey = new Map();
@@ -36,11 +43,6 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
 }[char]));
 const uniqueSorted = values => [...new Set(values.filter(Boolean))]
   .sort((a, b) => String(a).localeCompare(String(b), 'zh-Hant'));
-const decodeRows = tuples => (Array.isArray(tuples) ? tuples : []).map(tuple => Object.fromEntries(
-  RESULT_FIELDS.map((field, index) => [field, tuple[index] ?? null])
-));
-const newestFirst = (a, b) => String(b.competition_date || '').localeCompare(String(a.competition_date || ''))
-  || String(a.id || '').localeCompare(String(b.id || ''));
 const newestCompetitionsFirst = sourceRows => {
   const latestDateByCompetition = new Map();
   sourceRows.forEach(row => {
@@ -66,10 +68,8 @@ const formatDifference = milliseconds => {
   const seconds = Math.abs(milliseconds) / 1000;
   return seconds < 60 ? `${seconds.toFixed(2)} 秒` : formatTime(Math.abs(milliseconds));
 };
-const swimmerKey = row => row.swimmer_id || row.swimmer || '';
 const swimmerNameKey = row => String(row.swimmer || '').trim();
 const swimmerNames = sourceRows => uniqueSorted(sourceRows.map(swimmerNameKey));
-const performanceKey = row => [swimmerKey(row), row.event || '', row.pool_type || '未列池別'].join('|');
 const trendKey = (event, poolType) => [event || '未列項目', poolType || '未列池別'].join('\u0001');
 const trendKeyParts = key => String(key).split('\u0001');
 const trendEventInfo = event => {
@@ -183,7 +183,7 @@ const buildPerformanceIndex = sourceRows => {
     groups.get(key).push(row);
   });
 
-  performanceByResult = new Map();
+  const index = new Map();
   groups.forEach(group => {
     const ordered = [...group].sort((a, b) =>
       String(a.competition_date || '').localeCompare(String(b.competition_date || '')) ||
@@ -193,7 +193,7 @@ const buildPerformanceIndex = sourceRows => {
     let previous = null;
     ordered.forEach(row => {
       const time = Number(row.time_milliseconds);
-      performanceByResult.set(row.id, {
+      index.set(row.id, {
         isPb: time <= best,
         difference: previous === null ? null : previous - time
       });
@@ -201,6 +201,7 @@ const buildPerformanceIndex = sourceRows => {
       previous = time;
     });
   });
+  return index;
 };
 
 const buildTrendSeries = sourceRows => {
@@ -360,8 +361,13 @@ const activateTrend = key => {
 };
 
 const renderInsights = (matches, query) => {
+  if (!query) {
+    insightsPanel.hidden = true;
+    insightsPanel.innerHTML = '';
+    return;
+  }
   const names = swimmerNames(matches);
-  if (!query || names.length !== 1) {
+  if (names.length !== 1) {
     insightsPanel.hidden = true;
     insightsPanel.innerHTML = '';
     return;
@@ -457,7 +463,7 @@ const render = (query, requestedPage = 1) => {
   const displayRows = trendRows?.length ? [...trendRows].reverse() : matches;
   const summary = selectionSummary(competitionSelect.value, eventSelect.value);
   const trendSummary = trendRows?.length ? `｜趨勢：${trendKeyParts(trendListKey).join(' · ')}` : '';
-  meta.textContent = fullRowsLoaded
+  meta.textContent = resultScope !== 'recent'
     ? `找到 ${displayRows.length} 筆成績${summary}${trendSummary}`
     : `最新 ${displayRows.length} 筆成績${syncedResultCount ? `｜完整資料共 ${syncedResultCount.toLocaleString('zh-TW')} 筆` : ''}`;
   const totalPages = Math.ceil(displayRows.length / RESULTS_PER_PAGE);
@@ -484,6 +490,7 @@ const search = (resetPage = true) => {
   activeTrendKey = '';
   trendListKey = '';
   const q = input.value.trim();
+  appliedQuery = q;
   const url = new URL(location.href);
   const filters = { q, competition: competitionSelect.value, event: eventSelect.value };
   Object.entries(filters).forEach(([key, value]) => {
@@ -495,78 +502,133 @@ const search = (resetPage = true) => {
   render(q, resetPage ? 1 : Number(pagination.dataset.page || 1));
 };
 
+const fetchJson = async (path, label) => {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(`${label} HTTP ${response.status}`);
+  return response.json();
+};
+const optionalJson = path => fetch(path)
+  .then(response => response.ok ? response.json() : null)
+  .catch(() => null);
+
+const setActiveRows = (nextRows, scope) => {
+  if (rows === nextRows && resultScope === scope) return;
+  rows = nextRows;
+  resultScope = scope;
+  performanceByResult = scope === 'recent' ? recentPerformanceByResult
+    : scope === 'full' ? fullPerformanceByResult
+      : buildPerformanceIndex(nextRows);
+};
+
+const updateLoadAllControls = () => {
+  const hasFilters = Boolean(input.value.trim() || competitionSelect.value || eventSelect.value);
+  const show = !fullRowsLoaded && !hasFilters && syncedResultCount > recentRows.length;
+  loadAllButton.hidden = !show;
+  loadAllHint.hidden = !show;
+  loadAllButton.textContent = `載入全部 ${syncedResultCount.toLocaleString('zh-TW')} 筆成績`;
+};
+
 async function ensureFullResults() {
-  if (fullRowsLoaded) return rows;
+  if (fullRowsLoaded) return fullRows;
   if (fullRowsPromise) return fullRowsPromise;
-
-  loadAllButton.disabled = true;
-  loadAllButton.textContent = '正在載入完整成績…';
-  meta.textContent = '正在載入完整成績資料…';
-  fullRowsPromise = fetch('data/swim-results-public.json').then(response => {
-    if (!response.ok) throw new Error(`成績資料 HTTP ${response.status}`);
-    return response.json();
-  }).then(tuples => {
-    rows = decodeRows(tuples).sort(newestFirst);
-    buildPerformanceIndex(rows);
-    fullRowsLoaded = true;
-    setOptions(competitionSelect, newestCompetitionsFirst(rows), '全部賽事', competitionSelect.value);
-    setOptions(eventSelect, uniqueSorted(rows.map(row => row.event)), '全部項目', eventSelect.value);
-    syncEventOptions();
-    loadAllButton.hidden = true;
-    loadAllHint.hidden = true;
-    return rows;
-  }).catch(error => {
-    loadAllButton.disabled = false;
-    loadAllButton.hidden = false;
-    loadAllButton.textContent = `載入全部 ${syncedResultCount.toLocaleString('zh-TW')} 筆成績`;
-    loadAllHint.hidden = true;
-    meta.textContent = `完整成績暫時無法載入：${escapeHtml(error.message)}。請再試一次。`;
-    throw error;
-  }).finally(() => {
-    fullRowsPromise = null;
-  });
-
+  fullRowsPromise = fetchJson('data/swim-results-public.json', '完整成績')
+    .then(tuples => {
+      fullRows = decodeRows(tuples).sort(newestFirst);
+      fullPerformanceByResult = buildPerformanceIndex(fullRows);
+      fullRowsLoaded = true;
+      return fullRows;
+    }).finally(() => { fullRowsPromise = null; });
   return fullRowsPromise;
 }
 
-const searchFull = async (resetPage = true) => {
-  try {
-    await ensureFullResults();
-    search(resetPage);
-  } catch { /* Error and retry control are already visible in the search panel. */ }
-};
+async function ensureNameResults(query) {
+  if (!rosterPromise) {
+    rosterPromise = fetchJson('data/swim-athletes.json', '選手索引')
+      .catch(error => { rosterPromise = null; throw error; });
+  }
+  let roster;
+  try { roster = await rosterPromise; }
+  catch { return { scope: 'full', rows: await ensureFullResults() }; }
+  const plan = planNameSearch(query, roster);
+  if (!plan) {
+    return { scope: 'full', rows: await ensureFullResults() };
+  }
+  if (!plan.ids.size) return { scope: 'name', rows: [] };
 
-button.addEventListener('click', () => {
-  if (input.value.trim() || competitionSelect.value || eventSelect.value) void searchFull(true);
-  else search(true);
-});
-input.addEventListener('keydown', event => {
-  if (event.key === 'Enter') {
-    if (input.value.trim() || competitionSelect.value || eventSelect.value) void searchFull();
-    else search();
+  try {
+    const payloads = await Promise.all(plan.shards.map(shard => {
+      if (!shardPromises.has(shard)) {
+        const pending = fetchJson(`data/swim-athlete-shards/${shard}.json`, '選手成績分區')
+          .then(decodeRows)
+          .catch(error => { shardPromises.delete(shard); throw error; });
+        shardPromises.set(shard, pending);
+      }
+      return shardPromises.get(shard);
+    }));
+    return {
+      scope: 'name',
+      rows: payloads.flat().filter(row => plan.ids.has(String(row.swimmer_id))).sort(newestFirst)
+    };
+  } catch {
+    return { scope: 'full', rows: await ensureFullResults() };
   }
-});
-competitionSelect.addEventListener('change', () => {
-  if (!fullRowsLoaded) {
-    void ensureFullResults().then(() => {
+}
+
+async function runSearch(resetPage = true, forceFull = false) {
+  const generation = ++searchGeneration;
+  const query = input.value.trim();
+  const selectedCompetition = competitionSelect.value;
+  const selectedEvent = eventSelect.value;
+  const hasFilters = Boolean(query || selectedCompetition || selectedEvent);
+  meta.textContent = hasFilters ? '正在查詢成績…' : forceFull ? '正在載入完整成績…' : '正在整理最新成績…';
+  list.setAttribute('aria-busy', 'true');
+  loadAllButton.disabled = true;
+  try {
+    let result;
+    if (forceFull || fullRowsLoaded || (!query && hasFilters)) {
+      result = { scope: 'full', rows: await ensureFullResults() };
+    } else if (query) {
+      result = await ensureNameResults(query);
+    } else {
+      result = { scope: 'recent', rows: recentRows };
+    }
+    if (generation !== searchGeneration) return;
+    if (query !== input.value.trim() || selectedCompetition !== competitionSelect.value || selectedEvent !== eventSelect.value) {
+      meta.textContent = '查詢條件已變更，請按「查詢成績」';
+      return;
+    }
+    setActiveRows(result.rows, result.scope);
+    if (result.scope === 'full') {
+      setOptions(competitionSelect, newestCompetitionsFirst(rows), '全部賽事', competitionSelect.value);
       syncEventOptions();
-      search(true);
-    }).catch(() => {});
-  } else {
-    syncEventOptions();
-    search();
+    }
+    search(resetPage);
+  } catch (error) {
+    if (generation !== searchGeneration) return;
+    meta.textContent = '成績查詢暫時無法完成';
+    list.innerHTML = `<div class="empty">${escapeHtml(error.message)}。請重新查詢。</div>`;
+    pagination.innerHTML = '';
+  } finally {
+    if (generation === searchGeneration) {
+      list.removeAttribute('aria-busy');
+      loadAllButton.disabled = false;
+      updateLoadAllControls();
+    }
   }
+}
+
+button.addEventListener('click', () => { void runSearch(); });
+input.addEventListener('keydown', event => {
+  if (event.key === 'Enter') void runSearch();
 });
-eventSelect.addEventListener('change', () => {
-  if (!fullRowsLoaded) void searchFull(true);
-  else search();
-});
-loadAllButton.addEventListener('click', () => void searchFull(true));
+competitionSelect.addEventListener('change', () => { void runSearch(); });
+eventSelect.addEventListener('change', () => { void runSearch(); });
+loadAllButton.addEventListener('click', () => { void runSearch(true, true); });
 clearButton.addEventListener('click', () => {
   input.value = '';
   competitionSelect.value = '';
-  if (fullRowsLoaded) syncEventOptions();
-  search();
+  eventSelect.value = '';
+  void runSearch();
   input.focus();
 });
 pagination.addEventListener('click', event => {
@@ -574,7 +636,7 @@ pagination.addEventListener('click', event => {
   if (!pageButton || pageButton.disabled) return;
   const page = Number(pageButton.dataset.page);
   pagination.dataset.page = String(page);
-  render(input.value, page);
+  render(appliedQuery, page);
   const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   list.scrollIntoView({ behavior, block: 'start' });
 });
@@ -586,52 +648,44 @@ window.addEventListener('resize', () => {
 });
 
 async function loadResultSource() {
-  const [recentResult, metadata, syncStatus, facets] = await Promise.all([
-    fetch('data/swim-results-recent.json').then(response => {
-      if (!response.ok) throw new Error(`最新成績 HTTP ${response.status}`);
-      return response.json();
-    }),
-    fetch('data/swim-results-meta.json').then(response => response.ok ? response.json() : null).catch(() => null),
-    fetch('data/swim-sync-status.json').then(response => response.ok ? response.json() : null).catch(() => null),
-    fetch('data/swim-search-facets.json').then(response => response.ok ? response.json() : null).catch(() => null)
+  const metadataPromise = optionalJson('data/swim-results-meta.json');
+  const statusPromise = optionalJson('data/swim-sync-status.json');
+  const [recentResult, facets] = await Promise.all([
+    fetchJson('data/swim-results-recent.json', '最新成績'),
+    optionalJson('data/swim-search-facets.json')
   ]);
-  return { recentResult, metadata, syncStatus, facets };
+  return { recentResult, facets, metadataPromise, statusPromise };
 }
 
 loadResultSource()
-  .then(async ({ recentResult, metadata, syncStatus, facets }) => {
+  .then(({ recentResult, facets, metadataPromise, statusPromise }) => {
     const params = new URLSearchParams(location.search);
     const initialCompetition = params.get('competition') || '';
     const initialEvent = params.get('event') || '';
     searchFacets = facets;
-    rows = (Array.isArray(recentResult) ? recentResult : []).map(tuple => {
+    recentRows = (Array.isArray(recentResult) ? recentResult : []).map(tuple => {
       const row = Object.fromEntries(RESULT_FIELDS.map((field, index) => [field, tuple[index] ?? null]));
       const previousTime = tuple[RESULT_FIELDS.length + 1];
-      performanceByResult.set(row.id, {
+      recentPerformanceByResult.set(row.id, {
         isPb: Boolean(tuple[RESULT_FIELDS.length]),
         difference: previousTime === null || previousTime === undefined ? null : previousTime - Number(row.time_milliseconds)
       });
       return row;
     }).sort(newestFirst);
+    setActiveRows(recentRows, 'recent');
     const competitionNames = (facets?.competitions || []).map(item => item.name);
     setOptions(competitionSelect, competitionNames.length ? competitionNames : newestCompetitionsFirst(rows), '全部賽事', initialCompetition);
     setOptions(eventSelect, uniqueSorted(facets?.events || rows.map(row => row.event)), '全部項目', initialEvent);
-    updatedAt.textContent = formatUpdatedAt(metadata?.synced_at);
-    renderUpdateNote(syncStatus);
-    syncedResultCount = Number(metadata?.result_count) || rows.length;
+    syncedResultCount ||= recentRows.length;
     input.value = params.get('q') || '';
-    clearButton.hidden = !input.value && !competitionSelect.value && !eventSelect.value;
-
-    const hasInitialSearch = Boolean(input.value.trim() || competitionSelect.value || eventSelect.value);
-    loadAllButton.hidden = hasInitialSearch || !syncedResultCount;
-    loadAllButton.textContent = `載入全部 ${syncedResultCount.toLocaleString('zh-TW')} 筆成績`;
-    loadAllHint.hidden = hasInitialSearch || !syncedResultCount;
-    if (hasInitialSearch) {
-      await ensureFullResults();
-      setOptions(eventSelect, uniqueSorted(rows.map(row => row.event)), '全部項目', params.get('event') || '');
-      syncEventOptions();
-    }
-    search();
+    void runSearch();
+    void metadataPromise.then(metadata => {
+      updatedAt.textContent = formatUpdatedAt(metadata?.synced_at);
+      syncedResultCount = Number(metadata?.result_count) || recentRows.length;
+      updateLoadAllControls();
+      if (resultScope === 'recent' && !input.value.trim()) render('');
+    });
+    void statusPromise.then(renderUpdateNote);
   })
   .catch(error => {
     meta.textContent = '資料載入失敗';

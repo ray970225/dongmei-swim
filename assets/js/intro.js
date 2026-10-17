@@ -20,21 +20,26 @@
     var overlay = document.getElementById('intro-overlay');
     var brandEl = document.getElementById('intro-brand');
     if (!overlay || !brandEl) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var seenIntro = false;
+    try { seenIntro = sessionStorage.getItem('tmsc-intro-seen') === '1'; } catch (_) {}
+    var slowConnection = /^(slow-2g|2g|3g)$/.test(navigator.connection?.effectiveType || '') || navigator.connection?.saveData;
+    if (seenIntro || location.hash || slowConnection || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       brandEl.textContent = TARGET;
       document.body.classList.add('intro-done');
       return;
     }
+    try { sessionStorage.setItem('tmsc-intro-seen', '1'); } catch (_) {}
     document.body.classList.add('intro-running');
     var isMobile = window.matchMedia('(max-width: 640px)').matches;
     var scrambleInterval = isMobile ? 90 : 55;
-    var scrambleDelay = isMobile ? 420 : 600;
-    var decodeDuration = isMobile ? 900 : 1200;
-    var settleDelay = isMobile ? 170 : 300;
-    var revealDelay = isMobile ? 120 : 200;
+    var scrambleDelay = isMobile ? 190 : 230;
+    var decodeDuration = isMobile ? 460 : 520;
+    var settleDelay = 80;
+    var revealDelay = 80;
     var len     = TARGET.length;
     var current = TARGET.split('').map(randChar);
     var lastHtml = '';
+    var safetyTimer = setTimeout(endIntro, 2500);
 
     function paint(chars) {
       var html = renderChars(chars);
@@ -54,6 +59,7 @@
 
     setTimeout(function () {
       clearInterval(timer);
+      if (!document.body.classList.contains('intro-running')) return;
 
       /* ② 逐字解碼 1200ms */
       var duration = decodeDuration;
@@ -61,6 +67,7 @@
       var locked   = new Array(len).fill(false);
 
       function frame(ts) {
+        if (!document.body.classList.contains('intro-running')) return;
         if (!start) start = ts;
         var progress = Math.min((ts - start) / duration, 1);
 
@@ -88,6 +95,7 @@
           paint(current);
 
           setTimeout(function () {
+            if (!document.body.classList.contains('intro-running')) return;
             var targetEl = document.querySelector('.hero-brand-name');
             var toRect   = targetEl ? targetEl.getBoundingClientRect() : null;
 
@@ -112,6 +120,7 @@
                 overlay.classList.add('fly-out');
                 document.body.classList.remove('intro-running');
                 document.body.classList.add('intro-done');
+                clearTimeout(safetyTimer);
 
                 /* overlay 淡出完成後直接移除，hero-brand 接替 */
                 overlay.addEventListener('transitionend', function handler2(e) {
@@ -130,6 +139,9 @@
     }, scrambleDelay);
 
     function endIntro() {
+      if (document.body.classList.contains('intro-done')) return;
+      clearTimeout(safetyTimer);
+      clearInterval(timer);
       overlay.classList.add('fly-out');
       document.body.classList.remove('intro-running');
       document.body.classList.add('intro-done');

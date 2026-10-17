@@ -113,7 +113,8 @@
   .nav-cta:hover { background: var(--gold) !important; transform: translateY(-1px); box-shadow: 0 14px 30px rgba(242,200,75,0.25); }
 
   /* hamburger */
-  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+  .hamburger { display:none; flex-direction:column; justify-content:center; gap:5px; min-width:44px; min-height:44px; padding:10px; border:0; background:transparent; cursor:pointer; }
+  .hamburger:focus-visible { outline:2px solid var(--aqua); outline-offset:3px; border-radius:6px; }
   .hamburger span { display:block; width:24px; height:2px; background:var(--foam); border-radius:2px; transition:.3s; }
 
   /* ───────────────────────────────────────────

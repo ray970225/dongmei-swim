@@ -1,20 +1,14 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { RESULT_FIELDS, newestFirst, performanceKey } from '../assets/js/result-data.js';
 
 const DATA_DIR = new URL('../data/', import.meta.url);
 const SHARD_DIR = new URL('../data/swim-athlete-shards/', import.meta.url);
 const SHARD_COUNT = 32;
 
-export const RESULT_FIELDS = [
-  'id', 'swimmer_id', 'swimmer', 'team', 'event', 'competition', 'competition_date',
-  'rank', 'time', 'time_milliseconds', 'pool_type', 'round', 'age_group', 'splits'
-];
-
 const asTuple = row => RESULT_FIELDS.map(field => row[field] ?? null);
-const newestFirst = (a, b) => String(b.competition_date || '').localeCompare(String(a.competition_date || ''))
-  || String(a.id || '').localeCompare(String(b.id || ''));
-const performanceKey = row => [row.swimmer_id || row.swimmer || '', row.event || '', row.pool_type || '未列池別'].join('|');
+export { RESULT_FIELDS };
 
 function shardFor(sourceId) {
   let hash = 2166136261;

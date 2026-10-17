@@ -1,14 +1,11 @@
 import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
 import { splitSegments, formatSplitTime } from './split-times.js';
+import { decodeRows } from './result-data.js';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
 const sourceSwimmerId = params.get('swimmer_id') || '';
 const requestedName = params.get('name') || '';
-const RESULT_FIELDS = [
-  'id', 'swimmer_id', 'swimmer', 'team', 'event', 'competition', 'competition_date',
-  'rank', 'time', 'time_milliseconds', 'pool_type', 'round', 'age_group', 'splits'
-];
 let resultRows = [];
 let selectedEvent = '';
 let selectedPool = '';
@@ -17,11 +14,6 @@ function normalizeName(value) { return String(value || '').normalize('NFKC').rep
 function isNetworkUnavailable(error) {
   const detail = [error?.name, error?.message, error?.details, error?.hint].filter(Boolean).join(' ').toLowerCase();
   return error instanceof TypeError || /typeerror|failed to fetch|fetch failed|networkerror|network error|load failed|timeout/.test(detail);
-}
-function decodeRows(tuples) {
-  return (Array.isArray(tuples) ? tuples : []).map(tuple => Object.fromEntries(
-    RESULT_FIELDS.map((field, index) => [field, tuple[index] ?? null])
-  ));
 }
 async function fetchRowsForSourceIds(sourceIds, roster = null) {
   const ids = new Set((sourceIds || []).map(String).filter(Boolean));
