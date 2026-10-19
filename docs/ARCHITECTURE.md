@@ -37,9 +37,11 @@ npm test && npm run build
 
 ## 建置與部署
 
-- Vite 多頁建置，推送到 `main` 後由 GitHub Actions 執行 `npm test`、`npm run build` 並部署 GitHub Pages。
+- 正式網址：https://dongmei-swim.pages.dev （Cloudflare Pages）。推送到 `main` 後 Cloudflare 自動執行 `npm test && npm run build`，發布 `dist/`；Node 版本由 `.node-version` 指定。
+- 舊網址 `ray970225.github.io/dongmei-swim/` 仍由 GitHub Pages 提供，但只放轉址頁（`scripts/build-redirect.mjs`），保留路徑、查詢參數與錨點，舊連結與密碼重設信都會轉到新網址。
 - 推送一律使用 GitHub Desktop（見 `AGENTS.md`）。
 - `data/swim-results.json`、`swim-honours.json` 是同步來源，保留在 repository，但不進入發布檔。
+- 換網址時要一起改：`tmsc-api` 允許的來源（`supabase/functions/_shared/proxy-core.js`，需重新部署）、Supabase Auth 的 Site URL 與 Redirect URLs、HTML 內的 canonical／分享網址、`sitemap.xml`、`robots.txt`。
 
 ## 不做的事
 

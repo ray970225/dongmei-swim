@@ -1,4 +1,6 @@
 const ALLOWED_ORIGINS = new Set([
+  'https://dongmei-swim.pages.dev',
+  // 舊網址轉址期間保留，確定沒有流量後可移除
   'https://ray970225.github.io',
   'http://localhost:8000',
   'http://127.0.0.1:8000'

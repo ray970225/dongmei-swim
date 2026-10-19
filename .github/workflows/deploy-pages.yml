@@ -1,5 +1,6 @@
-name: 建置並部署 GitHub Pages
+name: 舊網址轉址（GitHub Pages）
 
+# 正式網站由 Cloudflare Pages 部署；GitHub Pages 只把舊網址轉到 dongmei-swim.pages.dev。
 on:
   push:
     branches: [main]
@@ -22,14 +23,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
+      - run: node scripts/build-redirect.mjs
+      - run: cp google751e2b841f12dd88.html redirect-dist/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: dist
+          path: redirect-dist
 
   deploy:
     environment:

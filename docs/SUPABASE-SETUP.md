@@ -23,7 +23,7 @@
 
 1. **已完成：**已建立 Free 專案 `xsmbubwgtkbtsyiskivf`（首爾，Project URL：`https://xsmbubwgtkbtsyiskivf.supabase.co`）。key 不記錄在文件或公開 repository。
 2. **已完成：**在 Authentication 關閉公開註冊，並新增下列允許的登入連結：
-   - `https://ray970225.github.io/dongmei-swim/education.html`
+   - `https://dongmei-swim.pages.dev/education.html`
    - 本機預覽才需要：`http://localhost:8000/education.html`
 3. **已完成：**在 SQL Editor 執行 [`supabase/migrations/202609250001_tmsc_v2_foundation.sql`](../supabase/migrations/202609250001_tmsc_v2_foundation.sql) 和 [`supabase/migrations/202609250002_service_role_grants.sql`](../supabase/migrations/202609250002_service_role_grants.sql)。15 張資料表均啟用 RLS；文章及附件資料沒有匿名讀取政策。
 4. **已完成：**`education` bucket 的 Public 狀態為關閉。會員閱讀需有效登入並透過短效 signed URL 取得附件。
@@ -72,7 +72,7 @@ npm run swim:check
 
 Supabase 會為 Edge Functions 提供專案 URL、anon key 與 service-role key。另在 Supabase Edge Function secrets 設定：
 
-- `PUBLIC_SITE_URL`：`https://ray970225.github.io/dongmei-swim/education.html`。
+- `PUBLIC_SITE_URL`：`https://dongmei-swim.pages.dev/education.html`。
 
 已移除只供管理台派送同步的 GitHub Actions workflow；不再需要為此功能設定 GitHub Actions secrets。資料庫保留既有 `sync_jobs` 歷史表，但網站不會建立新同步工作。
 

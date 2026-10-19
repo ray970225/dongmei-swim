@@ -10,7 +10,7 @@ const pageEntries = Object.fromEntries(
 );
 
 export default defineConfig({
-  base: '/dongmei-swim/',
+  base: '/',
   plugins: [
     react(),
     {
