@@ -1,3 +1,9 @@
+/* ─── 隊史年數與版權年份（避免每年手動修改） ─── */
+const FOUNDED_YEAR = 1998;
+const currentYear = new Date().getFullYear();
+document.querySelectorAll('[data-team-years]').forEach(node => { node.textContent = String(currentYear - FOUNDED_YEAR); });
+document.querySelectorAll('[data-current-year]').forEach(node => { node.textContent = String(currentYear); });
+
 /* ─── NAV ─── */
 const navLinks = document.getElementById('navLinks');
 const menuButton = document.getElementById('hamburger');

@@ -69,8 +69,13 @@ export async function writePublicResultData(sourceRows) {
     if (!id) return;
     const shard = shardFor(id);
     if (!athletesById.has(id)) {
-      athletesById.set(id, { id, name: String(row.swimmer || '').trim(), shard: String(shard).padStart(2, '0') });
+      // Rows are newest first, so the first row seen carries the latest meet date.
+      athletesById.set(id, {
+        id, name: String(row.swimmer || '').trim(), shard: String(shard).padStart(2, '0'),
+        result_count: 0, latest_date: row.competition_date || ''
+      });
     }
+    athletesById.get(id).result_count += 1;
     rowsByShard[shard].push(row);
   });
 

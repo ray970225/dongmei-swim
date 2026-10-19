@@ -1,6 +1,7 @@
 import { splitSegments, formatSplitTime } from './split-times.js';
 import { RESULT_FIELDS, decodeRows, newestFirst, performanceKey } from './result-data.js';
 import { planNameSearch } from './result-search.js';
+import { escapeHtml, formatTime, eventInfo as trendEventInfo, compareEvents, poolLabel as trendPoolLabel, poolOrder as trendPoolOrder } from './swim-format.js';
 
 const input = document.getElementById('searchInput');
 const button = document.getElementById('searchBtn');
@@ -38,9 +39,6 @@ let activeTrendKey = '';
 let trendListKey = '';
 let syncedResultCount = 0;
 
-const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-}[char]));
 const uniqueSorted = values => [...new Set(values.filter(Boolean))]
   .sort((a, b) => String(a).localeCompare(String(b), 'zh-Hant'));
 const newestCompetitionsFirst = sourceRows => {
@@ -58,12 +56,6 @@ const newestCompetitionsFirst = sourceRows => {
   });
 };
 const formatRank = rank => rank ? `第 ${rank} 名` : '名次未列';
-const formatTime = milliseconds => {
-  const totalSeconds = milliseconds / 1000;
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = (totalSeconds % 60).toFixed(2).padStart(5, '0');
-  return minutes ? `${minutes}:${seconds}` : `${totalSeconds.toFixed(2)} 秒`;
-};
 const formatDifference = milliseconds => {
   const seconds = Math.abs(milliseconds) / 1000;
   return seconds < 60 ? `${seconds.toFixed(2)} 秒` : formatTime(Math.abs(milliseconds));
@@ -72,28 +64,6 @@ const swimmerNameKey = row => String(row.swimmer || '').trim();
 const swimmerNames = sourceRows => uniqueSorted(sourceRows.map(swimmerNameKey));
 const trendKey = (event, poolType) => [event || '未列項目', poolType || '未列池別'].join('\u0001');
 const trendKeyParts = key => String(key).split('\u0001');
-const trendEventInfo = event => {
-  const match = String(event || '').match(/^(\d+)\s*(?:公尺|米)?\s*(.*)$/u);
-  return match
-    ? { distance: Number(match[1]), distanceLabel: `${match[1]} 公尺`, stroke: match[2] || event }
-    : { distance: Infinity, distanceLabel: '其他項目', stroke: String(event || '未列項目') };
-};
-const trendStrokeOrder = event => {
-  const stroke = trendEventInfo(event).stroke;
-  if (stroke.includes('蝶')) return 0;
-  if (stroke.includes('仰')) return 1;
-  if (stroke.includes('蛙')) return 2;
-  if (stroke.includes('自由')) return 3;
-  if (stroke.includes('混合')) return 4;
-  if (stroke.includes('接力')) return 5;
-  return 6;
-};
-const trendPoolLabel = poolType => ({
-  '長池': '長池（50 公尺）',
-  '短池': '短池（25 公尺）',
-  '未列池別': '未標示池別'
-}[poolType] || poolType || '未標示池別');
-const trendPoolOrder = poolType => ({ '長池': 0, '短池': 1, '未列池別': 2 }[poolType] ?? 3);
 const trendEventGroups = events => {
   const groups = new Map();
   uniqueSorted(events).forEach(event => {
@@ -105,9 +75,7 @@ const trendEventGroups = events => {
     const aDistance = trendEventInfo(aEvents[0]).distance;
     const bDistance = trendEventInfo(bEvents[0]).distance;
     return aDistance - bDistance || aLabel.localeCompare(bLabel, 'zh-Hant');
-  }).map(([label, groupedEvents]) => [label, groupedEvents.sort((a, b) =>
-    trendStrokeOrder(a) - trendStrokeOrder(b) || String(a).localeCompare(String(b), 'zh-Hant')
-  )]);
+  }).map(([label, groupedEvents]) => [label, groupedEvents.sort(compareEvents)]);
 };
 const trendDisplayRows = series => series.length > TREND_DISPLAY_LIMIT
   ? series.slice(-TREND_DISPLAY_LIMIT)
@@ -329,7 +297,8 @@ const renderTrendControls = (swimmerId, swimmerName, selectedKey) => {
   if (needsMarkup) {
     insightsPanel.innerHTML = `<div class="insight-head">
       <div class="insight-copy"><div class="insight-title">${escapeHtml(swimmerName)}｜成績趨勢</div>
-        <div class="insight-sub">先選項目與池別，才會顯示趨勢；選好後會同步篩選下方成績。</div></div>
+        <div class="insight-sub">先選項目與池別，才會顯示趨勢；選好後會同步篩選下方成績。</div>
+        <a class="insight-profile-link" href="athlete.html?name=${encodeURIComponent(swimmerName)}">查看個人最佳與完整紀錄 <span aria-hidden="true">→</span></a></div>
       <div class="trend-controls" aria-label="成績趨勢篩選條件">
         <label class="trend-control"><span>項目（距離／泳式）</span><select id="trendEventSelect" aria-label="成績趨勢項目"></select></label>
         <label class="trend-control"><span>池別</span><select id="trendPoolSelect" aria-label="成績趨勢池別"></select></label>

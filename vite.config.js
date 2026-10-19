@@ -39,6 +39,9 @@ export default defineConfig({
         for (const file of ['swim-results.json', 'swim-honours.json']) {
           rmSync(resolve(output, 'data', file), { force: true });
         }
+        // Icons and the web manifest keep stable URLs (the manifest references them by path).
+        const iconSource = resolve(process.cwd(), 'assets/icons');
+        if (existsSync(iconSource)) cpSync(iconSource, resolve(output, 'assets/icons'), { recursive: true });
         for (const file of ['robots.txt', 'sitemap.xml']) {
           const source = resolve(process.cwd(), file);
           if (existsSync(source)) copyFileSync(source, resolve(output, file));

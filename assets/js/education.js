@@ -1,5 +1,5 @@
 import { mountEducationApp, unmountEducationApp, updateEducationApp } from '../../src/education-app.jsx';
-import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-4';
+import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
 
 const $ = selector => document.querySelector(selector);
 let authLinkType = new URLSearchParams(location.hash.slice(1)).get('type') || '';

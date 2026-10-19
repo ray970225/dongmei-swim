@@ -16,8 +16,9 @@
 
 ## 資料格式與維護
 
-- `assets/js/result-data.js` 是成績 tuple 欄位、解碼、排序與 PB 分組鍵的共用定義。產生器、成績頁、選手頁都使用它；欄位變更時先修改這裡。
-- `crawler/build-public-data.mjs` 從來源資料產生最近成績、完整公開資料、選手索引與 32 個分區。重新同步成績後，執行 `pnpm swim:public-data`。
+- `assets/js/result-data.js` 是成績 tuple 欄位、解碼、排序與 PB 分組鍵的共用定義。產生器、成績頁、選手頁都使用它；欄位變更時先修改這裡。時間格式、項目排序（50→1500、蝶仰蛙自混）等顯示規則集中在 `assets/js/swim-format.js`。
+- 選手名單 `swim-athletes.json` 每位選手含分區、成績筆數與最近出賽日，選手頁只下載該選手所在的分區。
+- `crawler/build-public-data.mjs` 從來源資料產生最近成績、完整公開資料、選手索引與 32 個分區。重新同步成績後，執行 `npm run swim:public-data`。
 - `data/swim-results.json` 和 `data/swim-honours.json` 是同步工作的來源快照，需要保留在專案中；Vite 發布時不會複製到 `dist`。
 - `assets/images` 中的 PNG 原始圖保留於專案，未使用的大圖不進入發布檔。不要以清理發布檔為理由刪除原始素材。
-- 修改查詢索引或資料格式後執行 `pnpm test` 和 `pnpm build`。`scripts/test-result-search.mjs` 會比對姓名分區查詢和完整公開資料的結果。
+- 修改查詢索引或資料格式後執行 `npm test` 和 `npm run build`。`scripts/test-result-search.mjs` 會比對姓名分區查詢和完整公開資料的結果。

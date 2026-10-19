@@ -1,6 +1,5 @@
-import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
+import { isSupabaseConfigured, publicSelect } from './supabase-client.js';
 
-let supabasePromise;
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
@@ -10,12 +9,6 @@ const safeImageUrl = value => {
     return ['https:', 'http:'].includes(url.protocol) ? escapeHtml(url.href) : '';
   } catch { return ''; }
 };
-
-async function publicSupabase() {
-  if (!isSupabaseConfigured()) return null;
-  supabasePromise ||= getSupabase();
-  return supabasePromise;
-}
 
 function rankFromAward(award = '') {
   const text = String(award);
@@ -39,7 +32,7 @@ function medalForRank(rank, award = '') {
   return ['🥇', '🥈', '🥉'].includes(marker) ? marker : '';
 }
 
-/* scroll reveal observer (已在上方 script 宣告，這裡重新取得) */
+/* 動態插入的卡片也要套用捲動顯示效果 */
 const revealObs = new IntersectionObserver(
   entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
   { threshold: 0.12 }
@@ -50,17 +43,13 @@ async function loadNews() {
   const loadingEl = document.getElementById('newsLoading');
   const errorEl   = document.getElementById('newsError');
   try {
-    let rows;
-    const client = await publicSupabase();
-    if (client) {
-      const { data, error } = await client.from('site_news').select('id,date,title,desc,img').order('date', { ascending: false });
-      if (error) throw error;
-      rows = data || [];
-    } else rows = [];
+    const rows = isSupabaseConfigured()
+      ? await publicSelect('site_news', 'select=id,date,title,desc,img&order=date.desc')
+      : [];
     rows.sort((a,b) => (b.date||'').localeCompare(a.date||''));
     loadingEl.style.display = 'none';
     const grid = document.getElementById('newsGrid');
-    if (!rows.length) { grid.innerHTML = '<p style="color:var(--gray);font-size:.85rem;">目前暫無消息，敬請期待。</p>'; return; }
+    if (!rows.length) { await renderRecentMeets(grid); return; }
     grid.innerHTML = rows.map(r => {
       const imageUrl = safeImageUrl(r.img);
       return `
@@ -83,11 +72,27 @@ async function loadNews() {
   }
 }
 
+// 沒有公告時，改列成績資料中最近的賽事，讓這一區仍有實際內容。
+async function renderRecentMeets(grid) {
+  const facets = await fetch('data/swim-search-facets.json').then(response => response.ok ? response.json() : null).catch(() => null);
+  const meets = (facets?.competitions || []).slice(0, 3);
+  if (!meets.length) { grid.innerHTML = '<p class="news-empty-note">目前暫無消息，敬請期待。</p>'; return; }
+  grid.classList.add('news-meets-host');
+  grid.innerHTML = `<p class="news-empty-note">目前沒有新公告，以下是最近同步的賽事成績。</p>
+    <div class="news-meets">${meets.map(meet => `
+      <a class="news-meet" href="results.html?competition=${encodeURIComponent(meet.name)}">
+        <span class="news-meet-date">${escapeHtml(meet.latest_date || '')}</span>
+        <span class="news-meet-name">${escapeHtml(meet.name)}</span>
+        <span class="news-meet-link">查看這場賽事成績 →</span>
+      </a>`).join('')}</div>`;
+}
+
 /* ─── LOAD HONOURS ─── */
 let allHonours = [];
 let currentHonoursCat = 'all';
 let currentHonoursPage = 1;
-const HONOURS_PER_PAGE = 6;
+let honoursQuery = '';
+const HONOURS_PER_PAGE = 8;
 let honoursLoadStarted = false;
 
 async function loadHonours() {
@@ -128,19 +133,18 @@ async function loadHonours() {
 }
 
 async function loadManualHonours() {
-  const client = await publicSupabase();
-  if (client) {
-    const { data, error } = await client.from('site_honours').select('id,cat,event,name,year,items');
-    if (error) throw error;
-    return (data || []).map(row => ({ ...row, source: 'manual' }));
-  }
-  throw new Error('網站資料服務尚未設定');
+  const data = await publicSelect('site_honours', 'select=id,cat,event,name,year,items');
+  return (data || []).map(row => ({ ...row, source: 'manual' }));
 }
 
 function renderHonours(cat = currentHonoursCat, page = 1) {
   currentHonoursCat = cat;
   currentHonoursPage = page;
-  const data = cat === 'all' ? allHonours : allHonours.filter(r => (r.cat||'').includes(cat));
+  const query = honoursQuery.trim();
+  const data = allHonours.filter(r => (cat === 'all' || (r.cat || '').includes(cat))
+    && (!query || `${r.name || ''} ${r.event || ''} ${r.year || ''}`.includes(query)));
+  document.getElementById('honoursCount').textContent = allHonours.length
+    ? `共 ${data.length.toLocaleString('zh-TW')} 筆前八名紀錄${query ? `（搜尋「${query}」）` : ''}` : '';
   const grid = document.getElementById('honoursGrid');
   const pagination = document.getElementById('honoursPagination');
   const totalPages = Math.ceil(data.length / HONOURS_PER_PAGE);
@@ -149,7 +153,7 @@ function renderHonours(cat = currentHonoursCat, page = 1) {
   const pageData = data.slice(start, start + HONOURS_PER_PAGE);
 
   if (!data.length) {
-    grid.innerHTML = '<p style="color:var(--gray);font-size:.85rem;padding:1rem 0;">尚無記錄。</p>';
+    grid.innerHTML = '<p class="news-empty-note">沒有符合的紀錄，請換個關鍵字或類別。</p>';
     pagination.innerHTML = '';
     return;
   }
@@ -205,27 +209,37 @@ function renderHonoursPagination(totalPages) {
   `;
 }
 
-/* 讓 filter 按鈕能用 renderHonours */
-window._renderHonours = renderHonours;
 document.getElementById('honoursFilter').addEventListener('click', e => {
   const btn = e.target.closest('.filter-btn');
   if (!btn) return;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll('#honoursFilter .filter-btn').forEach(b => {
+    b.classList.toggle('active', b === btn);
+    b.setAttribute('aria-pressed', String(b === btn));
+  });
   renderHonours(btn.dataset.cat, 1);
+});
+
+let honoursSearchTimer;
+document.getElementById('honoursSearch').addEventListener('input', event => {
+  clearTimeout(honoursSearchTimer);
+  honoursSearchTimer = setTimeout(() => {
+    honoursQuery = event.target.value;
+    if (allHonours.length) renderHonours(currentHonoursCat, 1);
+  }, 180);
 });
 
 document.getElementById('honoursPagination').addEventListener('click', e => {
   const btn = e.target.closest('.page-btn');
   if (!btn || btn.disabled) return;
   renderHonours(currentHonoursCat, Number(btn.dataset.page));
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  document.getElementById('honoursGrid').scrollIntoView({ behavior, block: 'start' });
 });
 
 async function loadRecruitmentGroups() {
-  const client = await publicSupabase();
-  if (!client) return;
-  const { data, error } = await client.from('recruitment_classes').select('name,age,desc').order('sort_order');
-  if (error || !data?.length) return;
+  if (!isSupabaseConfigured()) return;
+  const data = await publicSelect('recruitment_classes', 'select=name,age,desc&order=sort_order').catch(() => null);
+  if (!data?.length) return;
   const host = document.querySelector('.recruit-groups'); host.replaceChildren();
   data.forEach(group => {
     const card = document.createElement('div'); card.className = 'group-card';

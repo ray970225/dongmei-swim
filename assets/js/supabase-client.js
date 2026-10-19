@@ -24,9 +24,22 @@ export function sanitizeProxyHeaders(input) {
   return headers;
 }
 
+// Anonymous read of a public table without downloading supabase-js (used by the homepage).
+// `query` is a PostgREST query string such as `select=id,title&order=date.desc`.
+export async function publicSelect(table, query) {
+  if (!isSupabaseConfigured()) throw new Error('網站資料服務尚未設定');
+  const path = `/rest/v1/${table}?${query}`;
+  const response = config.proxyUrl
+    ? await fetch(`${config.proxyUrl}?path=${encodeURIComponent(path)}`)
+    : await fetch(`${config.url.replace(/\/$/, '')}${path}`, { headers: { apikey: config.publishableKey } });
+  if (!response.ok) throw new Error(`${table} HTTP ${response.status}`);
+  return response.json();
+}
+
 export async function getSupabase() {
   if (!isSupabaseConfigured()) return null;
-  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  // Bundled from npm (pinned in package-lock) instead of a runtime CDN import.
+  const { createClient } = await import('@supabase/supabase-js');
   const proxyFetch = config.proxyUrl ? async (input, init = {}) => {
     const request = new Request(input, init);
     const source = new URL(request.url);

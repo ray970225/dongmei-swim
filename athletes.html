@@ -1,24 +1,26 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant-TW">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,follow">
   <meta name="theme-color" content="#06182b">
   <title>選手名單｜東美游泳隊</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="assets/css/results.css">
-  <link rel="stylesheet" href="assets/css/athlete.css?v=tmsc-brand-2">
+  <link rel="stylesheet" href="assets/css/athlete.css">
 </head>
 <body class="athlete-page athletes-directory">
   <header class="topbar athlete-topbar">
     <a class="brand" href="index.html">TMSC東<span>美</span>游泳隊</a>
-    <a class="back-link" href="index.html">官網首頁</a>
+    <nav class="topbar-links" aria-label="頁面導覽"><a class="topbar-text-link" href="results.html">成績查詢</a><a class="back-link" href="index.html">官網首頁</a></nav>
   </header>
   <main class="athlete-main">
     <section class="directory-intro"><p class="eyebrow">TMSC / ATHLETE RECORDS</p><h1>選手<span>資料</span></h1><p>個人最佳、項目紀錄與成績趨勢，整理自真實比賽成績。</p></section>
-    <section class="library-section"><div class="library-heading"><div><p class="eyebrow">SWIMMERS</p><h2>選手名單</h2><span id="athleteCount" class="directory-count" aria-live="polite"></span></div><label class="search-field"><span class="sr-only">搜尋選手</span><input id="athleteSearch" type="search" placeholder="搜尋選手姓名" autocomplete="off"><span aria-hidden="true">⌕</span></label></div><div id="athleteDirectory" class="athlete-directory-list" aria-live="polite"><p class="empty">資料載入中…</p></div></section>
+    <section class="library-section"><div class="library-heading"><div><p class="eyebrow">SWIMMERS</p><h2>選手名單</h2><span id="athleteCount" class="directory-count" aria-live="polite"></span></div><div class="directory-tools"><div class="directory-sort" role="group" aria-label="排序方式"><button type="button" data-sort="recent" aria-pressed="true">最近出賽</button><button type="button" data-sort="name" aria-pressed="false">依姓名</button></div><label class="search-field"><span class="sr-only">搜尋選手</span><input id="athleteSearch" type="search" placeholder="搜尋選手姓名" autocomplete="off"><span aria-hidden="true">⌕</span></label></div></div><div id="athleteDirectory" class="athlete-directory-list" aria-live="polite"><p class="empty">資料載入中…</p></div></section>
   </main>
-  <script src="assets/js/runtime-config.js"></script>
-  <script type="module" src="assets/js/athletes.js?v=20261016-light-roster"></script>
+  <script type="module" src="assets/js/athletes.js"></script>
 </body>
 </html>

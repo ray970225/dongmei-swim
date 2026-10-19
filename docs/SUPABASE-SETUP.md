@@ -14,10 +14,10 @@
    };
    ```
 
-- Firebase 設定已從受 Git 追蹤的首頁與舊後台程式移出；正式頁不再直連 Firebase。
+- 舊 Firebase 後台（`admin.html`）已移除；網站不再使用 Firebase。
 - service-role key 可以繞過 RLS，只能給匯入程式、GitHub Actions 或伺服器函式使用，不能放在前端、Git 或對話。
 - GitHub dispatch token 和成績來源憑證也只放在各自的伺服器密鑰管理器。
-- 成績來源目前禁止大量自動擷取。沒有來源明確授權前，不可啟用舊爬蟲；須先取得授權，或把工作流程改接核准的官方 feed／匯出檔。
+- 游泳成績通站長已同意本站以爬蟲更新成績；爬蟲只在本機人工執行，流程見 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ## 建立專案與套用資料規則
 
@@ -54,7 +54,7 @@ supabase functions deploy tmsc-api
 supabase functions deploy manage-member
 ```
 
-正式管理台不再觸發成績來源擷取。管理員如具來源授權，可在本機人工整理資料；爬蟲會拒絕未設定來源授權旗標的執行：
+正式管理台不觸發成績擷取。成績由維護者在本機更新；爬蟲需設定授權旗標才會執行，避免誤觸：
 
 ```sh
 npm run swim:login

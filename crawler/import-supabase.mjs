@@ -1,7 +1,8 @@
 import { readFile, rename, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { createAutomaticHonours } from './honours.mjs';
+import { createAutomaticHonours, createPublicHonours } from './honours.mjs';
+import { writePublicResultData } from './build-public-data.mjs';
 import { createSearchFacets } from './search-facets.mjs';
 
 const root = new URL('../', import.meta.url);
@@ -11,6 +12,7 @@ const metadataPath = join(dataDirectory, 'swim-results-meta.json');
 const honoursPath = join(dataDirectory, 'swim-honours.json');
 const syncStatusPath = join(dataDirectory, 'swim-sync-status.json');
 const facetsPath = join(dataDirectory, 'swim-search-facets.json');
+const publicHonoursPath = join(dataDirectory, 'swim-honours-public.json');
 const endpoint = process.env.SUPABASE_URL?.replace(/\/$/, '');
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const batchSize = 200;
@@ -223,8 +225,11 @@ await Promise.all([
   writeJsonAtomically(metadataPath, publicMetadata),
   writeJsonAtomically(honoursPath, publicHonours),
   writeJsonAtomically(syncStatusPath, publicSyncStatus),
-  writeJsonAtomically(facetsPath, createSearchFacets(publicRows, importedAt))
+  writeJsonAtomically(facetsPath, createSearchFacets(publicRows, importedAt)),
+  writeFile(publicHonoursPath, JSON.stringify(createPublicHonours(publicHonours)), 'utf8')
 ]);
+// The browser reads the compact files, so rebuild them from the same filtered rows.
+await writePublicResultData(publicRows);
 
 if (process.env.SWIM_SYNC_JOB_ID) {
   await request(`sync_jobs?id=eq.${encodeURIComponent(process.env.SWIM_SYNC_JOB_ID)}`, {

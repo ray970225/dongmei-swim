@@ -1,4 +1,4 @@
-import { getSupabase, isSupabaseConfigured } from './supabase-client.js?v=20260925-4';
+import { getSupabase, isSupabaseConfigured } from './supabase-client.js';
 
 const $ = selector => document.querySelector(selector);
 let supabase;
