@@ -1,7 +1,11 @@
 {
   "version": 1,
-  "generated_at": "2026-10-15T08:36:26.820Z",
+  "generated_at": "2026-11-01T08:52:27.901Z",
   "competitions": [
+    {
+      "name": "115年全國南區(2)游泳錦標賽",
+      "latest_date": "2026-11-01"
+    },
     {
       "name": "115年議長盃全國分齡游泳錦標賽",
       "latest_date": "2026-09-13"
