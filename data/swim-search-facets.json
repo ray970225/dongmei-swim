@@ -1,7 +1,11 @@
 {
   "version": 1,
-  "generated_at": "2026-11-01T08:52:27.901Z",
+  "generated_at": "2026-11-25T16:36:17.030Z",
   "competitions": [
+    {
+      "name": "115年全國冬季短水道游泳錦標賽",
+      "latest_date": "2026-11-23"
+    },
     {
       "name": "115年全國南區(2)游泳錦標賽",
       "latest_date": "2026-11-01"
